@@ -278,6 +278,10 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 @keyframes eq{0%,100%{height:30%}50%{height:100%}}
 @media (prefers-reduced-motion:reduce){.mbtn.on .eq i{animation:none;height:70%}}
 @media (max-width:560px){.music .mlbl{display:none}}
+.warn{box-shadow:0 0 18px rgba(254,229,3,.35),0 0 46px rgba(254,229,3,.18),inset 0 0 24px rgba(254,229,3,.06);animation:glow 3.2s ease-in-out infinite}
+.warn .mark{box-shadow:0 0 14px rgba(254,229,3,.8),0 0 34px rgba(254,229,3,.45)}
+@keyframes glow{0%,100%{box-shadow:0 0 14px rgba(254,229,3,.28),0 0 36px rgba(254,229,3,.14),inset 0 0 20px rgba(254,229,3,.05)}50%{box-shadow:0 0 26px rgba(254,229,3,.55),0 0 70px rgba(254,229,3,.28),inset 0 0 30px rgba(254,229,3,.1)}}
+@media (prefers-reduced-motion:reduce){.warn{animation:none}}
 </style>
 
 <!-- Microsoft Clarity -->
