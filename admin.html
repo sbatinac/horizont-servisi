@@ -162,6 +162,10 @@ main{padding-block:24px 60px;display:grid;gap:28px}
 .st.run{border-color:var(--y);color:var(--y)}.st.pau{border-color:#E39B3B;color:#E39B3B}
 .sess{display:grid;gap:2px;font:.82rem var(--mono);color:var(--muted);margin-top:6px}
 @media (prefers-reduced-motion:reduce){.work.run .dot{animation:none}}
+.days{display:flex;flex-wrap:wrap;gap:6px;padding:0 18px 12px;background:#121211}
+.work.run+.days,.work.run~.days{background:#1F1D08}
+.dd{display:inline-flex;gap:8px;align-items:baseline;border:1px solid var(--line);border-radius:6px;padding:5px 10px;font:.8rem var(--mono);color:var(--muted)}
+.dd b{color:var(--ink);font-weight:600;text-transform:capitalize}.dd .dh{color:var(--y);font-weight:600}
 .flash{animation:fl 1.6s ease}
 @keyframes fl{0%,40%{box-shadow:0 0 0 3px var(--y)}100%{box-shadow:none}}
 @media (max-width:720px){.cal-d{min-height:64px;padding:4px}.cal-d .ev{font-size:0;padding:3px;height:8px}.cal-d .ev b{display:none}.kpis{grid-template-columns:repeat(2,1fr)}}
@@ -379,16 +383,32 @@ const CONF = { start: ['Započeti rad na ovom nalogu?', 'Započni'], pause: ['Za
   resume: ['Nastaviti rad na nalogu?', 'Nastavi'], stop: ['Završiti rad? Odrađeno vrijeme ide u obračun.', 'Završi rad'] };
 let confirmAsk = {};
 
+function perDay(a, now = Date.now()) {
+  const m = {};
+  a.forEach(x => { let t = Date.parse(x.s); const end = x.e ? Date.parse(x.e) : now;
+    while (t < end) { const d = new Date(t), next = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime(), stop = Math.min(end, next), k = ymd(d);
+      (m[k] = m[k] || { ms: 0, from: t, to: stop }); m[k].ms += stop - t; m[k].from = Math.min(m[k].from, t); m[k].to = Math.max(m[k].to, stop); t = stop; } });
+  return Object.keys(m).sort().map(k => ({ day: k, ...m[k] }));
+}
+const tEnd = ts => { const d = new Date(ts); return d.getHours() === 0 && d.getMinutes() === 0 && d.getSeconds() === 0 ? '24:00' : d.toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }); };
+const hm = ms => { const t = Math.round(ms / 6e4); return Math.floor(t / 60) + ':' + pad(t % 60) + ' h'; };
+const dayLbl = k => { const d = new Date(k + 'T12:00'); return d.toLocaleDateString('hr-HR', { weekday: 'short' }) + ' ' + hrDate(d); };
+const perDayTxt = a => perDay(a).map(x => dayLbl(x.day) + ' ' + new Date(x.from).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }) + '–' + tEnd(x.to) + ' · ' + hm(x.ms)).join('; ');
+function daysHTML(a) {
+  if (!a.length) return '';
+  const rows = perDay(a);
+  return `<div class="days">${rows.map(x => `<span class="dd"><b>${dayLbl(x.day)}</b><span>${new Date(x.from).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' })}–${tEnd(x.to)}</span><span class="dh">${hm(x.ms)}</span></span>`).join('')}</div>`;
+}
 function workBar(o, id) {
   const a = sessions(o), run = running(o), ms = workedMs(a), st = status(o);
-  if (st === 'Riješeno') return a.length ? `<div class="work"><span class="dot"></span><span class="timer">${hms(ms)}</span><span class="wl">ukupno radno vrijeme · ${a.length} ${a.length === 1 ? 'dio' : 'dijela'}</span></div>` : '';
+  if (st === 'Riješeno') return a.length ? `<div class="work"><span class="dot"></span><span class="timer">${hms(ms)}</span><span class="wl">ukupno radno vrijeme · ${perDay(a).length} ${perDay(a).length === 1 ? 'dan' : 'dana'}</span></div>${daysHTML(a)}` : '';
   const cls = run ? 'run' : a.length ? 'pause' : '';
   const lbl = st === 'Za obračun' && !run ? 'Rad završen, čeka obračun' : run ? 'U radu od ' + new Date(run.s).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }) : a.length ? 'Pauzirano · odrađeno do sada' : 'Rad još nije započet';
   const btns = run ? `<button type="button" class="btn ghost" data-do="ask" data-w="pause">⏸ Zaustavi</button><button type="button" class="btn" data-do="ask" data-w="stop">■ Završi rad</button>`
     : a.length ? `<button type="button" class="btn" data-do="ask" data-w="resume">▶ Nastavi</button><button type="button" class="btn ghost" data-do="ask" data-w="stop">■ Završi rad</button>`
     : `<button type="button" class="btn" data-do="ask" data-w="start">▶ Započni rad</button>`;
   const ask = confirmAsk[id];
-  return `<div class="work ${cls}"><span class="dot" aria-hidden="true"></span><span class="timer"${run ? ` data-run="${Date.parse(run.s)}" data-base="${ms - (Date.now() - Date.parse(run.s))}"` : ''}>${hms(ms)}</span><span class="wl">${lbl}</span>${btns}</div>
+  return `<div class="work ${cls}"><span class="dot" aria-hidden="true"></span><span class="timer"${run ? ` data-run="${Date.parse(run.s)}" data-base="${ms - (Date.now() - Date.parse(run.s))}"` : ''}>${hms(ms)}</span><span class="wl">${lbl}</span>${btns}</div>${daysHTML(a)}
     ${ask ? `<div class="confirm" role="alertdialog"><b>${CONF[ask][0]}</b><button type="button" class="btn" data-do="work" data-w="${ask}">Potvrdi: ${CONF[ask][1]}</button><button type="button" class="btn ghost" data-do="noask">Odustani</button></div>` : ''}`;
 }
 setInterval(() => document.querySelectorAll('.timer[data-run]').forEach(t => t.textContent = hms(+t.dataset.base + Date.now() - +t.dataset.run)), 1000);
@@ -512,7 +532,7 @@ document.addEventListener('click', async e => {
     if (w === 'start' || w === 'resume') { if (!running(o)) a.push({ s: nowI }); }
     else { const r = a[a.length - 1]; if (r && !r.e) r.e = nowI; }
     const ms = workedMs(a);
-    const f = { 'Evidencija rada': JSON.stringify(a), 'Radno vrijeme (h)': (Math.round(ms / 36e3) / 100).toString().replace('.', ',') };
+    const f = { 'Evidencija rada': JSON.stringify(a), 'Rad po danima': perDayTxt(a), 'Radno vrijeme (h)': (Math.round(ms / 36e3) / 100).toString().replace('.', ',') };
     f['Status'] = (w === 'start' || w === 'resume') ? 'U radu' : w === 'stop' ? 'Za obračun' : 'Pauzirano';
     delete confirmAsk[id];
     if (w === 'stop') { open[id] = 'zavrsi'; }
