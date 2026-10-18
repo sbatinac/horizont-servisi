@@ -221,6 +221,28 @@ main{padding-block:24px 60px;display:grid;gap:28px}
 .flash{animation:fl 1.6s ease}
 @keyframes fl{0%,40%{box-shadow:0 0 0 3px var(--y)}100%{box-shadow:none}}
 @media (max-width:720px){.cal-d{min-height:64px;padding:4px}.cal-d .ev{font-size:0;padding:3px;height:8px}.cal-d .ev b{display:none}.kpis{grid-template-columns:repeat(2,1fr)}}
+.kap{margin-bottom:12px}
+.kap-d{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--y);border-radius:10px;padding:12px 16px}
+.kap-d summary{cursor:pointer;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline}
+.kap-in{display:grid;gap:10px;margin-top:14px}
+.kap-w{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.kap-w label{display:grid;gap:4px;text-align:center;font:600 .8rem var(--mono);color:var(--muted)}
+.kap input{background:var(--bg);border:1.5px solid #3A3A35;color:var(--ink);padding:8px 10px;border-radius:6px;font:inherit;min-width:0;width:100%}
+.kap-w input{text-align:center;font:600 1.1rem var(--mono);padding:8px 2px}
+.kap input:focus{outline:none;border-color:var(--y)}
+.kap-chk{display:flex;gap:8px;align-items:flex-start;font-weight:600}.kap-chk input{width:auto;margin-top:4px;accent-color:var(--y)}
+.kap-l{display:grid;gap:4px}
+.kap-r{display:grid;grid-template-columns:150px 100px 1fr auto;gap:10px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:.9rem}
+.kap-r em{color:#FF8A7A;font-style:normal;font-weight:600}.kap-r.old{opacity:.4}
+.kap-add{display:flex;flex-wrap:wrap;gap:8px;align-items:end}.kap-add label{display:grid;gap:4px;font-size:.8rem;font-weight:600;width:150px}.kap-add label:nth-child(3){width:80px}.kap-add .grow{flex:1;min-width:180px}
+.kap .pmsg{font-weight:600;margin:0}.kap .pmsg.bad{color:var(--bad)}.kap .pmsg.ok{color:#9BE37B}
+.kap .frow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.cal-d .n{display:flex;justify-content:space-between;gap:4px;align-items:center}
+.kp{font:600 .68rem var(--mono);color:#9BE37B;background:rgba(155,227,123,.1);border-radius:3px;padding:1px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:75%}
+.kp.pun{color:#FFB35C;background:rgba(255,179,92,.12)}
+.kp.zat{color:#FF8A7A;background:rgba(255,138,122,.1);font-family:var(--body)}
+.cal-d.zat{background:repeating-linear-gradient(135deg,#141413 0 6px,#181817 6px 12px)}
+@media (max-width:720px){.kap-w{grid-template-columns:repeat(4,1fr)}.kap-r{grid-template-columns:1fr auto;}.kap-r .foot{grid-column:1/-1}.kp.zat{font-size:0;padding:0;width:8px;height:8px;border-radius:50%;background:#FF8A7A}}
 </style>
 </head>
 <body>
@@ -288,6 +310,7 @@ main{padding-block:24px 60px;display:grid;gap:28px}
       <div class="list" id="gList"></div>
     </div>
     <div id="calView" hidden>
+      <div class="kap" id="kapBox"></div>
       <div class="cal">
         <div class="cal-h">
           <h2 id="calT"></h2>
@@ -367,7 +390,7 @@ async function load() {
   D = { prijave: rowsOf(j.prijave), upiti: rowsOf(j.upiti), posjete: (j.posjete && j.posjete.rows) || [], tablica: j.tablica, dijelovi: dijeloviOf(j.dijelovi) };
   if (!load._fixed) { load._fixed = true; setTimeout(() => fixStale().catch(() => {}), 0); }
   $('#sheetLink').href = D.tablica || '#';
-  VLASTITI = Array.isArray(j.predlosci) ? j.predlosci : []; D.jutro = !!j.jutro; $('#jutro').textContent = '☀ Jutarnji mail: ' + (D.jutro ? 'uključen' : 'isključen'); $('#jutro').classList.toggle('on', D.jutro);
+  D.kap = j.kapacitet || null; D.dani = j.dani || {}; if (!KAPED_DIRTY) KAPED = D.kap ? JSON.parse(JSON.stringify(D.kap)) : null; VLASTITI = Array.isArray(j.predlosci) ? j.predlosci : []; D.jutro = !!j.jutro; $('#jutro').textContent = '☀ Jutarnji mail: ' + (D.jutro ? 'uključen' : 'isključen'); $('#jutro').classList.toggle('on', D.jutro);
   render();
   $('#foot').textContent = 'Zadnje osvježeno: ' + new Date().toLocaleString('hr-HR');
 }
@@ -1069,7 +1092,60 @@ function render() {
     `<p class="empty">${q ? 'Nema rezultata za „' + esc(q) + '”.' : flt === 'rijeseno' ? 'Još ništa nije riješeno.' : flt === 'zakazano' ? 'Nema zakazanih termina.' : tab === 'prijave' ? 'Nema otvorenih naloga.' : 'Nema otvorenih upita.'}</p>`;
 }
 
+/* ===== KAPACITET: koliko naloga po danu ===== */
+let KAPED = null, KAPED_DIRTY = false;
+const KAP_DANI = [['Pon', 1], ['Uto', 2], ['Sri', 3], ['Čet', 4], ['Pet', 5], ['Sub', 6], ['Ned', 0]];
+function renderKap() {
+  const box = $('#kapBox'); box.dataset.done = '1';
+  if (!KAPED) KAPED = { tjedan: [0, null, null, null, null, null, null], blagdani: true, iznimke: {} };
+  const P = KAPED, izn = Object.keys(P.iznimke || {}).sort();
+  const t0 = ymd(new Date());
+  box.innerHTML = `<details class="kap-d"${box.dataset.open ? ' open' : ''}><summary><b>Kapacitet</b> · koliko naloga primam po danu <span class="foot">${kapSazetak()}</span></summary>
+    <div class="kap-in">
+      <span class="lbl">Tjedni raspored</span>
+      <div class="kap-w">${KAP_DANI.map(([n, wd]) => `<label><span>${n}</span><input type="number" min="0" max="99" inputmode="numeric" data-wd="${wd}" value="${P.tjedan[wd] === null || P.tjedan[wd] === undefined ? '' : P.tjedan[wd]}" placeholder="∞"></label>`).join('')}</div>
+      <p class="foot">Prazno (∞) = bez ograničenja · 0 = ne radim taj dan. Broje se prijave po željenom datumu iz obrasca (odbijeni se ne broje).</p>
+      <label class="kap-chk"><input type="checkbox" id="kapBl"${P.blagdani !== false ? ' checked' : ''}><span>Blagdani i neradni dani u RH automatski zatvoreni <span class="foot" style="display:block;font-weight:400">(Nova godina, Bogojavljenje, Uskrs i Uskrsni ponedjeljak, 1. 5., 30. 5., Tijelovo, 22. 6., 5. 8., 15. 8., 1. 11., 18. 11., Božić, Sv. Stjepan)</span></span></label>
+      <span class="lbl" style="margin-top:6px">Iznimke po datumu</span>
+      <div class="kap-l">${izn.length ? izn.map(d => { const x = P.iznimke[d]; return `<div class="kap-r${d < t0 ? ' old' : ''}"><b>${new Date(d + 'T12:00').toLocaleDateString('hr-HR', { weekday: 'short' })} ${hrDate(new Date(d + 'T12:00'))}</b><span>${+x.max === 0 ? '<em>Zatvoreno</em>' : 'max ' + x.max}</span><span class="foot">${esc(x.nap || '')}</span><button type="button" class="chip" data-kapdel="${d}" aria-label="Ukloni iznimku">✕</button></div>`; }).join('') : '<p class="foot">Nema iznimki. Dodaj godišnji, bolovanje, Badnjak ili dan kad primaš više/manje naloga.</p>'}</div>
+      <div class="kap-add">
+        <label>Od<input type="date" id="kapOd" min="${t0}"></label>
+        <label>Do <span class="foot">(neobavezno)</span><input type="date" id="kapDo" min="${t0}"></label>
+        <label>Broj<input type="number" id="kapMax" min="0" max="99" value="0" title="0 = zatvoreno"></label>
+        <label class="grow">Napomena <span class="foot">(vidi je i klijent)</span><input id="kapNap" maxlength="80" placeholder="npr. Godišnji odmor"></label>
+        <button type="button" class="btn ghost" id="kapAdd">+ Dodaj</button>
+        <button type="button" class="btn ghost" id="kapBadnjak" title="Dodaj 24. i 31. 12. kao zatvorene">+ Badnjak i Stara godina</button>
+      </div>
+      <div class="frow"><button type="button" class="btn" id="kapSave">Spremi kapacitet</button><span class="pmsg" id="kapMsg" role="status"></span></div>
+    </div></details>`;
+  const det = box.querySelector('details'); det.ontoggle = () => { box.dataset.open = det.open ? '1' : ''; };
+  const dirty = () => { KAPED_DIRTY = true; $('#kapMsg').className = 'pmsg'; $('#kapMsg').textContent = 'Nespremljene promjene.'; };
+  box.querySelectorAll('[data-wd]').forEach(i => i.oninput = () => { const v = i.value.trim(); P.tjedan[+i.dataset.wd] = v === '' ? null : Math.max(0, Math.min(99, Math.floor(+v) || 0)); dirty(); });
+  $('#kapBl').onchange = e => { P.blagdani = e.target.checked; dirty(); };
+  box.querySelectorAll('[data-kapdel]').forEach(b => b.onclick = () => { delete P.iznimke[b.dataset.kapdel]; renderKap(); dirty(); });
+  $('#kapAdd').onclick = () => {
+    const od = $('#kapOd').value, dO = $('#kapDo').value || od, max = Math.max(0, Math.floor(+$('#kapMax').value) || 0), nap = $('#kapNap').value.trim();
+    if (!od) { $('#kapMsg').className = 'pmsg bad'; $('#kapMsg').textContent = 'Odaberi datum.'; return; }
+    if (dO < od) { $('#kapMsg').className = 'pmsg bad'; $('#kapMsg').textContent = '„Do” je prije „Od”.'; return; }
+    const d = new Date(od + 'T12:00'), end = new Date(dO + 'T12:00'); let n = 0;
+    while (d <= end && n < 120) { P.iznimke[ymd(d)] = { max, nap }; d.setDate(d.getDate() + 1); n++; }
+    renderKap(); dirty();
+  };
+  $('#kapBadnjak').onclick = () => { const y = new Date().getFullYear() + (t0 > new Date().getFullYear() + '-12-31' ? 1 : 0); [[y + '-12-24', 'Badnjak'], [y + '-12-31', 'Stara godina']].forEach(([d, nap]) => { if (d >= t0) P.iznimke[d] = { max: 0, nap }; }); renderKap(); dirty(); };
+  $('#kapSave').onclick = async () => {
+    const b = $('#kapSave'), m = $('#kapMsg'); b.disabled = true; b.textContent = 'Spremam…';
+    try { const j = await post({ akcija: 'kapacitet', pravila: P }); D.kap = j.kapacitet; D.dani = j.dani || {}; KAPED = JSON.parse(JSON.stringify(j.kapacitet)); KAPED_DIRTY = false; renderKap(); renderCal(); $('#kapMsg').className = 'pmsg ok'; $('#kapMsg').textContent = 'Spremljeno. Obrazac na stranici odmah koristi nova pravila.'; }
+    catch (err) { b.disabled = false; b.textContent = 'Spremi kapacitet'; m.className = 'pmsg bad'; m.textContent = err.message; }
+  };
+}
+function kapSazetak() {
+  const P = KAPED; if (!P) return '';
+  const t = KAP_DANI.map(([n, wd]) => n + ' ' + (P.tjedan[wd] === null || P.tjedan[wd] === undefined ? '∞' : P.tjedan[wd] === 0 ? '✕' : P.tjedan[wd])).join(' · ');
+  return t + (P.blagdani !== false ? ' · blagdani ✕' : '');
+}
+
 function renderCal() {
+  if (!$('#kapBox').dataset.done) renderKap();
   const y = calM.getFullYear(), m = calM.getMonth();
   $('#calT').textContent = calM.toLocaleDateString('hr-HR', { month: 'long', year: 'numeric' });
   const first = new Date(y, m, 1), off = (first.getDay() + 6) % 7, startD = new Date(y, m, 1 - off);
@@ -1081,7 +1157,9 @@ function renderCal() {
   for (let i = 0; i < 42; i++) {
     const d = new Date(startD.getFullYear(), startD.getMonth(), startD.getDate() + i), k = ymd(d);
     if (i >= 35 && d.getMonth() !== m) break;
-    h += `<div class="cal-d${d.getMonth() !== m ? ' out' : ''}${k === today ? ' today' : ''}${d.getDay() === 0 ? ' sun' : ''}"><span class="n">${d.getDate()}</span>${(byDay[k] || []).map(o =>
+    const kx = (D.dani || {})[k], zat = kx && kx.max === 0;
+    const kb = kx ? (zat ? `<span class="kp zat" title="${esc(kx.nap || 'Ne radi se')}">${esc(kx.nap || 'Zatvoreno')}${kx.zauz ? ' · ' + kx.zauz + ' prij.' : ''}</span>` : `<span class="kp${kx.max !== null && kx.zauz >= kx.max ? ' pun' : ''}" title="Prijava za taj dan / limit">${kx.zauz}${kx.max !== null ? '/' + kx.max : ''}</span>`) : '';
+    h += `<div class="cal-d${d.getMonth() !== m ? ' out' : ''}${k === today ? ' today' : ''}${d.getDay() === 0 ? ' sun' : ''}${zat ? ' zat' : ''}"><span class="n">${d.getDate()}${kb}</span>${(byDay[k] || []).map(o =>
       `<button type="button" class="ev${status(o) === 'Riješeno' ? ' ok' : ''}" data-go="${o._i}" title="${esc(get(o, 'Ime i prezime'))}"><b>${pad(o._term.getHours())}:${pad(o._term.getMinutes())}</b>${esc(get(o, 'Ime i prezime'))}</button>`).join('')}</div>`;
   }
   $('#calG').innerHTML = h;

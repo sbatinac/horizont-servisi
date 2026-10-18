@@ -36,6 +36,11 @@ function doPost(e) {
     if (data._vrsta === 'admin') return json_(admin_(data));
     const upit = data._vrsta === 'upit';
     delete data._vrsta;
+    if (!upit) {
+      const dk = Object.keys(data).find(k => label_(k) === KAP_STUPAC);
+      const pun = dk ? kapProvjera_(String(data[dk] || '').slice(0, 10)) : '';
+      if (pun) return json_({ ok: false, puno: true, error: pun });
+    }
     const sheet = getSheet_(upit ? SHEET_UPITI : SHEET_NAME);
     const nextRow = Math.max(sheet.getLastRow(), 1) + 1;
     const nr = upit ? '' : 'RN-' + Utilities.formatDate(new Date(), TZ, 'yyyy') + '-' + ('000' + (nextRow - 1)).slice(-4);
@@ -57,6 +62,7 @@ function doGet(e) {
   if (p.a === 'hit') return json_(hit_());
   if (p.a === 'status') return json_(statusLookup_(p.nr, p.tel));
   if (p.a === 'garaza') return json_(garazaJavno_());
+  if (p.a === 'kapacitet') return json_({ ok: true, dani: kapDani_(kapPravila_(), kapZauzeto_()) });
   if (p.a === 'foto') {
     if (!ADMIN_KEY || ADMIN_KEY === 'UPISI_LOZINKU' || p.k !== ADMIN_KEY) return json_({ ok: false, error: 'Pogrešna lozinka.' });
     try { const b = DriveApp.getFileById(p.id).getBlob(); return json_({ ok: true, mime: b.getContentType(), data: Utilities.base64Encode(b.getBytes()) }); }
@@ -67,7 +73,7 @@ function doGet(e) {
       Utilities.sleep(800);
       return json_({ ok: false, error: 'Pogrešna lozinka.' });
     }
-    return json_({ ok: true, prijave: table_(SHEET_NAME), upiti: table_(SHEET_UPITI), posjete: table_(SHEET_POSJETE), dijelovi: table_(SHEET_DIJELOVI), predlosci: JSON.parse(PropertiesService.getScriptProperties().getProperty('predlosci') || '[]'), tablica: SpreadsheetApp.getActiveSpreadsheet().getUrl(), jutro: jutroAktivno_() });
+    return json_({ ok: true, prijave: table_(SHEET_NAME), upiti: table_(SHEET_UPITI), posjete: table_(SHEET_POSJETE), dijelovi: table_(SHEET_DIJELOVI), predlosci: JSON.parse(PropertiesService.getScriptProperties().getProperty('predlosci') || '[]'), tablica: SpreadsheetApp.getActiveSpreadsheet().getUrl(), jutro: jutroAktivno_(), kapacitet: kapPravila_(), dani: kapDani_(kapPravila_(), kapZauzeto_(), 400) });
   }
   return json_({ ok: true, servis: 'Horizont LHB – prijave' });
 }
@@ -81,6 +87,7 @@ function admin_(d) {
   if (d.akcija === 'jutro') { postaviJutarnjiMail_(!!d.on); return { ok: true, jutro: jutroAktivno_() }; }
   if (d.akcija === 'jutro_test') { jutarnjiSazetak(); return { ok: true }; }
   if (String(d.akcija).indexOf('dio_') === 0) return dijelovi_(d);
+  if (d.akcija === 'kapacitet') return kapSpremi_(d.pravila || {});
   if (d.akcija === 'predlosci') { PropertiesService.getScriptProperties().setProperty('predlosci', JSON.stringify((d.list || []).slice(0, 60))); return { ok: true }; }
   const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(d.list === 'upiti' ? SHEET_UPITI : SHEET_NAME);
   const row = Number(d.red);
@@ -439,4 +446,82 @@ function garazaJavno_() {
     stanje: r[c('Stanje')], opis: r[c('Opis')], cijena: r[c('Cijena (€)')], jamstvo: r[c('Jamstvo')], status: r[c('Status')], slike: (() => { try { return JSON.parse(r[c('Slike')] || '[]'); } catch (e) { return []; } })(), dodano: r[c('Dodano')] }))
     .filter(x => x.id && (x.status === 'Na prodaji' || x.status === 'Rezervirano'));
   return { ok: true, items: items.reverse() };
+}
+
+
+// ===== KAPACITET: KOLIKO NALOGA PO DANU (+ blagdani u RH) =====
+// Pravila se uređuju u adminu (kartica Kalendar). Prazno = bez ograničenja, 0 = ne radi se taj dan.
+const KAP_STUPAC = 'Željeni datum preuzimanja / početka servisa';
+const KAP_DEF = { tjedan: [0, null, null, null, null, null, null], blagdani: true, iznimke: {} }; // ned, pon, uto, sri, čet, pet, sub
+function kapPravila_() {
+  let P = {};
+  try { P = JSON.parse(PropertiesService.getScriptProperties().getProperty('kapacitet') || '{}'); } catch (e) {}
+  return { tjedan: Array.isArray(P.tjedan) && P.tjedan.length === 7 ? P.tjedan : KAP_DEF.tjedan, blagdani: P.blagdani !== false, iznimke: P.iznimke || {} };
+}
+function kapBroj_(v) { if (v === null || v === undefined || v === '') return null; const n = Math.floor(Number(v)); return isNaN(n) || n < 0 ? null : Math.min(n, 99); }
+function kapSpremi_(P) {
+  const danas = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd'), izn = {};
+  Object.keys(P.iznimke || {}).forEach(d => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || d < danas) return;
+    const x = P.iznimke[d] || {}, m = kapBroj_(x.max);
+    izn[d] = { max: m === null ? 0 : m, nap: String(x.nap || '').slice(0, 80) };
+  });
+  const out = { tjedan: (Array.isArray(P.tjedan) ? P.tjedan : KAP_DEF.tjedan).slice(0, 7).map(kapBroj_), blagdani: P.blagdani !== false, iznimke: izn };
+  while (out.tjedan.length < 7) out.tjedan.push(null);
+  PropertiesService.getScriptProperties().setProperty('kapacitet', JSON.stringify(out));
+  return { ok: true, kapacitet: out, dani: kapDani_(out, kapZauzeto_(), 400) };
+}
+function uskrs_(y) {
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3),
+    h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451),
+    mj = Math.floor((h + l - 7 * m + 114) / 31), dan = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(Date.UTC(y, mj - 1, dan));
+}
+function ymdUTC_(d) { return d.toISOString().slice(0, 10); }
+function praznici_(y) {
+  const o = {}, u = uskrs_(y), pomak = n => ymdUTC_(new Date(u.getTime() + n * 864e5));
+  [['01-01', 'Nova godina'], ['01-06', 'Bogojavljenje'], ['05-01', 'Praznik rada'], ['05-30', 'Dan državnosti'], ['06-22', 'Dan antifašističke borbe'],
+   ['08-05', 'Dan pobjede i domovinske zahvalnosti'], ['08-15', 'Velika Gospa'], ['11-01', 'Svi sveti'], ['11-18', 'Dan sjećanja na žrtve Domovinskog rata'],
+   ['12-25', 'Božić'], ['12-26', 'Sveti Stjepan']].forEach(x => o[y + '-' + x[0]] = x[1]);
+  o[pomak(0)] = 'Uskrs'; o[pomak(1)] = 'Uskrsni ponedjeljak'; o[pomak(60)] = 'Tijelovo';
+  return o;
+}
+function kapZauzeto_() {
+  const out = {}, sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+  if (!sh || sh.getLastRow() < 2) return out;
+  const v = sh.getDataRange().getValues(), H = v[0], di = H.indexOf(KAP_STUPAC), si = H.indexOf('Status');
+  if (di < 0) return out;
+  const danas = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd');
+  v.slice(1).forEach(r => {
+    if (si > -1 && ['Odbijen', 'Arhivirano'].indexOf(String(r[si])) > -1) return;
+    let d = r[di];
+    d = d instanceof Date ? Utilities.formatDate(d, TZ, 'yyyy-MM-dd') : String(d).replace(/^'/, '').trim().slice(0, 10);
+    if (/^\d{1,2}\.\s?\d{1,2}\.\s?\d{4}/.test(d)) { const m = String(r[di]).match(/(\d{1,2})\.\s?(\d{1,2})\.\s?(\d{4})/); d = m[3] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[1]).slice(-2); }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || d < danas) return;
+    out[d] = (out[d] || 0) + 1;
+  });
+  return out;
+}
+// Svi dani s ograničenjem od danas na 'dana' dana unaprijed: { 'yyyy-MM-dd': { max, zauz, nap } }. Dan kojeg nema = bez ograničenja.
+function kapDani_(P, Z, dana) {
+  const out = {}, start = new Date(Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd') + 'T12:00:00Z'), pr = {};
+  for (let i = 0; i < (dana || 120); i++) {
+    const d = new Date(start.getTime() + i * 864e5), k = ymdUTC_(d), y = d.getUTCFullYear();
+    if (!pr[y]) pr[y] = praznici_(y);
+    let max = null, nap = '';
+    if (P.iznimke && P.iznimke[k]) { max = Number(P.iznimke[k].max) || 0; nap = P.iznimke[k].nap || ''; }
+    else if (P.blagdani && pr[y][k]) { max = 0; nap = pr[y][k]; }
+    else max = kapBroj_(P.tjedan[d.getUTCDay()]);
+    if (max !== null) out[k] = { max: max, zauz: Z[k] || 0, nap: nap };
+    else if (Z[k]) out[k] = { max: null, zauz: Z[k], nap: '' };
+  }
+  return out;
+}
+// Vraća poruku ako je dan pun ili zatvoren, inače ''.
+function kapProvjera_(d) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return '';
+  const x = kapDani_(kapPravila_(), kapZauzeto_(), 400)[d];
+  if (!x || x.max === null || x.zauz < x.max) return '';
+  const hr = d.replace(/(\d{4})-(\d{2})-(\d{2})/, (m, y, mo, da) => +da + '. ' + +mo + '. ' + y + '.');
+  return x.max === 0 ? 'Na dan ' + hr + ' ne radimo' + (x.nap ? ' (' + x.nap + ')' : '') + '. Odaberite drugi datum.' : 'Dan ' + hr + ' je upravo popunjen. Odaberite drugi datum.';
 }
