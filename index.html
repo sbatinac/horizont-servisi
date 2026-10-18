@@ -270,7 +270,7 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 .hdr-r{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 @media (max-width:1180px){nav{display:none}}
 .music{display:flex;align-items:center;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px}
-.music .mlbl{font:500 .7rem var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:0 6px 0 8px}
+.music .mlbl{font:500 .7rem var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--copper);padding:0 6px 0 8px}
 .mbtn{display:inline-flex;align-items:center;gap:6px;background:transparent;border:0;color:var(--ink);font:600 .85rem var(--body);padding:6px 12px;border-radius:999px;cursor:pointer;white-space:nowrap}
 .mbtn:hover{background:var(--pcb-soft)}
 .mbtn:focus-visible{outline:3px solid var(--copper);outline-offset:2px}
@@ -359,6 +359,35 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 .pv-info{color:var(--muted);font-size:.92rem;display:flex;gap:18px;flex-wrap:wrap}.pv-info b{color:var(--ink)}
 @media (max-width:900px){.prov{grid-template-columns:1fr}}
 @media (max-width:560px){.prov-f{grid-template-columns:1fr}.pv-steps{grid-template-columns:repeat(2,1fr)}}
+/* mobitel */
+.burger{display:none;width:46px;height:46px;border-radius:8px;border:1.5px solid var(--line);background:var(--surface);cursor:pointer;flex-direction:column;justify-content:center;align-items:center;gap:5px;padding:0}
+.burger span{display:block;width:20px;height:2px;background:var(--ink);border-radius:2px;transition:transform .2s,opacity .2s}
+.burger[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.burger[aria-expanded="true"] span:nth-child(2){opacity:0}
+.burger[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+@media (max-width:1180px){
+  .burger{display:inline-flex;order:3}
+  .hdr-r{order:2}
+  header.open nav{display:flex;order:5;width:100%;flex-direction:column;gap:0;border-top:1px solid var(--line);padding-top:6px}
+  header.open nav a{padding:13px 4px;border-bottom:1px solid var(--line);font-size:1.05rem;color:var(--ink)}
+  header.open nav a:last-child{border-bottom:0}
+  header.open nav a#navGz,header.open nav a[href="#provjera"]{color:var(--copper)}
+}
+@media (max-width:700px){
+  header{position:sticky;top:0;z-index:50}
+  header .wrap{padding-block:10px;gap:10px}
+  .brand{font-size:.95rem;flex:1;min-width:0}
+  .burger{order:1}
+  .logo img{width:40px}
+  .hdr-r{width:100%;justify-content:space-between;flex-wrap:nowrap;gap:8px}
+  .hdr-r .btn{padding:.7em 1em;font-size:.95rem;white-space:nowrap}
+  .music .mbtn{padding:6px 9px;font-size:.82rem}
+  html{scroll-padding-top:125px}
+  .cpu-band{background:linear-gradient(var(--bg) 0%,var(--bg) 40%,rgba(14,14,13,.15) 62%,rgba(14,14,13,.15) 88%,var(--bg) 100%),var(--cpu) 70% 100%/auto 56% no-repeat,var(--bg);align-items:flex-start;min-height:0;padding-bottom:58vw}
+  .gz-tools input{width:100%}
+  .btn-blic{width:100%;justify-content:center}
+}
+@media (max-width:380px){.music .mbtn{font-size:0;padding:6px 8px}.music .mbtn .eq{margin:0}.hdr-r .btn{font-size:.88rem}}
 </style>
 
 <!-- Microsoft Clarity -->
@@ -373,7 +402,8 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 <body>
 <header><div class="wrap">
   <div class="brand"><span class="logo"><img src="logo-znak.webp" alt="Horizont logo" width="52" height="35"></span>Horizont LHB d.o.o. – servisi</div>
-  <nav><a href="#usluge">Usluge</a><a href="#galerija">Galerija</a><a href="#postupak">Kako ide</a><a href="#cijene">Cijene</a><a href="#garaza" id="navGz">Tech Outlet</a><a href="#prijava">Prijava</a><a href="#provjera">Status naloga</a></nav>
+  <button type="button" class="burger" id="burger" aria-expanded="false" aria-controls="mnav" aria-label="Izbornik"><span></span><span></span><span></span></button>
+  <nav id="mnav"><a href="#usluge">Usluge</a><a href="#galerija">Galerija</a><a href="#postupak">Kako ide</a><a href="#cijene">Cijene</a><a href="#garaza" id="navGz">Tech Outlet</a><a href="#prijava">Prijava</a><a href="#provjera">Status naloga</a></nav>
   <div class="hdr-r">
   <div class="music" id="music" hidden role="group" aria-label="Glazba">
     <span class="mlbl">Glazba</span>
@@ -530,7 +560,7 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 
 <section id="garaza" class="alt"><div class="wrap">
   <div class="sec-head"><span class="lbl">Silicon Graveyard / Tech Outlet</span><h2 class="gz-h">Trgovina rabljenih računalnih dijelova</h2><p>Rabljeni dijelovi i oprema iz naše radionice, testirani prije prodaje. Za popravak, nadogradnju ili rezervu, po poštenoj cijeni.</p></div>
-  <figure class="gz-ban"><img src="garaza.webp?v=2" alt="Police pune starih računala, monitora, konzola i dijelova" width="1024" height="564" loading="lazy"></figure>
+  <figure class="gz-ban"><img src="garaza.webp?v=3" alt="Police pune starih računala, monitora, konzola i dijelova" width="1024" height="564" loading="lazy"></figure>
   <div class="gz-tools"><div class="tabs" id="gzCats"></div><input type="search" id="gzQ" placeholder="Traži, npr. DDR4, SSD, PS4…" aria-label="Pretraga dijelova"></div>
   <div class="gz-grid" id="gzGrid"><p class="msg">Učitavam dijelove…</p></div>
 </div></section>
@@ -1253,6 +1283,14 @@ render(false);
     } catch (err) { R.innerHTML = '<div class="pv-box"><p class="bad">Provjera trenutno nije moguća. Nazovite nas na 091/358 4122.</p></div>'; }
     b.disabled = false; b.textContent = 'Provjeri';
   });
+})();
+</script>
+<script>
+(() => { const h = document.querySelector('header'), b = document.getElementById('burger'); if (!b) return;
+  const set = o => { h.classList.toggle('open', o); b.setAttribute('aria-expanded', o); };
+  b.addEventListener('click', () => set(!h.classList.contains('open')));
+  document.getElementById('mnav').addEventListener('click', e => { if (e.target.closest('a')) set(false); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') set(false); });
 })();
 </script>
 </body>
