@@ -12,17 +12,17 @@
 /* Layout: radionički "servisni nalog" — oznake kao na naljepnici uređaja, bakreni vodovi kao akcent */
 :root{
   --bg:#F2F4F3; --surface:#FFFFFF; --ink:#13201C; --muted:#56635E; --line:#D5DCD9;
-  --copper:#B9611F; --copper-ink:#FFFFFF; --pcb:#1D5A4B; --pcb-soft:#E3EEEA;
+  --copper:#E2A400; --copper-ink:#1C1503; --copper-text:#A27600; --pcb:#1D5A4B; --pcb-soft:#E3EEEA;
   --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
   --body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0F1614; --surface:#17211E; --ink:#E7EEEB; --muted:#9AA9A3; --line:#2A3833;
-  --copper:#E08A45; --copper-ink:#1A0F06; --pcb:#5FB39C; --pcb-soft:#1B2C27; color-scheme:dark}}
+  --copper:#F0B82A; --copper-ink:#1C1503; --copper-text:#F0B82A; --pcb:#5FB39C; --pcb-soft:#1B2C27; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0F1614; --surface:#17211E; --ink:#E7EEEB; --muted:#9AA9A3; --line:#2A3833;
-  --copper:#E08A45; --copper-ink:#1A0F06; --pcb:#5FB39C; --pcb-soft:#1B2C27; color-scheme:dark}
+  --copper:#F0B82A; --copper-ink:#1C1503; --copper-text:#F0B82A; --pcb:#5FB39C; --pcb-soft:#1B2C27; color-scheme:dark}
 
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font:16px/1.6 var(--body);margin:0}
@@ -52,7 +52,7 @@ nav a{text-decoration:none;color:var(--muted)} nav a:hover{color:var(--ink)}
 /* hero */
 .hero .wrap{display:grid;grid-template-columns:1.25fr 1fr;gap:48px;padding-block:64px 72px;align-items:center}
 .hero h1{font-size:clamp(2.3rem,5.6vw,4.2rem);font-weight:800;letter-spacing:-.02em}
-.hero h1 em{font-style:normal;color:var(--copper)}
+.hero h1 em{font-style:normal;color:var(--copper-text)}
 .hero .lead{font-size:1.12rem;color:var(--muted);max-width:52ch;margin-top:20px}
 .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:32px}
 .facts{display:flex;gap:28px;flex-wrap:wrap;margin-top:36px}
@@ -66,7 +66,7 @@ nav a{text-decoration:none;color:var(--muted)} nav a:hover{color:var(--ink)}
 .ticket dl{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin:0}
 .ticket dt{color:var(--muted)} .ticket dd{margin:0;min-width:0}
 .ticket .tot{display:flex;justify-content:space-between;border-top:1.5px dashed var(--line);margin-top:14px;padding-top:12px;font-weight:500}
-.ticket .tot span:last-child{color:var(--copper)}
+.ticket .tot span:last-child{color:var(--copper-text)}
 .ticket .note{margin-top:10px;font-size:.72rem;color:var(--muted)}
 
 section{padding-block:72px}
@@ -91,7 +91,7 @@ section{padding-block:72px}
 .dust p+p{margin-top:14px}
 .dust .chain{display:grid;gap:10px}
 .chain div{display:flex;gap:14px;align-items:center;padding:14px 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
-.chain .lbl{min-width:4.5em;color:var(--copper)}
+.chain .lbl{min-width:4.5em;color:var(--copper-text)}
 
 /* steps */
 .steps{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;counter-reset:s}
@@ -117,7 +117,7 @@ td:last-child{text-align:right;font:500 .95rem var(--mono);white-space:nowrap}
 
 /* backup */
 .warn{display:grid;grid-template-columns:auto 1fr;gap:24px;border:1.5px solid var(--copper);border-radius:10px;padding:28px;background:var(--surface)}
-.warn .mark{font:800 2.4rem/1 var(--display);color:var(--copper)}
+.warn .mark{font:800 2.4rem/1 var(--display);color:var(--copper-text)}
 .warn ul{margin:14px 0 0;padding-left:1.1em;color:var(--muted);columns:2;column-gap:32px}
 .warn p{color:var(--muted);margin-top:10px}
 
