@@ -193,10 +193,11 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .cpu-band .wrap{width:100%}
 .cpu-band .sec-head{margin-bottom:0;max-width:44ch}
 @media (max-width:700px){.cpu-band{background:linear-gradient(rgba(14,14,13,.55),rgba(14,14,13,.85)),var(--cpu) 70% center/cover no-repeat,var(--bg)}}
-footer.snail{border-top:0;padding-block:0;background:var(--bg)}
-footer.snail .snail-in{display:block;padding-block:8px 0;position:relative;z-index:1}
-.snail-img{line-height:0;margin-top:clamp(-200px,-14vw,-48px)}
-.snail-img img{display:block;width:100%;height:auto;max-height:380px;object-fit:cover;object-position:70% 52%;-webkit-mask-image:linear-gradient(transparent,#000 28%,#000 82%,transparent);mask-image:linear-gradient(transparent,#000 28%,#000 82%,transparent)}
+footer.snail{border-top:0;padding-block:0;background:var(--bg);position:relative;z-index:1}
+footer.snail .snail-in{display:block;padding-block:0 28px;margin-top:clamp(-210px,-15vw,-70px);position:relative;z-index:1}
+.snail-img{line-height:0;margin-top:clamp(-230px,-16vw,-70px);position:relative;z-index:0}
+.final{position:relative;z-index:2}
+.snail-img img{display:block;width:100%;height:auto;max-height:380px;object-fit:cover;object-position:70% 52%;-webkit-mask-image:linear-gradient(transparent,#000 28%,#000 82%,transparent);mask-image:linear-gradient(transparent,#000 22%,#000 70%,transparent)}
 .snail-t{font:800 clamp(2.1rem,5.2vw,3.8rem)/1.02 var(--display);color:var(--ink);letter-spacing:-.02em;max-width:12ch;text-wrap:balance}
 .snail-t em{font-style:normal;color:var(--copper)}
 .snail-s{color:#CFCFC7;margin-top:12px;max-width:34ch}
@@ -375,8 +376,8 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 </div></section>
 
 <footer class="snail">
-<div class="wrap snail-in"><p class="snail-t">Od puža do <em>rakete.</em></p><p class="snail-s">Sporo računalo? Vratimo mu brzinu, a Vama živce.</p></div>
 <div class="snail-img"><img src="puz-raketa.webp" alt="Puž s raketom na leđima juri cestom" width="1584" height="672" loading="lazy"></div>
+<div class="wrap snail-in"><p class="snail-t">Od puža do <em>rakete.</em></p><p class="snail-s">Sporo računalo? Vratimo mu brzinu, a Vama živce.</p></div>
 <div class="wrap foot-row">
   <span>Servis tim · Horizont LHB d.o.o. · Saša Batinac</span>
   <span>Osobne podatke koristimo isključivo za kontakt i izvršenje usluge (GDPR).</span>
