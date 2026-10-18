@@ -422,6 +422,67 @@ function workBar(o, id) {
 }
 setInterval(() => document.querySelectorAll('.timer[data-run]').forEach(t => t.textContent = hms(+t.dataset.base + Date.now() - +t.dataset.run)), 1000);
 
+let LOGO = '';
+fetch('logo.webp').then(r => r.blob()).then(b => { const fr = new FileReader(); fr.onload = () => LOGO = fr.result; fr.readAsDataURL(b); }).catch(() => {});
+function printNalog(o) {
+  const g = (...k) => get(o, ...k);
+  let items = []; try { items = JSON.parse(o['Stavke'] || '[]'); } catch (e) {}
+  const VV = { novi: 'novi dio', rabljeni: 'rabljeni dio', mat: 'materijal' };
+  const radM = o['Rad PDV'] || 's', sati = num(o['Sati rada']);
+  const lines = [];
+  if (sati) { const a = lineAmt(sati, CIJENA_SATA, radM); lines.push(['Rad servisera', String(sati).replace('.', ',') + ' h', eur(radM === 's' ? CIJENA_SATA / (1 + PDV) : CIJENA_SATA), eur(a.net), eur(a.gross)]); }
+  items.forEach(it => { const q = num(it.q) || 1, a = lineAmt(q, it.c, it.m), unitNet = it.m === 's' ? num(it.c) / (1 + PDV) : num(it.c);
+    lines.push([it.n + (VV[it.v] ? ' (' + VV[it.v] + ')' : ''), q + ' kom', eur(unitNet), eur(a.net), eur(a.gross)]); });
+  const net = lines.length ? num(o['Ukupno bez PDV-a (€)']) : 0, vat = num(o['PDV (€)']), gross = num(o['Ukupno s PDV-om (€)']);
+  const days = perDay(sessions(o));
+  const row = (l, v) => v ? `<tr><th>${esc(l)}</th><td>${esc(v)}</td></tr>` : '';
+  const nr = 'RN-' + (o._t ? new Date(o._t).getFullYear() : new Date().getFullYear()) + '-' + String(o._i - 1).padStart(4, '0');
+  const logo = LOGO || new URL('logo.webp', location.href).href;
+  const html = `<!doctype html><html lang="hr"><head><meta charset="utf-8"><title>Radni nalog ${nr}</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+@page{size:A4;margin:14mm}
+*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{margin:0;font:10.5pt/1.45 "IBM Plex Sans",Arial,sans-serif;color:#111}
+.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #FEE503;padding-bottom:10px;margin-bottom:14px}
+.top img{width:120px}.co{text-align:right;font-size:9pt;color:#444}.co b{font:800 13pt "Bricolage Grotesque",sans-serif;color:#111;display:block}
+h1{font:800 18pt "Bricolage Grotesque",sans-serif;margin:0 0 2px}.nr{font:500 10pt "IBM Plex Mono",monospace;color:#555}
+.st{display:inline-block;background:#FEE503;padding:2px 8px;font:600 8.5pt "IBM Plex Mono",monospace;text-transform:uppercase;margin-left:8px;vertical-align:middle}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
+.box{border:1px solid #ccc;padding:10px 12px;break-inside:avoid}
+.box h2{font:600 8pt "IBM Plex Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:#666;margin:0 0 6px}
+.box table{width:100%;border-collapse:collapse}.box th{text-align:left;font-weight:400;color:#666;width:38%;padding:2px 8px 2px 0;vertical-align:top}.box td{padding:2px 0;vertical-align:top}
+.full{grid-column:1/-1}
+table.it{width:100%;border-collapse:collapse;font-size:9.5pt}.it th{background:#111;color:#FEE503;text-align:left;padding:5px 6px;font:600 8pt "IBM Plex Mono",monospace;text-transform:uppercase}
+.it td{border-bottom:1px solid #ddd;padding:5px 6px}.it td.n{text-align:right;font-family:"IBM Plex Mono",monospace;white-space:nowrap}
+.tot{margin-left:auto;width:55%;border-collapse:collapse;margin-top:8px}.tot td{padding:3px 6px;text-align:right}.tot td:first-child{text-align:left;color:#555}
+.tot .g td{font:800 13pt "Bricolage Grotesque",sans-serif;border-top:2px solid #111;color:#111}
+.sig{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:36px}.sig div{border-top:1px solid #111;padding-top:4px;font-size:9pt;color:#555}
+.foot{margin-top:18px;font-size:8pt;color:#777;border-top:1px solid #ddd;padding-top:6px}
+@media screen{body{max-width:210mm;margin:16px auto;padding:0 14mm}.pbtn{position:fixed;top:12px;right:12px;background:#FEE503;border:0;padding:10px 16px;font:600 11pt sans-serif;cursor:pointer}}
+@media print{.pbtn{display:none}body{padding:0 2px}}
+</style></head><body>
+<button class="pbtn" onclick="print()">Ispiši</button>
+<div class="top"><img src="${logo}" alt="Horizont LHB d.o.o."><div class="co"><b>Horizont LHB d.o.o.</b>Servis računala i igraćih konzola<br>Saša Batinac · 091/358 4122<br>horizont.servisi@gmail.com</div></div>
+<h1>Radni nalog <span class="st">${esc(status(o))}</span></h1><div class="nr">${nr} · zaprimljeno ${esc(o['vrijeme'] || '')}</div>
+<div class="grid">
+ <div class="box"><h2>Naručitelj</h2><table>${row('Ime i prezime', [g('Titula'), g('Ime i prezime')].filter(Boolean).join(' '))}${row('Mobitel', g('Kontakt broj mobitela', 'Telefon'))}${row('E-pošta', g('E-pošta'))}${row('Adresa', [g('Adresa'), g('Poštanski broj'), g('Grad / mjesto')].filter(Boolean).join(', '))}${row('Brzi kontakt', g('Preferirani način brze komunikacije'))}</table></div>
+ <div class="box"><h2>Uređaj</h2><table>${row('Vrsta', [g('Vrsta uređaja'), g('Moje računalo je')].filter(Boolean).join(' · '))}${row('Proizvođač', g('Proizvođač / serija laptopa', 'Proizvođač / serija desktop računala'))}${row('Model', g('Točan model uređaja'))}${row('Operativni sustav', g('Koji operativni sustav koristite?'))}${row('Predaja', g('Kako želite predati uređaj?'))}${row('Termin', o._term ? hrDate(o._term) + ' u ' + pad(o._term.getHours()) + ':' + pad(o._term.getMinutes()) : '')}${row('Zamjensko računalo', g('Trebate li zamjensko računalo tijekom servisa?'))}</table></div>
+ <div class="box full"><h2>Opis kvara i tražena usluga</h2><table>${row('Opis kvara', g('Opišite problem ili kvar svojim riječima'))}${row('Usluga', g('Koju uslugu trebate?'))}${row('Backup', g('Jeste li upoznati s izradom backupa podataka?'))}${row('Napomene', g('Dodatne napomene za servis'))}</table></div>
+ ${o['Bilješka'] ? `<div class="box full"><h2>Izvršeni radovi</h2><div>${esc(o['Bilješka'])}</div></div>` : ''}
+ ${days.length ? `<div class="box full"><h2>Radno vrijeme</h2><table>${days.map(x => row(dayLbl(x.day), new Date(x.from).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }) + '–' + tEnd(x.to) + ' · ' + hm(x.ms))).join('')}</table></div>` : ''}
+</div>
+${lines.length ? `<table class="it"><thead><tr><th>Stavka</th><th>Količina</th><th style="text-align:right">Jed. cijena bez PDV-a</th><th style="text-align:right">Iznos bez PDV-a</th><th style="text-align:right">Iznos s PDV-om</th></tr></thead><tbody>
+${lines.map(l => `<tr><td>${esc(l[0])}</td><td>${l[1]}</td><td class="n">${l[2]}</td><td class="n">${l[3]}</td><td class="n">${l[4]}</td></tr>`).join('')}</tbody></table>
+<table class="tot"><tr><td>Osnovica</td><td>${eur(net)}</td></tr><tr><td>PDV ${PDV * 100} %</td><td>${eur(vat)}</td></tr><tr class="g"><td>Ukupno</td><td>${eur(gross)}</td></tr></table>` : '<p style="color:#777">Obračun još nije napravljen.</p>'}
+<div class="sig"><div>Potpis naručitelja (preuzeo/la uređaj)</div><div>Potpis servisera</div></div>
+<div class="foot">Naručitelj potvrđuje da je upoznat/a s napomenom o izradi sigurnosne kopije podataka prije servisa. Osobni podaci obrađuju se isključivo radi izvršenja usluge (GDPR).</div>
+<script>window.addEventListener('load',()=>{const i=document.images[0];const go=()=>setTimeout(()=>print(),300);i&&!i.complete?i.onload=i.onerror=go:go();});<\/script>
+</body></html>`;
+  const w = window.open('', '_blank');
+  if (!w) { alert('Preglednik je blokirao novi prozor. Dopusti skočne prozore za ovu stranicu.'); return; }
+  w.document.open(); w.document.write(html); w.document.close();
+}
+
 function card(o, kind) {
   const ime = get(o, 'Ime i prezime') || 'Bez imena', titula = get(o, 'Titula'), mail = get(o, 'E-pošta'), tel = get(o, 'Kontakt broj mobitela', 'Telefon');
   const st = status(o), done = st === 'Riješeno', isNew = Date.now() - o._t < 2 * DAY && !done;
@@ -456,6 +517,7 @@ function card(o, kind) {
         ${tel && isTel(tel) ? `<a class="btn" href="${telHref(tel)}">Nazovi</a>` : ''}
         ${mail ? `<a class="btn ghost" href="${mhref}">Pošalji mail</a>` : ''}
         ${acts}
+        ${kind === 'prijave' ? '<button type="button" class="btn ghost" data-do="print">🖨 Ispiši nalog</button>' : ''}
       </div>
     </div>
     <dl class="c-key">${keyF.filter(f => f[1]).map(f => `<div><dt class="lbl">${f[0]}</dt><dd>${esc(f[1])}</dd></div>`).join('')}</dl>
@@ -534,6 +596,7 @@ document.addEventListener('click', async e => {
     try { await post(Object.assign({}, base, body)); if (act !== 'work') delete open[id]; await load(); }
     catch (err) { b.disabled = false; b.textContent = t; if (msg) { msg.className = 'pmsg bad'; msg.textContent = err.message; } else alertBox(c, err.message); }
   };
+  if (act === 'print') return printNalog(o);
   if (act === 'ask') { confirmAsk[id] = b.dataset.w; return render(); }
   if (act === 'noask') { delete confirmAsk[id]; return render(); }
   if (act === 'work') {
