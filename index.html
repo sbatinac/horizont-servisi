@@ -202,6 +202,52 @@ footer.snail .snail-in{display:block;padding-block:0 28px;margin-top:clamp(-210p
 .snail-t em{font-style:normal;color:var(--copper)}
 .snail-s{color:#CFCFC7;margin-top:12px;max-width:34ch}
 footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px solid rgba(255,255,255,.08);color:#9C9C94}
+/* OBRAZAC */
+.wiz{background:var(--bg);border:1px solid var(--line);border-top:4px solid var(--copper);border-radius:10px;padding:clamp(20px,4vw,40px);max-width:860px;display:grid;gap:18px}
+.wz-top{display:flex;justify-content:space-between;gap:12px}
+.wz-bar{height:6px;background:var(--pcb-soft);border-radius:99px;overflow:hidden}
+.wz-bar i{display:block;height:100%;background:var(--copper);border-radius:99px;transition:width .35s}
+.wz-t{font:800 clamp(1.4rem,3vw,1.9rem)/1.1 var(--display);outline:none}
+.wz-i{color:var(--muted);max-width:65ch}
+.wz-w{color:var(--ink);border-left:3px solid var(--copper);padding:12px 16px;background:var(--pcb-soft);border-radius:0 6px 6px 0}
+.wz-f{display:grid;gap:22px}
+.fld{border:0;margin:0;padding:0;display:grid;gap:8px;min-width:0}
+.fld legend,.fld>label{font-weight:600;padding:0;margin-bottom:2px}
+.fld legend{margin-bottom:8px}
+.rq{color:var(--copper);margin-left:3px}
+.fh{color:var(--muted);font-size:.88rem;margin-top:-2px}
+.fld input[type=text],.fld input[type=email],.fld input[type=tel],.fld input[type=date],.fld select,.fld textarea{width:100%;background:var(--surface);border:1.5px solid #3A3A35;color:var(--ink);padding:12px 14px;border-radius:7px;font:inherit;min-width:0}
+.fld textarea{resize:vertical;min-height:90px}
+.fld input:focus,.fld select:focus,.fld textarea:focus{outline:none;border-color:var(--copper);box-shadow:0 0 0 3px rgba(254,229,3,.18)}
+.opts{display:grid;gap:8px}
+.opts.chips{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
+.opt{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1.5px solid #34342F;border-radius:7px;cursor:pointer;background:var(--surface);transition:border-color .15s;min-width:0}
+.opt:hover{border-color:#5A5A52}
+.opt input[type=radio],.opt input[type=checkbox]{accent-color:var(--copper);width:18px;height:18px;margin:2px 0 0;flex:none}
+.opt span{overflow-wrap:anywhere}
+.opt:has(input:checked){border-color:var(--copper);background:rgba(254,229,3,.07)}
+.opt:has(input:focus-visible){outline:3px solid var(--copper);outline-offset:2px}
+.opt.oth{flex-wrap:wrap;align-items:center}
+.opt .otxt{flex:1 1 160px;min-width:0;background:var(--bg);border:1px solid #3A3A35;color:var(--ink);padding:7px 10px;border-radius:5px;font:inherit}
+.opts.chips .opt.oth{grid-column:1/-1}
+.err{color:#FF8A7A;font-size:.88rem;margin:0}
+.err:empty{display:none}
+.fld.bad input,.fld.bad select,.fld.bad textarea,.fld.bad .opt{border-color:#C9584A}
+.wz-nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:6px}
+.wz-nav #wzNext,.wz-nav #wzSend{margin-left:auto}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.wz-stop{color:#FF8A7A;font-weight:600}
+.wz-note{color:var(--muted);font-size:.82rem}
+.sm{display:grid;gap:16px}
+.sm-g{border:1px solid var(--line);border-radius:8px;padding:16px 18px;background:var(--surface)}
+.sm-g h4{font:700 .78rem var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--copper);margin:0 0 10px}
+.sm dl{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:6px 18px;margin:0;font-size:.92rem}
+.sm dt{color:var(--muted)} .sm dd{margin:0;overflow-wrap:anywhere}
+@media (max-width:600px){.sm dl{grid-template-columns:1fr}.sm dd{margin-bottom:6px}}
+.wz-msg{font-weight:600}.wz-msg.bad{color:#FF8A7A}
+.wz-done{display:grid;gap:14px;justify-items:start}
+.wz-done .mark{width:56px;height:56px;border-radius:50%;background:var(--copper);color:var(--copper-ink);display:flex;align-items:center;justify-content:center;font:800 1.6rem var(--display)}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
 </style>
 
 </head>
@@ -209,7 +255,7 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 <header><div class="wrap">
   <div class="brand"><span class="logo"><img src="logo-znak.webp" alt="Horizont logo" width="52" height="35"></span>Horizont LHB d.o.o. – servisi</div>
   <nav><a href="#usluge">Usluge</a><a href="#galerija">Galerija</a><a href="#postupak">Kako ide</a><a href="#cijene">Cijene</a><a href="#prijava">Prijava</a></nav>
-  <a class="btn" href="https://docs.google.com/forms/d/1s8RmzJuK2-3EpDtZE-y4Cw6dHLOKqrrrm38MIp44doM/viewform" target="_blank" rel="noopener">Prijavi uređaj</a>
+  <a class="btn" href="#obrazac">Prijavi uređaj</a>
 </div></header>
 
 <div class="banner"><img src="banner.webp" alt="Horizont LHB d.o.o. – servisi: dijagnostika i popravci, nadogradnje i optimizacija, čišćenje od prašine, instalacija i sigurnost, servis laptopa i računala. Mi ih vraćamo u život!" width="1916" height="821"></div>
@@ -220,7 +266,7 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
     <h1 style="margin-top:14px">Sporo, vruće, bučno? <em>Vraćamo ga u život.</em></h1>
     <p class="lead">Laptopi, stolna računala i konzole. Čišćenje, popravak, nadogradnja i optimizacija. Direktno s Vama, uz poštenu cijenu, račun i garanciju.</p>
     <div class="cta">
-      <a class="btn" href="https://docs.google.com/forms/d/1s8RmzJuK2-3EpDtZE-y4Cw6dHLOKqrrrm38MIp44doM/viewform" target="_blank" rel="noopener">Prijavi se za termin →</a>
+      <a class="btn" href="#obrazac">Ispuni servisni nalog →</a>
       <a class="btn ghost" href="#usluge">Pogledaj usluge</a>
     </div>
     <div class="facts">
@@ -359,6 +405,11 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
   </div>
 </div></section>
 
+<section id="obrazac" class="alt"><div class="wrap">
+  <div class="sec-head"><span class="lbl">Prijava za termin</span><h2>Servisni nalog</h2><p>Upišite podatke samostalno i točno. Prema njima organiziramo kontakt, preuzimanje i servis Vašeg uređaja. Tehnički dio možete preskočiti ako se ne snalazite u specifikacijama.</p></div>
+  <div class="wiz" id="wiz" aria-live="polite"><p class="wz-i">Učitavanje obrasca…</p></div>
+</div></section>
+
 <section id="prijava" class="final" style="padding-top:0;padding-bottom:12px"><div class="wrap">
   <div class="box">
     <div style="max-width:60ch">
@@ -371,7 +422,7 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
       </ul>
     </div>
     <div class="logo-full"><img src="logo.webp" alt="Horizont LHB d.o.o." width="130" height="106"></div>
-    <a class="btn" href="https://docs.google.com/forms/d/1s8RmzJuK2-3EpDtZE-y4Cw6dHLOKqrrrm38MIp44doM/viewform" target="_blank" rel="noopener">Otvori obrazac za prijavu →</a>
+    <a class="btn" href="#obrazac">Ispuni servisni nalog ↑</a>
   </div>
 </div></section>
 
@@ -507,6 +558,322 @@ function init(type, sec, tabsEl, grid, render) {
 init('gallery', '#galerija', '#gTabs', '#gGrid', gRender);
 init('video', '#video', '#vTabs', '#vGrid', vRender);
 init('pdf', '#dokumenti', '#pTabs', '#pGrid', pRender);
+</script>
+<script>
+/* ====== OBRAZAC ZA PRIJAVU SERVISA ====== */
+const ENDPOINT = 'UPISI_APPS_SCRIPT_URL'; // Apps Script → Deploy → Web app URL (završava na /exec)
+
+(() => {
+const NZ = 'Ne znam';
+const isPC = A => A.uredaj === 'Računalo - LAPTOP/DESKTOP';
+const isLaptop = A => isPC(A) && A.tip_racunala === 'LAPTOP - računalo';
+const isDesktop = A => isPC(A) && A.tip_racunala === 'DESKTOP - stolno računalo';
+const tech = A => isPC(A) && (A.specifikacije || '').startsWith('RAZUMIJEM');
+const has = (v, s) => Array.isArray(v) ? v.includes(s) : v === s;
+
+const LAPTOP = ['Acer','Acer Nitro','Acer Predator','Apple (MacBook)','Asus','Asus TUF','Asus ROG','Chuwi','Clevo','Dell','Dell G-Series','Dell Alienware','Dynabook (Toshiba)','Toshiba','Fujitsu','Gigabyte','AORUS','Google Pixelbook','Honor','HP (Hewlett-Packard)','HP Victus','HP Omen','HP ZBook','Huawei','Lenovo','Lenovo LOQ','Lenovo Legion','LG','Medion','Medion Erazer','Microsoft Surface','MSI','MSI Gaming Series','Razer','Razer Blade','Samsung','Samsung Odyssey','Sony VAIO','Xiaomi'];
+const DESKTOP = ['Acer','Acer Nitro','Acer Predator','Alienware','Apple','Asus','Asus ROG','Asus TUF','Corsair','Dell','Dell OptiPlex','Dell Precision','Gigabyte AORUS','HP','HP EliteDesk','HP Omen','HP ProDesk','HP Victus','HP Z-Series','Lenovo','Lenovo Legion','Lenovo ThinkCentre','Lenovo ThinkStation','MSI'];
+const INTEL_GEN = ['1. generacija – Core i3 / i5 / i7 (Nehalem, 2008–2010)','2. generacija – Core i3 / i5 / i7 (Sandy Bridge, 2011)','3. generacija – Core i3 / i5 / i7 (Ivy Bridge, 2012)','4. generacija – Core i3 / i5 / i7 (Haswell, 2013–2014)','5. generacija – Core i3 / i5 / i7 (Broadwell, 2015)','6. generacija – Core i3 / i5 / i7 (Skylake, 2015–2016)','7. generacija – Core i3 / i5 / i7 (Kaby Lake, 2016–2017)','8. generacija – Core i3 / i5 / i7 / i9 (Coffee Lake, 2017–2018)','9. generacija – Core i3 / i5 / i7 / i9 (Coffee Lake Refresh, 2018–2019)','10. generacija – Core i3 / i5 / i7 / i9 (Comet / Ice Lake, 2020)','11. generacija – Core i5 / i7 / i9 (Rocket / Tiger Lake, 2021)','12. generacija – Core i3 / i5 / i7 / i9 (Alder Lake, 2021–2022)','13. generacija – Core i3 / i5 / i7 / i9 (Raptor Lake, 2022–2023)','14. generacija – Core i5 / i7 / i9 (Raptor Lake Refresh, 2023–2024)','Ne znam, nisam siguran'];
+const AMD_GEN = ['AMD Ryzen 1000 – Ryzen 3 / 5 / 7 (Zen, 2017)','AMD Ryzen 2000 – Ryzen 3 / 5 / 7 (Zen+, 2018)','AMD Ryzen 3000 – Ryzen 3 / 5 / 7 / Ryzen 9 (Zen 2, 2019)','AMD Ryzen 4000 – Ryzen 3 / 5 / 7 (Zen 2 – uglavnom laptop procesori, 2020)','AMD Ryzen 5000 – Ryzen 3 / 5 / 7 / Ryzen 9 (Zen 3, 2020–2021)','AMD Ryzen 6000 – Ryzen 5 / 7 (Zen 3+, uglavnom laptop procesori, 2022)','AMD Ryzen 7000 – Ryzen 5 / 7 / Ryzen 9 (Zen 4, 2022–2024)','AMD Ryzen 8000 – Ryzen 5 / 7 (Zen 4 – APU fokus, 2024–)','Ne znam, nisam siguran'];
+const GPU_BRAND = ['ASUS','MSI','Gigabyte','ZOTAC','Palit','Gainward','EVGA (starije NVIDIA kartice)','PNY','Inno3D','Colorful','KFA2','Sapphire','PowerColor','XFX','ASRock','Sparkle','Acer',NZ];
+const USLUGE_PC = ['Dijagnostika i utvrđivanje kvara','Čišćenje računala od prašine (preventivno održavanje)','Zamjena termalne paste i poboljšanje hlađenja','Ubrzavanje rada računala (optimizacija sustava)','Instalacija ili reinstalacija operativnog sustava','Instalacija softvera po vašem izboru','Nadogradnja hardvera (RAM, SSD, GPU, PSU, itd.)','Backup i zaštita podataka','Uklanjanje virusa i zlonamjernog softvera','Rješavanje problema sa sporim radom ili nestabilnošću','Popravak ili zamjena neispravne komponente','Savjetovanje i preporuka optimalnog rješenja'];
+const USLUGE_OST = ['Dijagnostika i utvrđivanje kvara','Čišćenje uređaja od prašine (preventivno održavanje)','Zamjena termalne paste i poboljšanje hlađenja','Ubrzavanje rada uređaja (optimizacija sustava)','Instalacija ili reinstalacija operativnog sustava','Nadogradnja hardvera (RAM, SSD, GPU, PSU, itd.)','Backup i zaštita podataka','Uklanjanje virusa i zlonamjernog softvera','Rješavanje problema sa sporim radom ili nestabilnošću','Popravak ili zamjena neispravne komponente','Savjetovanje i preporuka optimalnog rješenja'];
+const DOB = ['Manje od 2 godine','2 – 4 godine','5 – 7 godina','Više od 7 godina',NZ];
+
+/* Polja: id, label, type (radio|check|text|area|email|tel|date|select), opts, req, other (polje "Ostalo"), hint, when(A) */
+const STEPS = [
+ { t:'Privola', intro:'Vaše osobne podatke prikupljamo isključivo radi kontaktiranja, dogovora termina, preuzimanja, servisiranja i povrata uređaja. Ne koristimo ih u druge svrhe i ne dijelimo s trećim stranama, osim kada je to nužno za izvršenje usluge ili propisano zakonom.', f:[
+  {id:'gdpr', label:'Izjava o zaštiti osobnih podataka (GDPR)', type:'radio', req:true, hint:'Potvrđujem da sam upoznat/a s obradom osobnih podataka sukladno Zakonu o zaštiti osobnih podataka i Općoj uredbi (GDPR) te dajem privolu za njihovu obradu u svrhu kontaktiranja, dogovora termina i izvršenja servisa.',
+   opts:['DA, potvrđujem','NE, ne dajem privolu']} ]},
+ { t:'Vaši podaci', intro:'Adresu i mjesto tražimo samo ako želite preuzimanje uređaja ili servis na Vašoj lokaciji.', f:[
+  {id:'email', label:'E-pošta', type:'email', req:true},
+  {id:'titula', label:'Titula', type:'select', req:true, opts:['gosp.','gđa.','gđica']},
+  {id:'ime', label:'Ime i prezime', type:'text', req:true},
+  {id:'mobitel', label:'Kontakt broj mobitela', type:'tel', req:true},
+  {id:'postanski', label:'Poštanski broj', type:'text'},
+  {id:'grad', label:'Grad / mjesto', type:'text', req:true},
+  {id:'adresa', label:'Adresa', type:'text'} ]},
+ { t:'Komunikacija', intro:'Kako da Vas najbrže dobijemo kad tijekom servisa trebamo potvrdu zahvata, odobrenje troška ili dodatnu informaciju.', f:[
+  {id:'kontakt_vrijeme', label:'Kada Vas možemo kontaktirati?', type:'check', req:true, other:true, opts:['Radnim danom (08:00 – 19:00)','Vikendom (08:00 – 19:00)','Cijeli tjedan (06:00 – 22:00)']},
+  {id:'nedostupnost', label:'Razdoblje kad ste nedostupni ili Vam kontakt ne odgovara', type:'area', req:true, hint:'Posao, putovanje, obaveze… Ako takvog razdoblja nema, upišite „nema”.'},
+  {id:'kanal', label:'Preferirani način brze komunikacije', type:'check', req:true, other:true, opts:['WhatsApp','Viber','Telegram','Signal','SMS','Telefonski poziv','Email komunikacija']},
+  {id:'kanal_broj', label:'Je li Vaš broj povezan s odabranom aplikacijom?', type:'text', hint:'Ako nije, upišite drugi broj ili korisničko ime.'} ]},
+ { t:'Backup podataka', warn:true, intro:'Prije predaje uređaja OBAVEZNO sami napravite backup svih važnih podataka: dokumenata, fotografija i videa, lozinki i postavki, financijskih i privatnih datoteka. Posebno osjetljive podatke uklonite ili zasebno pohranite.', f:[
+  {id:'backup_potvrda', label:'Obavezna potvrda', type:'radio', req:true, opts:['DA – pročitao/la sam i razumijem napomenu o backupu podataka','NE – nisam u potpunosti upoznat/a s napomenom o izradi sigurnosne kopije']},
+  {id:'backup_znanje', label:'Jeste li upoznati s izradom backupa podataka?', type:'radio', req:true, other:true, opts:['DA – znam napraviti backup i napravit ću ga prije predaje uređaja','NE – ne znam kako, trebam Vašu pomoć i asistenciju','NE – želim da Vi napravite backup, uz razumijevanje da možda neće obuhvatiti sve podatke']},
+  {id:'backup_podaci', label:'Na koje podatke da posebno pazimo pri izradi backupa?', type:'area', req:true, hint:'Npr. fotografije, lozinke, glazba, filmovi, dokumenti.', when:A=>!(A.backup_znanje||'').startsWith('DA')},
+  {id:'backup_lokacije', label:'Lokacije važnih podataka izvan standardnih mapa', type:'area', req:true, hint:'Ako ih nema, upišite „nema”.', when:A=>!(A.backup_znanje||'').startsWith('DA')} ]},
+ { t:'Uređaj', intro:'Odaberite uređaj kojem treba servis. Tako se bolje pripremimo i brže postavimo dijagnozu.', f:[
+  {id:'uredaj', label:'Vrsta uređaja', type:'radio', req:true, opts:['Računalo - LAPTOP/DESKTOP','PlayStation 5','Xbox 360','Xbox One','Steam Deck','Ostalo']},
+  {id:'uredaj_ostalo', label:'Koji uređaj?', type:'text', req:true, when:A=>A.uredaj==='Ostalo'},
+  {id:'namjena', label:'Za što najviše koristite računalo?', type:'check', req:true, other:true, when:isPC, hint:'Prema tome prilagođavamo sustav, programe i drivere.', opts:['Uredski rad i administracija (dokumenti, tablice, e-mail)','Škola i studij (online nastava, učenje, prezentacije)','Poslovna upotreba / rad od kuće (poslovni alati, VPN, baze podataka)','Online komunikacija (videopozivi, e-mail, društvene mreže)','Pretraživanje interneta (informiranje, svakodnevno korištenje)','Multimedija i zabava (filmovi, glazba, streaming)','Gaming (igre i zahtjevnije aplikacije)','Kreativni rad (grafički dizajn, obrada fotografija i videa)']},
+  {id:'tip_racunala', label:'Moje računalo je', type:'radio', req:true, when:isPC, opts:['DESKTOP - stolno računalo','LAPTOP - računalo']} ]},
+ { t:'Laptop', when:isLaptop, intro:'Komponente laptopa prilagođene su točno određenom modelu, pa nam je za procjenu servisa važan točan model.', f:[
+  {id:'laptop_brend', label:'Proizvođač / serija laptopa', type:'check', req:true, other:true, opts:LAPTOP, chips:true},
+  {id:'laptop_model', label:'Točan model uređaja', type:'text', req:true, hint:'Model je na naljepnici s donje strane laptopa, u postavkama sustava (System / About), u BIOS-u ili na kutiji i dokumentaciji.'} ]},
+ { t:'Desktop', when:isDesktop, intro:'Desktop računala često su sastavljena i nadograđivana kroz godine. Što više znamo unaprijed, to bolje pripremimo alat i dijelove.', f:[
+  {id:'desktop_vrsta', label:'Tvornički brendirano ili sastavljeno računalo?', type:'radio', req:true, hint:'Računalo iz trgovine s lokalnim brandom (HG Spot, Links, VACOM, BigBang…) smatra se individualno sastavljenim.', opts:['Tvornički brendirano DESKTOP računalo (HP, Acer, Dell, Asus itd.)','Individualno sastavljeno DESKTOP računalo (custom / „sam svoj majstor”)','Trgovački brandirano DESKTOP računalo (HG Spot, Links, VACOM, BigBang itd.)','Nisam siguran/na']},
+  {id:'desktop_brend', label:'Proizvođač / serija desktop računala', type:'check', req:true, other:true, opts:DESKTOP, chips:true, hint:'Brend je najčešće na prednjoj strani kućišta ili na računu.', when:A=>!(A.desktop_vrsta||'').startsWith('Individualno')},
+  {id:'desktop_model', label:'Točan model uređaja', type:'text', req:true, hint:'Za sastavljeno računalo upišite „custom” ili trgovački naziv.'} ]},
+ { t:'Specifikacije', when:isPC, intro:'Tehnički podaci (procesor, RAM, grafička…) pomažu nam odabrati pravi softver i predložiti isplativu nadogradnju.', f:[
+  {id:'specifikacije', label:'Poznajete li specifikacije svog računala?', type:'radio', req:true, opts:['RAZUMIJEM SE i sam/a ću unijeti podatke o komponentama','NE SNALAZIM SE – utvrdite tehničke podatke tijekom servisa']} ]},
+ { t:'Matična ploča', when:tech, intro:'Matična ploča određuje koje procesore, RAM i diskove računalo podržava te koliko se isplati nadogradnja.', f:[
+  {id:'mbo_model', label:'Model matične ploče', type:'text', req:true, hint:'Npr. ASUS B450, MSI B550, Gigabyte Z390. Ako ne znate, upišite „ne znam”.'},
+  {id:'mbo_proizvodac', label:'Proizvođač matične ploče', type:'radio', req:true, other:true, opts:['ASUS','MSI','Gigabyte','ASRock','Biostar','NZXT','EVGA','Supermicro',NZ]},
+  {id:'mbo_mijenjana', label:'Je li matična ploča mijenjana?', type:'radio', other:true, opts:['Da, mijenjana je ili nadograđivana','Ne, originalna je','Ne znam / nisam siguran/na']},
+  {id:'mbo_problemi', label:'Problemi koji mogu biti vezani uz matičnu ploču', type:'radio', other:true, opts:['Računalo se ne pali ili se ne pokreće ispravno','Računalo se samo gasi ili restartira','USB / audio / LAN priključci ne rade ili rade povremeno','Računalo se ne podiže nakon nadogradnje hardvera','Pojavljuju se greške pri paljenju (beep kodovi, poruke)','Računalo se zamrzava bez jasnog razloga','Nemam takvih problema']},
+  {id:'bios', label:'Je li rađen BIOS update?', type:'radio', req:true, other:true, opts:['Da, BIOS je ažuriran','Ne, BIOS nikada nije ažuriran',NZ]} ]},
+ { t:'Procesor', when:tech, intro:'Procesor (CPU) najviše utječe na brzinu sustava i programa.', f:[
+  {id:'cpu_proizvodac', label:'Proizvođač procesora', type:'radio', req:true, other:true, opts:['INTEL procesor','AMD procesor','Ne znam, nisam siguran']},
+  {id:'cpu_model', label:'Točan model procesora', type:'text', req:true, hint:'Npr. Intel Core i5-8400, AMD Ryzen 5 3600. Ako ne znate, upišite „ne znam”.'},
+  {id:'cpu_serija', label:'Serija procesora', type:'radio', req:true, other:true, opts:['Intel Core i3','Intel Core i5','Intel Core i7','Intel Core i9','AMD Ryzen 3','AMD Ryzen 5','AMD Ryzen 7','AMD Ryzen 9','Ne znam, nisam siguran']},
+  {id:'cpu_gen_intel', label:'Generacija Intel procesora', type:'select', req:true, opts:INTEL_GEN, when:A=>A.cpu_proizvodac==='INTEL procesor', hint:'Niste sigurni? Odaberite najbližu ili „Ne znam”.'},
+  {id:'cpu_gen_amd', label:'Generacija AMD procesora', type:'select', req:true, opts:AMD_GEN, when:A=>A.cpu_proizvodac==='AMD procesor'},
+  {id:'cpu_starost', label:'Razdoblje / starost procesora', type:'radio', req:true, other:true, opts:['Prije 2014. godine','2014 – 2015','2016 – 2017','2018 – 2019','2020 – 2021','2022 – 2023','2024 – danas',NZ]},
+  {id:'cpu_mijenjan', label:'Je li procesor mijenjan?', type:'radio', req:true, other:true, opts:['Da, mijenjan je nakon kupnje','Ne, originalan je','Ne znam / nisam siguran/na']},
+  {id:'cpu_problemi', label:'Problemi koji mogu biti vezani uz procesor', type:'radio', req:true, other:true, opts:['Računalo je izrazito sporo u svakodnevnom radu','Računalo se zamrzava ili ruši pod opterećenjem','Programi se sporo pokreću ili često prestaju raditi','Ventilator procesora je stalno glasan','Računalo se gasi zbog pregrijavanja','Pojavljuju se greške ili „blue screen”','Nemam takvih problema']} ]},
+ { t:'Radna memorija (RAM)', when:tech, intro:'Količina, vrsta i brzina RAM-a određuju koliko programa računalo može raditi odjednom bez usporavanja.', f:[
+  {id:'ram_proizvodac', label:'Proizvođač RAM-a', type:'radio', req:true, other:true, opts:['Kingston','Corsair','Crucial','G.Skill','ADATA','Patriot','Samsung','SK hynix','Micron','TeamGroup','Transcend','HyperX',NZ]},
+  {id:'ram_moduli', label:'Broj RAM modula', type:'radio', req:true, other:true, opts:['1 modul','2 modula','3 modula','4 modula','5 modula','6 modula',NZ]},
+  {id:'ram_vrsta', label:'Vrsta RAM-a', type:'radio', req:true, opts:['SDRAM','DDR','DDR2','DDR3','DDR4','DDR5',NZ]},
+  {id:'ram_kolicina', label:'Ukupna količina RAM-a', type:'radio', req:true, other:true, opts:['4 GB','8 GB','16 GB','32 GB','64 GB','128 GB',NZ]},
+  {id:'ram_brzina', label:'Brzina (frekvencija) RAM-a', type:'radio', req:true, opts:['Do 2400 MHz','2666 – 3000 MHz','3200 – 3600 MHz','4000 – 5600 MHz','5600 MHz i više',NZ]},
+  {id:'ram_mijenjan', label:'Je li RAM nadograđivan ili mijenjan?', type:'radio', req:true, other:true, opts:['DA, nadograđivan je ili mijenjan','NE, originalan je','Ne znam / nisam siguran-na']},
+  {id:'ram_problemi', label:'Problemi koji mogu biti vezani uz RAM', type:'radio', other:true, opts:['Računalo se usporava pri radu s više programa','Programi se sporo otvaraju','Računalo se povremeno zamrzava','Nemam takvih problema']} ]},
+ { t:'Grafička kartica', when:tech, intro:'Grafička kartica (GPU) obrađuje sliku, video, igre i 3D. Integrirana grafika dovoljna je za uredski rad, a za zahtjevnije stvari treba zasebna kartica.', f:[
+  {id:'gpu_cip', label:'Proizvođač grafičkog čipa', type:'radio', req:true, opts:['NVIDIA','AMD','Intel',NZ]},
+  {id:'gpu_brend', label:'Brend grafičke kartice', type:'select', req:true, opts:GPU_BRAND},
+  {id:'gpu_model', label:'Točan model grafičke kartice', type:'text', req:true, hint:'Npr. NVIDIA RTX 3060, AMD RX 580, Intel Arc A750. Ako ne znate, upišite „ne znam”.'},
+  {id:'gpu_vram', label:'Količina video memorije (VRAM)', type:'radio', req:true, other:true, opts:['2 GB','4 GB','6 GB','8 GB','10 GB','12 GB','16 GB','24 GB',NZ]},
+  {id:'gpu_namjena', label:'Za što najčešće koristite grafičku?', type:'radio', req:true, other:true, opts:['Uredski rad i internet','Gledanje videa / multimedija','Igre','Obrada fotografija i videa','3D modeliranje / CAD']},
+  {id:'gpu_mijenjana', label:'Je li grafička kartica mijenjana?', type:'radio', req:true, other:true, opts:['Da, nadograđivana je','Ne, originalna je',NZ]},
+  {id:'gpu_problemi', label:'Problemi koji mogu biti vezani uz grafičku', type:'radio', req:true, other:true, opts:['Slika se zamrzava ili trza','Računalo se gasi pod opterećenjem','Ventilatori su glasni','Igre ili programi se ruše','Nemam takvih problema']} ]},
+ { t:'Pohrana podataka', when:tech, intro:'HDD je klasični mehanički disk, SSD je znatno brži, a NVMe / M.2 najbrži. Zamjena HDD-a SSD-om često je najisplativije ubrzanje računala.', f:[
+  {id:'disk_vrsta', label:'Vrsta pohrane', type:'radio', req:true, other:true, opts:['HDD (klasični hard disk)','SSD','NVMe / M.2','Kombinacija više diskova',NZ]},
+  {id:'disk_broj', label:'Ukupan broj diskova', type:'radio', req:true, other:true, opts:['1 disk','2 diska','3 diska','4 i više diskova']},
+  {id:'disk_os', label:'Na kojem disku je operativni sustav?', type:'radio', req:true, other:true, opts:['HDD','SSD','NVMe / M.2',NZ]},
+  {id:'disk_kapacitet', label:'Ukupni kapacitet pohrane', type:'radio', req:true, other:true, opts:['Do 256 GB','512 GB','1 TB','2 TB','4 TB ili više',NZ]},
+  {id:'disk_starost', label:'Starost diska s operativnim sustavom', type:'radio', req:true, opts:DOB},
+  {id:'disk_mijenjan', label:'Je li disk sa sustavom mijenjan?', type:'radio', req:true, other:true, opts:['Da, mijenjan je ili dodan','Ne, originalan je',NZ]},
+  {id:'disk_vazni', label:'Imate li važne podatke na disku sa sustavom?', type:'radio', req:true, other:true, opts:['Da, imam važne podatke','Ne, nemam važnih podataka',NZ]},
+  {id:'disk_odvojeno', label:'Jesu li sustav i dokumenti na istom disku?', type:'radio', req:true, other:true, opts:['Na istom su disku','Razdvojeni su na dva fizička diska','Ne znam / nisam siguran/na']},
+  {id:'disk_problemi', label:'Problemi koji mogu biti vezani uz disk', type:'radio', req:true, other:true, opts:['Računalo se sporo pokreće','Programi se dugo učitavaju','Računalo se zamrzava','Čuju se neobični zvukovi (klikovi, zujanje)','Pojavljuju se greške ili poruke o disku','Nemam takvih problema']} ]},
+ { t:'Napajanje (PSU)', when:A=>tech(A)&&isDesktop(A), intro:'Slabo ili dotrajalo napajanje uzrokuje gašenja, restarte i može oštetiti druge komponente. Važno je i kod planiranja jače grafičke.', f:[
+  {id:'psu_proizvodac', label:'Proizvođač napajanja', type:'radio', req:true, other:true, opts:['Corsair','Seasonic','Be Quiet!','Cooler Master','EVGA','Chieftec','Thermaltake','LC Power','Fortron (FSP)',NZ]},
+  {id:'psu_model', label:'Točan model napajanja', type:'text', req:true, hint:'Npr. Corsair RM650x, Seasonic Focus GX-750. Ako ne znate, upišite „ne znam”.'},
+  {id:'psu_snaga', label:'Snaga napajanja', type:'radio', req:true, other:true, opts:['Do 400 W','450 – 500 W','550 – 600 W','650 – 700 W','750 – 850 W','900 W i više',NZ]},
+  {id:'psu_starost', label:'Starost napajanja', type:'radio', req:true, other:true, opts:DOB},
+  {id:'psu_mijenjano', label:'Je li napajanje mijenjano?', type:'radio', req:true, opts:['Da, mijenjano je','Ne, originalno je',NZ]},
+  {id:'psu_problemi', label:'Problemi koji mogu biti vezani uz napajanje', type:'radio', req:true, other:true, opts:['Računalo se samo gasi','Računalo se restartira bez upozorenja','Računalo se gasi pod opterećenjem (igre, programi)','Ventilator napajanja je vrlo glasan','Osjeti se neugodan miris ili zujanje','Nemam takvih problema']},
+  {id:'nadogradnja_plan', label:'Planirate li nadogradnju hardvera (npr. jaču grafičku)?', type:'radio', req:true, other:true, opts:['Da','Ne',NZ]} ]},
+ { t:'Ostale komponente', when:tech, intro:'Hlađenje, mreža, zvuk i dodatne kartice često su uzrok pregrijavanja, buke i povremenih grešaka.', f:[
+  {id:'hladenje_cpu', label:'Hlađenje procesora', type:'radio', req:true, other:true, opts:['Zračno – tvornički (stock) hladnjak','Zračno – jači, zasebno kupljen hladnjak','Vodeno – AIO (zatvoreni sustav)','Vodeno – custom loop (otvoreni sustav)',NZ]},
+  {id:'hladenje_kuciste', label:'Broj ventilatora u kućištu', type:'radio', req:true, other:true, opts:['1 – 2 ventilatora','3 – 4 ventilatora','5 ili više ventilatora',NZ]},
+  {id:'mreza', label:'Kako je računalo spojeno na internet?', type:'radio', req:true, other:true, opts:['LAN kabel (žična veza)','Wi-Fi (bežična veza)','Koristim oboje',NZ]},
+  {id:'mreza_problemi', label:'Problemi s mrežom', type:'radio', req:true, other:true, opts:['Spor internet','Pucanje veze','Računalo ne prepoznaje mrežu','Nemam problema s mrežom',NZ]},
+  {id:'zvuk', label:'Koristite li zasebnu zvučnu karticu?', type:'radio', req:true, other:true, opts:['Da, zasebnu','Ne, integriranu',NZ]},
+  {id:'zvuk_problemi', label:'Problemi sa zvukom', type:'radio', req:true, other:true, opts:['Zvuk se povremeno gubi','Čuje se šum ili pucketanje','Ne radi mikrofon','Nemam problema sa zvukom',NZ]},
+  {id:'kartice', label:'Dodatne kartice i proširenja', type:'radio', req:true, other:true, opts:['TV kartica','Capture kartica','RAID kontroler','Dodatna USB kartica','Nema dodatnih kartica',NZ]},
+  {id:'opticki', label:'Ima li računalo optički pogon (DVD / Blu-ray)?', type:'radio', req:true, opts:['Da','Ne',NZ]} ]},
+ { t:'Operativni sustav', when:isPC, intro:'Starije verzije sustava više ne dobivaju sigurnosna ažuriranja i mogu imati slabiju podršku za nove programe.', f:[
+  {id:'os', label:'Koji operativni sustav koristite?', type:'radio', req:true, other:true, opts:['Windows 11','Windows 10','Starija verzija Windowsa (8 / 7 / XP)','Linux','macOS','Nisam siguran/na']},
+  {id:'os_licenca', label:'Ima li sustav važeću licencu?', type:'radio', req:true, opts:['Da, licenciran je','Ne, nije licenciran','Ne znam / nisam siguran/na']} ]},
+ { t:'Usluga', intro:'Cijena rada je 55 € po radnom satu. Točnu cijenu dogovaramo unaprijed, ovisno o vrsti i složenosti zahvata.', f:[
+  {id:'usluga', label:'Koju uslugu trebate?', type:'check', req:true, other:true, opts:USLUGE_PC, when:isPC, hint:'Možete označiti više opcija.'},
+  {id:'usluga_ost', label:'Koju uslugu trebate?', type:'check', req:true, other:true, opts:USLUGE_OST, when:A=>!isPC(A), hint:'Možete označiti više opcija.'},
+  {id:'softver', label:'Koje programe da instaliramo ili pripremimo?', type:'area', req:true, when:isPC, hint:'Instaliramo isključivo licencirani softver i provjerene besplatne programe, npr. LibreOffice, PDF24 Creator, Google Chrome, GIMP. Ako ne trebate ništa, upišite „ništa”.'},
+  {id:'softver_namjena', label:'Za koju namjenu trebate softver?', type:'radio', req:true, other:true, when:isPC, hint:'Prema namjeni predložit ćemo optimalno rješenje.', opts:['Uredski rad (internet, e-mail, Office)','Poslovna namjena (specifični programi, administracija)','Gaming (Steam, GOG Galaxy, Battle.net, Epic, EA…)','Grafički dizajn / obrada fotografija','Video montaža / streaming','Programiranje / razvoj softvera','Edukacija / škola','Multimedija (filmovi, glazba)']},
+  {id:'softver_licenca', label:'Licencirani komercijalni softver (npr. Adobe)', type:'area', req:true, when:isPC, hint:'Navedite programe, javit ćemo se radi provjere licence i cijene. Već kupljene licence prije servisa spremite (mail, USB) da ih ne izgubite. Ako ne trebate, upišite „ništa”.'},
+  {id:'opis_kvara', label:'Opišite problem ili kvar svojim riječima', type:'area', req:true, hint:'Kada se problem prvi put pojavio, u kojim situacijama se javlja i sve što smatrate važnim.'} ]},
+ { t:'Termin i predaja', intro:'Termin je moguće zakazati najranije 24 sata od prijave. Nedjeljom ne zaprimamo rezervacije. Za hitan popravak javite nam se izravno na Viber ili WhatsApp.', f:[
+  {id:'napomene', label:'Dodatne napomene za servis', type:'area', req:true, hint:'Ako ih nemate, upišite „nema”.'},
+  {id:'zamjenski', label:'Trebate li zamjensko računalo tijekom servisa?', type:'radio', req:true, opts:['Desktop poslovno računalo (10,00 €/dan)','Desktop gaming računalo (15,00 €/dan)','Poslovni laptop (15,00 €/dan)','Gaming laptop (20,00 €/dan)','Nemam potrebe za zamjenskim računalom']},
+  {id:'datum', label:'Željeni datum preuzimanja / početka servisa', type:'date', req:true, hint:'Javit ćemo se s potvrdom datuma ili prijedlogom drugog termina.'},
+  {id:'predaja', label:'Kako želite predati uređaj?', type:'radio', req:true, opts:['Osobno donošenje uređaja na adresu servisa','Preuzimanje uređaja na Vašoj adresi','Servis uređaja na Vašoj lokaciji (ako je moguće)']} ]}
+];
+
+const $ = s => document.querySelector(s);
+const root = $('#wiz');
+if (!root) return;
+const esc = t => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let A = {}; let cur = 0;
+try { A = JSON.parse(localStorage.getItem('hz_prijava') || '{}'); } catch (e) {}
+const save = () => { try { localStorage.setItem('hz_prijava', JSON.stringify(A)); } catch (e) {} };
+
+const visSteps = () => STEPS.filter(s => !s.when || s.when(A));
+const visFields = s => s.f.filter(f => !f.when || f.when(A));
+const minDate = () => { const d = new Date(Date.now() + 864e5); if (d.getDay() === 0) d.setDate(d.getDate() + 1); return d.toISOString().slice(0, 10); };
+
+function fieldHTML(f) {
+  const v = A[f.id], ov = A[f.id + '_ostalo'] || '';
+  const req = f.req ? '<span class="rq" aria-hidden="true">*</span>' : '';
+  const hint = f.hint ? `<p class="fh" id="${f.id}-h">${esc(f.hint)}</p>` : '';
+  const aria = f.hint ? ` aria-describedby="${f.id}-h"` : '';
+  let ctl = '';
+  if (f.type === 'radio' || f.type === 'check') {
+    const tp = f.type === 'radio' ? 'radio' : 'checkbox';
+    const opts = f.opts.map((o, i) => {
+      const on = f.type === 'radio' ? v === o : Array.isArray(v) && v.includes(o);
+      return `<label class="opt"><input type="${tp}" name="${f.id}" value="${esc(o)}" id="${f.id}-${i}"${on ? ' checked' : ''}><span>${esc(o)}</span></label>`;
+    }).join('');
+    const oth = f.other ? `<label class="opt oth"><input type="${tp}" name="${f.id}" value="__ostalo" id="${f.id}-o"${has(v, '__ostalo') ? ' checked' : ''}><span>Ostalo:</span><input type="text" class="otxt" id="${f.id}_ostalo" data-for="${f.id}" value="${esc(ov)}" aria-label="${esc(f.label)} – ostalo"></label>` : '';
+    ctl = `<div class="opts${f.chips ? ' chips' : ''}" role="${tp === 'radio' ? 'radiogroup' : 'group'}" aria-labelledby="${f.id}-l"${aria}>${opts}${oth}</div>`;
+    return `<fieldset class="fld" data-id="${f.id}"><legend id="${f.id}-l">${esc(f.label)}${req}</legend>${hint}${ctl}<p class="err" role="alert"></p></fieldset>`;
+  }
+  if (f.type === 'select') {
+    ctl = `<select id="${f.id}"${aria}><option value="">Odaberite…</option>${f.opts.map(o => `<option${v === o ? ' selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+  } else if (f.type === 'area') {
+    ctl = `<textarea id="${f.id}" rows="3"${aria}>${esc(v || '')}</textarea>`;
+  } else {
+    const t = f.type === 'date' ? 'date' : f.type === 'email' ? 'email' : f.type === 'tel' ? 'tel' : 'text';
+    const extra = f.type === 'date' ? ` min="${minDate()}"` : f.type === 'email' ? ' autocomplete="email"' : f.type === 'tel' ? ' autocomplete="tel" inputmode="tel"' : f.id === 'ime' ? ' autocomplete="name"' : '';
+    ctl = `<input type="${t}" id="${f.id}" value="${esc(v || '')}"${extra}${aria}>`;
+  }
+  return `<div class="fld" data-id="${f.id}"><label for="${f.id}" id="${f.id}-l">${esc(f.label)}${req}</label>${hint}${ctl}<p class="err" role="alert"></p></div>`;
+}
+
+function render(focus) {
+  const steps = visSteps();
+  if (cur >= steps.length) cur = steps.length - 1;
+  const s = steps[cur];
+  const pct = Math.round((cur) / steps.length * 100);
+  root.innerHTML = `
+    <div class="wz-top"><span class="lbl">Korak ${cur + 1} / ${steps.length}</span><span class="lbl">${pct} %</span></div>
+    <div class="wz-bar"><i style="width:${Math.max(pct, 3)}%"></i></div>
+    <h3 class="wz-t" tabindex="-1">${esc(s.t)}</h3>
+    ${s.intro ? `<p class="wz-i${s.warn ? ' wz-w' : ''}">${esc(s.intro)}</p>` : ''}
+    <div class="wz-f">${visFields(s).map(fieldHTML).join('')}</div>
+    <p class="wz-stop" id="wzStop" hidden>Bez privole za obradu podataka prijavu nije moguće nastaviti. Za dogovor nas možete kontaktirati izravno.</p>
+    <div class="wz-nav">
+      <button type="button" class="btn ghost" id="wzBack"${cur ? '' : ' hidden'}>← Natrag</button>
+      <button type="button" class="btn" id="wzNext">${cur === steps.length - 1 ? 'Pregledaj prijavu →' : 'Dalje →'}</button>
+    </div>
+    <p class="wz-note">Polja sa <span class="rq">*</span> su obavezna. Odgovori se čuvaju u ovom pregledniku dok ne pošaljete prijavu.</p>`;
+  bind();
+  checkStop();
+  if (focus) root.querySelector('.wz-t').focus({ preventScroll: true });
+}
+
+function read(f) {
+  if (f.type === 'radio') { const c = root.querySelector(`input[name="${f.id}"]:checked`); A[f.id] = c ? c.value : ''; }
+  else if (f.type === 'check') A[f.id] = [...root.querySelectorAll(`input[name="${f.id}"]:checked`)].map(c => c.value);
+  else { const el = root.querySelector('#' + f.id); if (el) A[f.id] = el.value.trim(); }
+  if (f.other) { const o = root.querySelector('#' + f.id + '_ostalo'); if (o) A[f.id + '_ostalo'] = o.value.trim(); }
+}
+
+function bind() {
+  root.querySelectorAll('input,select,textarea').forEach(el => {
+    el.addEventListener('input', () => {
+      if (el.classList.contains('otxt') && el.value) { const box = root.querySelector('#' + el.dataset.for + '-o'); if (box) box.checked = true; }
+      const s = visSteps()[cur];
+      const before = visFields(s).map(f => f.id).join() + visSteps().length;
+      s.f.forEach(read); save();
+      const after = visFields(s).map(f => f.id).join() + visSteps().length;
+      const fld = el.closest('.fld'); if (fld) fld.classList.remove('bad');
+      if (before !== after) { const id = el.id; render(); const n = root.querySelector('#' + CSS.escape(id)); if (n) n.focus(); }
+      checkStop();
+    });
+  });
+  root.querySelector('#wzBack').onclick = () => { cur--; render(true); scrollTop(); };
+  root.querySelector('#wzNext').onclick = next;
+}
+
+function checkStop() {
+  const stop = A.gdpr === 'NE, ne dajem privolu' && visSteps()[cur] === STEPS[0];
+  const st = root.querySelector('#wzStop'), nx = root.querySelector('#wzNext');
+  if (st) st.hidden = !stop; if (nx) nx.disabled = stop;
+}
+
+function validate(s) {
+  let first = null;
+  visFields(s).forEach(f => {
+    const fld = root.querySelector(`.fld[data-id="${f.id}"]`); if (!fld) return;
+    let v = A[f.id], msg = '';
+    const empty = Array.isArray(v) ? !v.length : !v;
+    if (f.req && empty) msg = f.type === 'check' ? 'Označite barem jednu opciju.' : f.type === 'radio' || f.type === 'select' ? 'Odaberite jednu opciju.' : 'Ovo polje je obavezno.';
+    else if (f.other && has(v, '__ostalo') && !A[f.id + '_ostalo']) msg = 'Upišite što znači „Ostalo”.';
+    else if (f.type === 'email' && v && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) msg = 'Upišite ispravnu e-adresu, npr. ime@gmail.com.';
+    else if (f.type === 'tel' && v && v.replace(/\D/g, '').length < 8) msg = 'Upišite cijeli broj mobitela, npr. 091 234 5678.';
+    else if (f.type === 'date' && v) {
+      if (v < minDate()) msg = 'Termin je moguće zakazati najranije 24 sata od prijave.';
+      else if (new Date(v + 'T12:00').getDay() === 0) msg = 'Nedjeljom ne zaprimamo rezervacije, odaberite drugi dan.';
+    }
+    fld.classList.toggle('bad', !!msg); fld.querySelector('.err').textContent = msg;
+    if (msg && !first) first = fld;
+  });
+  if (first) { first.scrollIntoView({ block: 'center', behavior: 'smooth' }); const i = first.querySelector('input,select,textarea'); if (i) i.focus({ preventScroll: true }); }
+  return !first;
+}
+
+function next() {
+  const steps = visSteps(), s = steps[cur];
+  s.f.forEach(read); save();
+  if (!validate(s)) return;
+  if (cur < visSteps().length - 1) { cur++; render(true); scrollTop(); } else summary();
+}
+const scrollTop = () => $('#obrazac').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+function payload() {
+  const out = { vrijeme: new Date().toLocaleString('hr-HR') };
+  visSteps().forEach(s => visFields(s).forEach(f => {
+    let v = A[f.id]; const o = A[f.id + '_ostalo'];
+    if (Array.isArray(v)) v = v.map(x => x === '__ostalo' ? 'Ostalo: ' + (o || '') : x).join('; ');
+    else if (v === '__ostalo') v = 'Ostalo: ' + (o || '');
+    out[f.label + ' [' + f.id + ']'] = v || '';
+  }));
+  return out;
+}
+
+function summary() {
+  const rows = visSteps().map(s => {
+    const items = visFields(s).map(f => {
+      let v = A[f.id]; const o = A[f.id + '_ostalo'];
+      if (Array.isArray(v)) v = v.map(x => x === '__ostalo' ? 'Ostalo: ' + o : x).join(', ');
+      else if (v === '__ostalo') v = 'Ostalo: ' + o;
+      return v ? `<dt>${esc(f.label)}</dt><dd>${esc(v)}</dd>` : '';
+    }).join('');
+    return items ? `<div class="sm-g"><h4>${esc(s.t)}</h4><dl>${items}</dl></div>` : '';
+  }).join('');
+  root.innerHTML = `
+    <div class="wz-top"><span class="lbl">Pregled prijave</span><span class="lbl">100 %</span></div>
+    <div class="wz-bar"><i style="width:100%"></i></div>
+    <h3 class="wz-t" tabindex="-1">Provjerite podatke</h3>
+    <p class="wz-i">Ako je sve točno, pošaljite prijavu. Javit ćemo se s potvrdom termina.</p>
+    <div class="sm">${rows}</div>
+    <input type="text" id="wzHp" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <div class="wz-nav">
+      <button type="button" class="btn ghost" id="wzEdit">← Uredi</button>
+      <button type="button" class="btn" id="wzSend">Pošalji prijavu</button>
+    </div>
+    <p class="wz-msg" id="wzMsg" role="status"></p>`;
+  root.querySelector('.wz-t').focus({ preventScroll: true }); scrollTop();
+  root.querySelector('#wzEdit').onclick = () => { cur = visSteps().length - 1; render(true); scrollTop(); };
+  root.querySelector('#wzSend').onclick = send;
+}
+
+async function send() {
+  const btn = root.querySelector('#wzSend'), msg = root.querySelector('#wzMsg');
+  if (root.querySelector('#wzHp').value) return;
+  if (ENDPOINT.startsWith('UPISI')) { msg.className = 'wz-msg bad'; msg.textContent = 'Obrazac još nije spojen na tablicu. Prijavu trenutno nije moguće poslati, javite nam se izravno.'; return; }
+  btn.disabled = true; btn.textContent = 'Šaljem…'; msg.className = 'wz-msg'; msg.textContent = '';
+  try {
+    const r = await fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload()) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || j.ok === false) throw new Error(j.error || r.status);
+    try { localStorage.removeItem('hz_prijava'); } catch (e) {}
+    const ime = A.ime || '';
+    A = {}; cur = 0;
+    root.innerHTML = `<div class="wz-done"><div class="mark" aria-hidden="true">✓</div><h3 class="wz-t" tabindex="-1">Prijava je poslana</h3><p class="wz-i">Hvala${ime ? ', ' + esc(ime.split(' ')[0]) : ''}! Zaprimili smo Vaš nalog i javit ćemo se odabranim kanalom s potvrdom termina.</p><button type="button" class="btn ghost" id="wzNew">Nova prijava</button></div>`;
+    root.querySelector('.wz-t').focus();
+    root.querySelector('#wzNew').onclick = () => render(true);
+  } catch (e) {
+    btn.disabled = false; btn.textContent = 'Pošalji ponovno';
+    msg.className = 'wz-msg bad'; msg.textContent = 'Slanje nije uspjelo. Provjerite internetsku vezu i pokušajte ponovno; podaci su sačuvani.';
+  }
+}
+
+render(false);
+})();
 </script>
 </body>
 </html>
