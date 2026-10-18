@@ -291,6 +291,14 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 .rate.lift{box-shadow:0 22px 50px -18px rgba(254,229,3,.55)}
 #rateNum{display:inline-block;min-width:2ch;text-align:right}
 @media (prefers-reduced-motion:reduce){.rate::after{animation:none;display:none}.rate{transition:none}}
+[hidden]{display:none!important}
+.wiz-open{display:flex;gap:16px;align-items:center;flex-wrap:wrap;background:var(--bg);border:1px solid var(--line);border-top:4px solid var(--copper);border-radius:10px;padding:clamp(20px,4vw,32px);max-width:860px}
+.wiz-open p{color:var(--muted);flex:1 1 280px}
+.wiz-shell{position:relative;max-width:860px}
+.wz-x{position:absolute;top:14px;right:14px;z-index:2;background:transparent;border:1px solid #3A3A35;color:var(--ink);font:600 .85rem var(--body);padding:7px 12px;border-radius:999px;cursor:pointer}
+.wz-x:hover{border-color:var(--copper);color:var(--copper)}
+.wz-x:focus-visible{outline:3px solid var(--copper);outline-offset:2px}
+.wiz .wz-top{padding-right:110px}
 </style>
 
 <!-- Microsoft Clarity -->
@@ -465,7 +473,14 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 
 <section id="obrazac" class="alt"><div class="wrap">
   <div class="sec-head"><span class="lbl">Prijava za termin</span><h2>Servisni nalog</h2><p>Upišite podatke samostalno i točno. Prema njima organiziramo kontakt, preuzimanje i servis Vašeg uređaja. Tehnički dio možete preskočiti ako se ne snalazite u specifikacijama.</p></div>
-  <div class="wiz" id="wiz" aria-live="polite"><p class="wz-i">Učitavanje obrasca…</p></div>
+  <div class="wiz-open" id="wizIntro">
+    <p id="wizIntroT">Prijava traje 3 do 10 minuta, ovisno o uređaju. Odgovori se čuvaju dok ne pošaljete prijavu.</p>
+    <button type="button" class="btn" id="wizOpen">Otvori servisni nalog →</button>
+  </div>
+  <div class="wiz-shell" id="wizShell" hidden>
+    <button type="button" class="wz-x" id="wizClose" aria-label="Zatvori obrazac">Zatvori ✕</button>
+    <div class="wiz" id="wiz" aria-live="polite"><p class="wz-i">Učitavanje obrasca…</p></div>
+  </div>
 </div></section>
 
 <section id="prijava" class="final" style="padding-top:0;padding-bottom:12px"><div class="wrap">
@@ -1065,6 +1080,22 @@ render(false);
     });
     box.addEventListener('mouseleave', () => { box.style.transform = ''; box.classList.remove('lift'); });
   }
+})();
+</script>
+<script>
+/* OTVARANJE / ZATVARANJE OBRASCA */
+(() => {
+  const intro = document.getElementById('wizIntro'), shell = document.getElementById('wizShell');
+  if (!intro || !shell) return;
+  const btn = document.getElementById('wizOpen');
+  let draft = false; try { draft = Object.keys(JSON.parse(localStorage.getItem('hz_prijava') || '{}')).length > 0; } catch (e) {}
+  if (draft) { btn.textContent = 'Nastavi prijavu →'; document.getElementById('wizIntroT').textContent = 'Imate započetu prijavu. Nastavite gdje ste stali.'; }
+  const open = () => { intro.hidden = true; shell.hidden = false; const t = shell.querySelector('.wz-t'); if (t) t.focus({ preventScroll: true }); };
+  const close = () => { shell.hidden = true; intro.hidden = false; btn.textContent = 'Nastavi prijavu →'; document.getElementById('obrazac').scrollIntoView({ behavior: 'smooth', block: 'start' }); btn.focus({ preventScroll: true }); };
+  btn.onclick = open;
+  document.getElementById('wizClose').onclick = close;
+  document.querySelectorAll('a[href="#obrazac"]').forEach(a => a.addEventListener('click', open));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !shell.hidden && !document.querySelector('.modal.open')) close(); });
 })();
 </script>
 </body>
