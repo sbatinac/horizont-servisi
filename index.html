@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="hr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Servis laptopa, stolnih računala i igraćih konzola. Čišćenje, popravak, nadogradnja i optimizacija. 25+ godina iskustva.">
+<link rel="icon" href="favicon.png">
+<title>Horizont LHB d.o.o. - servisi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: radionički "servisni nalog" — oznake kao na naljepnici uređaja, bakreni vodovi kao akcent */
+:root{
+  --bg:#F2F4F3; --surface:#FFFFFF; --ink:#13201C; --muted:#56635E; --line:#D5DCD9;
+  --copper:#B9611F; --copper-ink:#FFFFFF; --pcb:#1D5A4B; --pcb-soft:#E3EEEA;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1614; --surface:#17211E; --ink:#E7EEEB; --muted:#9AA9A3; --line:#2A3833;
+  --copper:#E08A45; --copper-ink:#1A0F06; --pcb:#5FB39C; --pcb-soft:#1B2C27; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1614; --surface:#17211E; --ink:#E7EEEB; --muted:#9AA9A3; --line:#2A3833;
+  --copper:#E08A45; --copper-ink:#1A0F06; --pcb:#5FB39C; --pcb-soft:#1B2C27; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 var(--body);margin:0}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--display);line-height:1.08;text-wrap:balance;margin:0}
+h2{font-size:clamp(1.7rem,3.4vw,2.4rem);font-weight:800;letter-spacing:-.01em}
+h3{font-size:1.15rem;font-weight:700}
+p{margin:0}
+.lbl{font:500 .72rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+a{color:inherit}
+.btn{display:inline-flex;align-items:center;gap:.6em;background:var(--copper);color:var(--copper-ink);font:600 1rem var(--body);text-decoration:none;padding:.9em 1.4em;border-radius:6px;transition:transform .15s}
+.btn:hover{transform:translateY(-2px)}
+.btn:focus-visible,a:focus-visible{outline:3px solid var(--pcb);outline-offset:3px}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+
+/* top */
+header{border-bottom:1px solid var(--line)}
+header .wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-block:16px;flex-wrap:wrap}
+.brand{font:800 1.15rem var(--display);display:flex;align-items:center;gap:.5em}
+.logo{display:inline-flex;background:#fff;border-radius:8px;padding:5px 7px;border:1px solid var(--line)}
+.logo img{display:block;width:52px;height:auto}
+.logo-full{background:#fff;border-radius:10px;padding:14px;border:1px solid var(--line)}
+.logo-full img{display:block;width:170px;height:auto}
+nav{display:flex;gap:20px;flex-wrap:wrap;font-size:.92rem}
+nav a{text-decoration:none;color:var(--muted)} nav a:hover{color:var(--ink)}
+
+/* hero */
+.hero .wrap{display:grid;grid-template-columns:1.25fr 1fr;gap:48px;padding-block:64px 72px;align-items:center}
+.hero h1{font-size:clamp(2.3rem,5.6vw,4.2rem);font-weight:800;letter-spacing:-.02em}
+.hero h1 em{font-style:normal;color:var(--copper)}
+.hero .lead{font-size:1.12rem;color:var(--muted);max-width:52ch;margin-top:20px}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:32px}
+.facts{display:flex;gap:28px;flex-wrap:wrap;margin-top:36px}
+.facts b{display:block;font:800 1.6rem var(--display)}
+.facts span{font-size:.85rem;color:var(--muted)}
+
+.ticket{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:22px 22px 18px;font-family:var(--mono);font-size:.86rem;position:relative;box-shadow:0 18px 40px -24px rgba(0,0,0,.35)}
+.ticket .top{display:flex;justify-content:space-between;align-items:center;border-bottom:1.5px dashed var(--line);padding-bottom:12px;margin-bottom:12px}
+.ticket .top b{font-family:var(--display);font-size:1.05rem}
+.tag{font:500 .68rem var(--mono);letter-spacing:.1em;text-transform:uppercase;background:var(--pcb-soft);color:var(--pcb);padding:4px 8px;border-radius:4px}
+.ticket dl{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin:0}
+.ticket dt{color:var(--muted)} .ticket dd{margin:0;min-width:0}
+.ticket .tot{display:flex;justify-content:space-between;border-top:1.5px dashed var(--line);margin-top:14px;padding-top:12px;font-weight:500}
+.ticket .tot span:last-child{color:var(--copper)}
+.ticket .note{margin-top:10px;font-size:.72rem;color:var(--muted)}
+
+section{padding-block:72px}
+.sec-head{display:grid;gap:12px;max-width:62ch;margin-bottom:36px}
+.sec-head p{color:var(--muted)}
+.alt{background:var(--surface);border-block:1px solid var(--line)}
+
+/* devices */
+.devices{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.dev{border:1px solid var(--line);border-radius:8px;padding:18px;display:grid;gap:6px;background:var(--bg)}
+.dev .lbl{color:var(--pcb)}
+.dev b{font:700 1.05rem var(--display)}
+
+/* services */
+.svc{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--line)}
+.svc div{padding:22px 22px 22px 0;border-bottom:1px solid var(--line);display:grid;gap:8px;min-width:0}
+.svc div:not(:nth-child(3n+1)){padding-left:22px;border-left:1px solid var(--line)}
+.svc p{color:var(--muted);font-size:.95rem}
+
+/* dust */
+.dust{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+.dust p+p{margin-top:14px}
+.dust .chain{display:grid;gap:10px}
+.chain div{display:flex;gap:14px;align-items:center;padding:14px 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.chain .lbl{min-width:4.5em;color:var(--copper)}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;counter-reset:s}
+.step{display:grid;gap:10px;align-content:start;border-top:3px solid var(--pcb);padding-top:16px}
+.step::before{counter-increment:s;content:"0" counter(s);font:500 .8rem var(--mono);color:var(--pcb)}
+.step p{color:var(--muted);font-size:.93rem}
+
+/* prices */
+.prices{display:grid;grid-template-columns:1fr 1.3fr;gap:32px;align-items:start}
+.rate{background:var(--pcb);color:#fff;border-radius:10px;padding:32px;display:grid;gap:10px}
+:root .rate{--on:#fff}
+.rate .lbl{color:rgba(255,255,255,.75)}
+.rate b{font:800 clamp(3rem,7vw,4.6rem)/1 var(--display);font-variant-numeric:tabular-nums}
+.rate b small{font-size:.35em;font-weight:600}
+.rate p{opacity:.9}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .rate{background:var(--pcb-soft);color:var(--ink)} :root:not([data-theme="light"]) .rate .lbl{color:var(--pcb)}}
+:root[data-theme="dark"] .rate{background:var(--pcb-soft);color:var(--ink)}
+:root[data-theme="dark"] .rate .lbl{color:var(--pcb)}
+.rent h3{margin-bottom:6px} .rent>p{color:var(--muted);margin-bottom:16px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+td{padding:13px 0;border-bottom:1px solid var(--line)}
+td:last-child{text-align:right;font:500 .95rem var(--mono);white-space:nowrap}
+
+/* backup */
+.warn{display:grid;grid-template-columns:auto 1fr;gap:24px;border:1.5px solid var(--copper);border-radius:10px;padding:28px;background:var(--surface)}
+.warn .mark{font:800 2.4rem/1 var(--display);color:var(--copper)}
+.warn ul{margin:14px 0 0;padding-left:1.1em;color:var(--muted);columns:2;column-gap:32px}
+.warn p{color:var(--muted);margin-top:10px}
+
+/* final */
+.final{text-align:left}
+.final .box{display:flex;justify-content:space-between;align-items:center;gap:32px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:40px}
+.final ul{margin:14px 0 0;padding-left:1.1em;color:var(--muted)}
+footer{border-top:1px solid var(--line);padding-block:28px;color:var(--muted);font-size:.85rem}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@media (max-width:900px){
+  .hero .wrap,.dust,.prices{grid-template-columns:1fr}
+  .devices{grid-template-columns:repeat(2,1fr)}
+  .steps{grid-template-columns:1fr 1fr}
+  .svc{grid-template-columns:1fr 1fr}
+  .svc div:not(:nth-child(3n+1)){padding-left:0;border-left:0}
+  .svc div:nth-child(even){padding-left:18px;border-left:1px solid var(--line)}
+  nav{display:none}
+}
+@media (max-width:560px){
+  .svc,.steps{grid-template-columns:1fr}
+  .svc div:nth-child(even){padding-left:0;border-left:0}
+  .devices{grid-template-columns:1fr 1fr}
+  .warn{grid-template-columns:1fr}
+  .warn ul{columns:1}
+  .final .box{padding:26px}
+  section{padding-block:52px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* GALERIJA / VIDEO / PDF */
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.tab{background:var(--surface);border:1px solid var(--line);color:var(--muted);padding:8px 16px;border-radius:999px;cursor:pointer;font:600 .9rem var(--body)}
+.tab small{font-family:var(--mono);font-weight:400}
+.tab.on{background:var(--pcb);color:#fff;border-color:var(--pcb)}
+.tab:focus-visible,.ph:focus-visible,.card:focus-visible{outline:3px solid var(--copper);outline-offset:3px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.ph{aspect-ratio:1;border-radius:8px;overflow:hidden;cursor:pointer;background:var(--pcb-soft);border:0;padding:0;display:block}
+.ph img{width:100%;height:100%;object-fit:cover;transition:transform .4s;display:block}
+.ph:hover img{transform:scale(1.05)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.cards.pdf{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden;cursor:pointer;text-align:left;padding:0;font:inherit;color:inherit;transition:border-color .2s}
+.card:hover{border-color:var(--copper)}
+.card .th{aspect-ratio:16/9;background:var(--pcb-soft) center/cover no-repeat;position:relative;display:block}
+.pdf .card .th{aspect-ratio:3/4}
+.card .th::after{position:absolute;font:500 .7rem var(--mono);letter-spacing:.1em}
+.vid .th::after{content:"▶";inset:0;margin:auto;width:56px;height:56px;border-radius:50%;background:var(--copper);color:var(--copper-ink);display:flex;align-items:center;justify-content:center;font-size:1.3rem;padding-left:4px}
+.pdf .th::after{content:"PDF";top:10px;right:10px;background:var(--copper);color:var(--copper-ink);padding:4px 7px;border-radius:4px}
+.card .nm{display:block;padding:12px 14px;font-weight:600;font-size:.95rem;overflow-wrap:anywhere}
+.more{margin-top:24px}
+.msg{color:var(--muted);padding:24px 0}
+.skel{animation:sk 1.2s infinite alternate}
+@keyframes sk{from{opacity:.55}to{opacity:1}}
+.modal{position:fixed;inset:0;background:rgba(6,12,10,.93);z-index:100;display:none;align-items:center;justify-content:center;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+.modal.open{display:flex}
+.modal img{max-width:92vw;max-height:84vh;border-radius:6px}
+.modal iframe{width:min(1000px,94vw);height:86vh;border:0;border-radius:6px;background:#fff}
+.modal iframe.v{height:auto;aspect-ratio:16/9;max-height:84vh;background:#000}
+.mx{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:calc(16px + env(safe-area-inset-right,0px));font-size:2rem;background:none;border:0;color:#fff;cursor:pointer}
+.nv{position:absolute;top:50%;transform:translateY(-50%);font-size:2rem;background:rgba(255,255,255,.12);border:0;color:#fff;width:50px;height:50px;border-radius:50%;cursor:pointer}
+.nv.l{left:calc(12px + env(safe-area-inset-left,0px))}.nv.r{right:calc(12px + env(safe-area-inset-right,0px))}
+.cap{position:absolute;bottom:calc(14px + env(safe-area-inset-bottom,0px));left:0;right:0;text-align:center;color:#ccc;font:.85rem var(--mono)}
+.dl{position:absolute;top:calc(18px + env(safe-area-inset-top,0px));left:calc(18px + env(safe-area-inset-left,0px));color:#fff;font-weight:600}
+</style>
+
+</head>
+<body>
+<header><div class="wrap">
+  <div class="brand"><span class="logo"><img src="logo-znak.webp" alt="Horizont logo" width="52" height="35"></span>Horizont LHB d.o.o. – servisi</div>
+  <nav><a href="#usluge">Usluge</a><a href="#galerija">Galerija</a><a href="#postupak">Kako ide</a><a href="#cijene">Cijene</a><a href="#prijava">Prijava</a></nav>
+  <a class="btn" href="https://docs.google.com/forms/d/1s8RmzJuK2-3EpDtZE-y4Cw6dHLOKqrrrm38MIp44doM/viewform" target="_blank" rel="noopener">Prijavi uređaj</a>
+</div></header>
+
+<div class="hero"><div class="wrap">
+  <div>
+    <span class="lbl">Servis računala i igraćih konzola</span>
+    <h1 style="margin-top:14px">Sporo, vruće, bučno? <em>Vraćamo ga u život.</em></h1>
+    <p class="lead">Laptopi, stolna računala i konzole. Čišćenje, popravak, nadogradnja i optimizacija. Direktno s Vama, uz poštenu cijenu, račun i garanciju.</p>
+    <div class="cta">
+      <a class="btn" href="https://docs.google.com/forms/d/1s8RmzJuK2-3EpDtZE-y4Cw6dHLOKqrrrm38MIp44doM/viewform" target="_blank" rel="noopener">Prijavi se za termin →</a>
+      <a class="btn ghost" href="#usluge">Pogledaj usluge</a>
+    </div>
+    <div class="facts">
+      <div><b>25+</b><span>godina iskustva</span></div>
+      <div><b>55 €</b><span>po radnom satu</span></div>
+      <div><b>24 h</b><span>do prvog termina</span></div>
+    </div>
+  </div>
+  <aside class="ticket" aria-label="Primjer servisnog naloga">
+    <div class="top"><b>Servisni nalog</b><span class="tag">Primjer</span></div>
+    <dl>
+      <dt>Uređaj</dt><dd>Laptop · Lenovo B50-30</dd>
+      <dt>Simptom</dt><dd>Pregrijavanje, gašenje pod opterećenjem</dd>
+      <dt>Dijagnoza</dt><dd>Prašina u hladnjaku, isušena termalna pasta</dd>
+      <dt>Zahvat</dt><dd>Čišćenje + nova termalna pasta + optimizacija</dd>
+      <dt>Predaja</dt><dd>Preuzimanje na adresi</dd>
+    </dl>
+    <div class="tot"><span>Cijena rada</span><span>55 € / h</span></div>
+    <p class="note">Točna cijena dogovara se unaprijed, prije zahvata.</p>
+  </aside>
+</div></div>
+
+<section class="alt"><div class="wrap">
+  <div class="sec-head"><span class="lbl">Uređaji</span><h2>Što servisiramo</h2></div>
+  <div class="devices">
+    <div class="dev"><span class="lbl">PC</span><b>Laptop</b></div>
+    <div class="dev"><span class="lbl">PC</span><b>Desktop</b></div>
+    <div class="dev"><span class="lbl">Konzola</span><b>PlayStation 5</b></div>
+    <div class="dev"><span class="lbl">Konzola</span><b>Xbox One / 360</b></div>
+    <div class="dev"><span class="lbl">Handheld</span><b>Steam Deck</b></div>
+  </div>
+</div></section>
+
+<section id="usluge"><div class="wrap">
+  <div class="sec-head"><span class="lbl">Usluge</span><h2>Kako Vam možemo pomoći</h2><p>Kompletno održavanje, servis i optimizacija, da uređaj radi brže, tiše i pouzdanije.</p></div>
+  <div class="svc">
+    <div><h3>Dijagnostika kvara</h3><p>Utvrđujemo uzrok prije bilo kakvog zahvata.</p></div>
+    <div><h3>Čišćenje od prašine</h3><p>Temeljito unutarnje i vanjsko čišćenje kućišta, ventilatora i hladnjaka.</p></div>
+    <div><h3>Termalna pasta i hlađenje</h3><p>Zamjena isušene paste, niže temperature, manje buke.</p></div>
+    <div><h3>Virusi i zlonamjerni softver</h3><p>Uklanjanje svega što u pozadini troši RAM, procesor i disk.</p></div>
+    <div><h3>Optimizacija sustava</h3><p>Ubrzavanje rada i stabilnost bez nepotrebnih troškova.</p></div>
+    <div><h3>Originalni Windows</h3><p>Instalacija licenciranog sustava, drivera, programa i antivirusa.</p></div>
+    <div><h3>Spašavanje podataka</h3><p>Backup i zaštita dokumenata, fotografija i ostalih datoteka.</p></div>
+    <div><h3>Nadogradnja hardvera</h3><p>RAM, SSD/NVMe, grafička, napajanje. Sklapanje desktop računala.</p></div>
+    <div><h3>Zamjena komponenti</h3><p>Testiranje i zamjena neispravnih dijelova.</p></div>
+    <div><h3>Mreža i internet</h3><p>Konfiguracija modema i routera, e-mail, internetska veza.</p></div>
+    <div><h3>Kablovi i adapteri</h3><p>Sve vrste, uključujući rijetke i teško dostupne.</p></div>
+    <div><h3>Savjet i preporuka</h3><p>Isplati li se popravak ili nadogradnja, i koja.</p></div>
+  </div>
+</div></section>
+
+<section class="alt"><div class="wrap dust">
+  <div>
+    <span class="lbl">Tihi uzrok kvarova</span>
+    <h2 style="margin:12px 0 18px">Prašina i stara termalna pasta</h2>
+    <p>Računalo na podu ili u zatvorenom prostoru bez ventilacije brže uvlači prašinu. Ona se taloži na ventilatorima i hladnjacima i guši protok zraka.</p>
+    <p>Temperature rastu, a procesor i grafička se sami usporavaju da se zaštite. Isušena termalna pasta i skriveni zlonamjerni softver to dodatno pogoršavaju, i kod snažnih, novih računala.</p>
+    <p style="color:var(--ink);font-weight:600">Redovito čišćenje nije luksuz. To je osnovna higijena računala.</p>
+  </div>
+  <div class="chain" aria-label="Posljedice">
+    <div><span class="lbl">Temp ↑</span>Pregrijavanje</div>
+    <div><span class="lbl">Brzina ↓</span>Smanjenje radne brzine</div>
+    <div><span class="lbl">Sustav</span>Nestabilnost i gašenja</div>
+    <div><span class="lbl">Vijek</span>Kraći vijek komponenti</div>
+  </div>
+</div></section>
+
+<section id="galerija" class="alt"><div class="wrap">
+  <div class="sec-head"><span class="lbl">Galerija</span><h2>Iz radionice</h2><p>Uređaji prije i poslije servisa, nadogradnje i sklopljena računala.</p></div>
+  <div class="tabs" id="gTabs"></div>
+  <div class="grid" id="gGrid"></div>
+  <div class="more"><button class="btn ghost" id="gMore" hidden>Prikaži još</button></div>
+</div></section>
+
+<section id="video"><div class="wrap">
+  <div class="sec-head"><span class="lbl">Video</span><h2>Pogledajte kako radimo</h2><p>Snimke servisa, čišćenja i nadogradnji.</p></div>
+  <div class="tabs" id="vTabs"></div>
+  <div class="cards vid" id="vGrid"></div>
+</div></section>
+
+<section id="dokumenti" class="alt"><div class="wrap">
+  <div class="sec-head"><span class="lbl">Dokumenti</span><h2>Upute i materijali</h2><p>Cjenici, upute i ostali dokumenti za pregled i preuzimanje.</p></div>
+  <div class="tabs" id="pTabs"></div>
+  <div class="cards pdf" id="pGrid"></div>
+</div></section>
+
+<section id="postupak"><div class="wrap">
+  <div class="sec-head"><span class="lbl">Postupak</span><h2>Kako ide servis</h2></div>
+  <div class="steps">
+    <div class="step"><h3>Prijava</h3><p>Ispunite obrazac s podacima o uređaju i problemu.</p></div>
+    <div class="step"><h3>Kontakt</h3><p>Javljamo se kanalom koji odaberete: Viber, WhatsApp, poziv, e-mail…</p></div>
+    <div class="step"><h3>Predaja</h3><p>Donesete uređaj, mi ga preuzmemo ili servisiramo kod Vas.</p></div>
+    <div class="step"><h3>Servis</h3><p>Cijenu i zahvate potvrđujemo s Vama prije rada.</p></div>
+    <div class="step"><h3>Povrat</h3><p>Uređaj se vraća s računom i garancijom.</p></div>
+  </div>
+</div></section>
+
+<section id="cijene" class="alt"><div class="wrap">
+  <div class="sec-head"><span class="lbl">Cijene</span><h2>Jasno, unaprijed dogovoreno</h2></div>
+  <div class="prices">
+    <div class="rate">
+      <span class="lbl">Cijena rada</span>
+      <b>55 €<small> / sat</small></b>
+      <p>Točna cijena usluge dogovara se unaprijed, ovisno o vrsti i složenosti zahvata.</p>
+    </div>
+    <div class="rent">
+      <h3>Zamjensko računalo dok je Vaše na servisu</h3>
+      <p>Da možete nastaviti s radom, učenjem i obavezama.</p>
+      <table>
+        <tr><td>Poslovno desktop računalo</td><td>10,00 € / dan</td></tr>
+        <tr><td>Gaming desktop računalo</td><td>15,00 € / dan</td></tr>
+        <tr><td>Poslovni laptop</td><td>15,00 € / dan</td></tr>
+        <tr><td>Gaming laptop</td><td>20,00 € / dan</td></tr>
+      </table>
+    </div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="warn">
+    <div class="mark">!</div>
+    <div>
+      <span class="lbl">Prije predaje uređaja</span>
+      <h3 style="margin-top:8px;font-size:1.4rem">Napravite backup svojih podataka</h3>
+      <ul>
+        <li>Dokumenti</li><li>Fotografije i videa</li><li>Lozinke i postavke</li>
+        <li>Financijski i osjetljivi podaci</li><li>Licence kupljenih programa</li><li>Privatne datoteke</li>
+      </ul>
+      <p>Ne znate kako? Označite to u prijavi, pomoći ćemo Vam ili backup napraviti umjesto Vas.</p>
+    </div>
+  </div>
+</div></section>
+
+<section id="prijava" class="final" style="padding-top:0"><div class="wrap">
+  <div class="box">
+    <div style="max-width:56ch">
+      <span class="lbl">Termin servisa</span>
+      <h2 style="margin-top:10px">Prijavite uređaj za servis</h2>
+      <ul>
+        <li>Termin najranije 24 sata od prijave</li>
+        <li>Nedjeljom ne zaprimamo rezervacije</li>
+        <li>Hitno? Javite nam se direktno na Viber ili WhatsApp</li>
+      </ul>
+    </div>
+    <div class="logo-full"><img src="logo.webp" alt="Horizont LHB d.o.o." width="200" height="172"></div>
+    <a class="btn" href="https://docs.google.com/forms/d/1s8RmzJuK2-3EpDtZE-y4Cw6dHLOKqrrrm38MIp44doM/viewform" target="_blank" rel="noopener">Otvori obrazac za prijavu →</a>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <span>Servis tim · Horizont LHB d.o.o. · Saša Batinac</span>
+  <span>Osobne podatke koristimo isključivo za kontakt i izvršenje usluge (GDPR).</span>
+</div></footer>
+
+<div class="modal" id="mImg" role="dialog" aria-label="Slika">
+  <button class="mx" onclick="closeM('mImg')" aria-label="Zatvori">×</button>
+  <button class="nv l" onclick="step(-1)" aria-label="Prethodna">‹</button>
+  <img id="mImgEl" alt="">
+  <button class="nv r" onclick="step(1)" aria-label="Sljedeća">›</button>
+  <div class="cap" id="mCap"></div>
+</div>
+<div class="modal" id="mVid" role="dialog" aria-label="Video">
+  <button class="mx" onclick="closeM('mVid')" aria-label="Zatvori">×</button>
+  <iframe class="v" id="mVidEl" allow="autoplay; fullscreen" allowfullscreen></iframe>
+</div>
+<div class="modal" id="mPdf" role="dialog" aria-label="Dokument">
+  <a class="dl" id="mPdfDl" target="_blank" rel="noopener">⬇ Preuzmi</a>
+  <button class="mx" onclick="closeM('mPdf')" aria-label="Zatvori">×</button>
+  <iframe id="mPdfEl"></iframe>
+</div>
+
+<script>
+/* ====== POSTAVKE ====== */
+const DRIVE_KEY = 'AIzaSyDp6XAdizCufGZ-lhwXZyIjazfJvkQzS7Q'; // isti ključ kao Koncept Zdravlje (vrijedi za sbatinac.github.io/*)
+const FOLDERS = {
+  gallery: 'UPISI_ID_MAPE_SLIKE',
+  video:   'UPISI_ID_MAPE_VIDEO',
+  pdf:     'UPISI_ID_MAPE_PDF'
+};
+const PAGE = 24;
+
+const thumb = (id, w) => `https://drive.google.com/thumbnail?id=${id}&sz=w${w}`;
+const $ = s => document.querySelector(s);
+const esc = t => t.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const FOLDER_MIME = 'application/vnd.google-apps.folder';
+const MATCH = { gallery: m => m.startsWith('image/'), video: m => m.startsWith('video/'), pdf: m => m === 'application/pdf' };
+
+async function listChildren(folderId) {
+  let out = [], token = '';
+  do {
+    const q = encodeURIComponent(`'${folderId}' in parents and trashed = false`);
+    const url = `https://www.googleapis.com/drive/v3/files?q=${q}&key=${DRIVE_KEY}` +
+      `&fields=nextPageToken,files(id,name,mimeType,createdTime)&pageSize=1000&orderBy=createdTime desc` + (token ? `&pageToken=${token}` : '');
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('Drive API ' + r.status);
+    const j = await r.json();
+    out = out.concat(j.files || []); token = j.nextPageToken || '';
+  } while (token);
+  return out;
+}
+// Datoteke u glavnoj mapi = "Ostalo", svaka podmapa = tab
+async function load(type) {
+  if (FOLDERS[type].startsWith('UPISI')) return [];
+  const ok = MATCH[type];
+  const strip = f => ({ id: f.id, name: f.name.replace(/\.[^.]+$/, ''), date: Date.parse(f.createdTime) });
+  const items = await listChildren(FOLDERS[type]);
+  const albums = [];
+  const root = items.filter(f => ok(f.mimeType)).map(strip);
+  if (root.length) albums.push({ name: 'Ostalo', files: root });
+  const subs = items.filter(f => f.mimeType === FOLDER_MIME);
+  const sub = await Promise.all(subs.map(async s => ({ name: s.name, files: (await listChildren(s.id)).filter(f => ok(f.mimeType)).map(strip) })));
+  albums.push(...sub.filter(a => a.files.length));
+  return albums.sort((a, b) => a.name.localeCompare(b.name, 'hr'));
+}
+function tabs(el, albums, onPick) {
+  if (albums.length < 2) { el.innerHTML = ''; onPick(albums.flatMap(a => a.files)); return; }
+  const all = { name: 'Sve', files: albums.flatMap(a => a.files).sort((a, b) => b.date - a.date) };
+  const list = [all, ...albums];
+  el.innerHTML = list.map((a, i) => `<button class="tab${i ? '' : ' on'}" data-i="${i}">${esc(a.name)} <small>${a.files.length}</small></button>`).join('');
+  el.onclick = e => { const b = e.target.closest('.tab'); if (!b) return;
+    el.querySelectorAll('.tab').forEach(t => t.classList.remove('on')); b.classList.add('on'); onPick(list[b.dataset.i].files); };
+  onPick(all.files);
+}
+
+/* SLIKE */
+let gFiles = [], gShown = 0, cur = 0;
+function gRender(files) { gFiles = files; gShown = 0; $('#gGrid').innerHTML = ''; gMore(); }
+function gMore() {
+  const next = gFiles.slice(gShown, gShown + PAGE);
+  $('#gGrid').insertAdjacentHTML('beforeend', next.map((f, k) =>
+    `<button class="ph skel" onclick="openImg(${gShown + k})" aria-label="${esc(f.name)}"><img loading="lazy" src="${thumb(f.id, 600)}" alt="${esc(f.name)}" onload="this.parentNode.classList.remove('skel')"></button>`).join(''));
+  gShown += next.length; $('#gMore').hidden = gShown >= gFiles.length;
+}
+$('#gMore').onclick = gMore;
+function openImg(i) { cur = i; showImg(); $('#mImg').classList.add('open'); }
+function showImg() { const f = gFiles[cur]; $('#mImgEl').src = thumb(f.id, 1920); $('#mImgEl').alt = f.name; $('#mCap').textContent = `${f.name} · ${cur + 1}/${gFiles.length}`; }
+function step(d) { cur = (cur + d + gFiles.length) % gFiles.length; showImg(); }
+
+/* VIDEO */
+function vRender(files) {
+  $('#vGrid').innerHTML = files.map(f => `<button class="card" onclick="openVid('${f.id}')"><span class="th" style="background-image:url('${thumb(f.id, 640)}')"></span><span class="nm">${esc(f.name)}</span></button>`).join('');
+}
+function openVid(id) { $('#mVidEl').src = `https://drive.google.com/file/d/${id}/preview`; $('#mVid').classList.add('open'); }
+
+/* PDF */
+function pRender(files) {
+  $('#pGrid').innerHTML = files.map(f => `<button class="card" onclick="openPdf('${f.id}')"><span class="th" style="background-image:url('${thumb(f.id, 400)}')"></span><span class="nm">${esc(f.name)}</span></button>`).join('');
+}
+function openPdf(id) {
+  $('#mPdfEl').src = `https://drive.google.com/file/d/${id}/preview`;
+  $('#mPdfDl').href = `https://drive.google.com/uc?export=download&id=${id}`;
+  $('#mPdf').classList.add('open');
+}
+
+/* MODAL */
+function closeM(id) {
+  $('#' + id).classList.remove('open');
+  if (id === 'mPdf') $('#mPdfEl').src = 'about:blank';
+  if (id === 'mVid') $('#mVidEl').src = 'about:blank';
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') ['mImg', 'mVid', 'mPdf'].forEach(closeM);
+  if ($('#mImg').classList.contains('open')) { if (e.key === 'ArrowLeft') step(-1); if (e.key === 'ArrowRight') step(1); }
+});
+document.querySelectorAll('.modal').forEach(m => m.addEventListener('click', e => { if (e.target === m) closeM(m.id); }));
+let tx = 0;
+$('#mImg').addEventListener('touchstart', e => tx = e.touches[0].clientX, { passive: true });
+$('#mImg').addEventListener('touchend', e => { const d = e.changedTouches[0].clientX - tx; if (Math.abs(d) > 50) step(d < 0 ? 1 : -1); });
+
+/* POKRETANJE: prazna mapa = sekcija se skriva */
+function init(type, sec, tabsEl, grid, render) {
+  $(grid).innerHTML = '<div class="msg">Učitavanje…</div>';
+  load(type).then(a => a.length ? tabs($(tabsEl), a, render) : $(sec).hidden = true)
+    .catch(() => $(grid).innerHTML = '<div class="msg">Sadržaj se trenutno ne može učitati. Pokušajte osvježiti stranicu.</div>');
+}
+init('gallery', '#galerija', '#gTabs', '#gGrid', gRender);
+init('video', '#video', '#vTabs', '#vGrid', vRender);
+init('pdf', '#dokumenti', '#pTabs', '#pGrid', pRender);
+</script>
+</body>
+</html>
