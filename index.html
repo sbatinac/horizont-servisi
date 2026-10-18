@@ -178,6 +178,13 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .dl{position:absolute;top:calc(18px + env(safe-area-inset-top,0px));left:calc(18px + env(safe-area-inset-left,0px));color:#fff;font-weight:600}
 .banner{background:#0d0d0d;line-height:0}
 .banner img{display:block;width:100%;max-width:1916px;height:auto;margin:0 auto}
+.strip{position:relative;line-height:0;background:var(--bg)}
+.strip img{display:block;width:100%;height:clamp(220px,30vw,440px);object-fit:cover;object-position:60% 55%}
+.strip::before,.strip::after{content:"";position:absolute;left:0;right:0;height:35%;pointer-events:none}
+.strip::before{top:0;background:linear-gradient(var(--bg),transparent)}
+.strip::after{bottom:0;background:linear-gradient(transparent,var(--surface))}
+.dust-side{display:grid;gap:12px;min-width:0}
+.dust-img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
 </style>
 
 </head>
@@ -248,6 +255,8 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   </div>
 </div></section>
 
+<div class="strip"><img src="radionica.webp" alt="Servisni stol: nanošenje termalne paste na matičnu ploču laptopa" width="1584" height="672" loading="lazy"></div>
+
 <section class="alt"><div class="wrap dust">
   <div>
     <span class="lbl">Tihi uzrok kvarova</span>
@@ -256,11 +265,14 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
     <p>Temperature rastu, a procesor i grafička se sami usporavaju da se zaštite. Isušena termalna pasta i skriveni zlonamjerni softver to dodatno pogoršavaju, i kod snažnih, novih računala.</p>
     <p style="color:var(--ink);font-weight:600">Redovito čišćenje nije luksuz. To je osnovna higijena računala.</p>
   </div>
+  <div class="dust-side">
+  <img class="dust-img" src="prasina.webp" alt="Ventilator i hladnjak procesora zatrpani prašinom" width="1200" height="896" loading="lazy">
   <div class="chain" aria-label="Posljedice">
     <div><span class="lbl">Temp ↑</span>Pregrijavanje</div>
     <div><span class="lbl">Brzina ↓</span>Smanjenje radne brzine</div>
     <div><span class="lbl">Sustav</span>Nestabilnost i gašenja</div>
     <div><span class="lbl">Vijek</span>Kraći vijek komponenti</div>
+  </div>
   </div>
 </div></section>
 
