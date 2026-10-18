@@ -247,6 +247,9 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 @media (max-width:600px){.sm dl{grid-template-columns:1fr}.sm dd{margin-bottom:6px}}
 .wz-msg{font-weight:600}.wz-msg.bad{color:#FF8A7A}
 .wz-done{display:grid;gap:14px;justify-items:start}
+.wz-nr{font:800 1.4rem var(--display);background:var(--copper);color:var(--copper-ink);padding:6px 14px;border-radius:6px}
+.wz-nr b{font-family:var(--mono)}
+.wz-i a{color:var(--copper)}
 .wz-done .mark{width:56px;height:56px;border-radius:50%;background:var(--copper);color:var(--copper-ink);display:flex;align-items:center;justify-content:center;font:800 1.6rem var(--display)}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
 .kontakt-sec{padding-block:24px 36px;position:relative;z-index:2}
@@ -321,7 +324,7 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 <body>
 <header><div class="wrap">
   <div class="brand"><span class="logo"><img src="logo-znak.webp" alt="Horizont logo" width="52" height="35"></span>Horizont LHB d.o.o. – servisi</div>
-  <nav><a href="#usluge">Usluge</a><a href="#galerija">Galerija</a><a href="#postupak">Kako ide</a><a href="#cijene">Cijene</a><a href="#prijava">Prijava</a></nav>
+  <nav><a href="#usluge">Usluge</a><a href="#galerija">Galerija</a><a href="#postupak">Kako ide</a><a href="#cijene">Cijene</a><a href="#prijava">Prijava</a><a href="status.html">Status naloga</a></nav>
   <div class="hdr-r">
   <div class="music" id="music" hidden role="group" aria-label="Glazba">
     <span class="mlbl">Glazba</span>
@@ -553,7 +556,7 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 <footer class="snail">
 <div class="snail-img"><img src="puz-raketa.webp" alt="Puž s raketom na leđima juri cestom" width="1584" height="672" loading="lazy"></div>
 <div class="wrap foot-row">
-  <span>Servis tim · Horizont LHB d.o.o. · Saša Batinac · 091/358 4122</span>
+  <span>Servis tim · Horizont LHB d.o.o. · Saša Batinac · 091/358 4122 · <a href="status.html" style="color:var(--copper)">Status naloga</a></span>
   <span>Osobne podatke koristimo isključivo za kontakt i izvršenje usluge (GDPR). <a class="adm" href="admin.html" aria-label="Administracija" title="Administracija">⚙</a></span>
 </div></footer>
 
@@ -986,7 +989,7 @@ async function send() {
     try { localStorage.removeItem('hz_prijava'); } catch (e) {}
     const ime = A.ime || '';
     A = {}; cur = 0;
-    root.innerHTML = `<div class="wz-done"><div class="mark" aria-hidden="true">✓</div><h3 class="wz-t" tabindex="-1">Prijava je poslana</h3><p class="wz-i">Hvala${ime ? ', ' + esc(ime.split(' ')[0]) : ''}! Zaprimili smo Vaš nalog i javit ćemo se odabranim kanalom s potvrdom termina.</p><button type="button" class="btn ghost" id="wzNew">Nova prijava</button></div>`;
+    root.innerHTML = `<div class="wz-done"><div class="mark" aria-hidden="true">✓</div><h3 class="wz-t" tabindex="-1">Prijava je poslana</h3><p class="wz-i">Hvala${ime ? ', ' + esc(ime.split(' ')[0]) : ''}! Zaprimili smo Vaš nalog i javit ćemo se odabranim kanalom s potvrdom termina.</p>${j.nr ? `<p class="wz-nr">Broj naloga: <b>${esc(j.nr)}</b></p><p class="wz-i">Potvrda s brojem naloga poslana je na Vaš e-mail. Status možete pratiti na stranici <a href="status.html?nr=${encodeURIComponent(j.nr)}">Status naloga</a>.</p>` : ''}<button type="button" class="btn ghost" id="wzNew">Nova prijava</button></div>`;
     root.querySelector('.wz-t').focus();
     root.querySelector('#wzNew').onclick = () => render(true);
   } catch (e) {

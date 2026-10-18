@@ -44,6 +44,9 @@ header .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 .login{min-height:70vh;display:grid;place-items:center;padding-block:40px}
 .login form{width:min(420px,100%);display:grid;gap:14px;background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--y);border-radius:12px;padding:28px}
 .login p{color:var(--muted);margin:0}
+.quote{margin:10px 0 0;border-left:3px solid var(--y);padding:4px 0 4px 14px;display:grid;gap:6px}
+.quote p{color:var(--ink);font:600 1.05rem/1.4 var(--display);margin:0}
+.quote cite{font:500 .75rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--y);font-style:normal}
 .msg{font-weight:600;margin:0}.msg.bad{color:var(--bad)}
 
 main{padding-block:24px 60px;display:grid;gap:28px}
@@ -199,6 +202,9 @@ main{padding-block:24px 60px;display:grid;gap:28px}
 .st.odb{border-color:var(--bad);color:var(--bad)}.st.arh{border-color:#666;color:#888}
 .btn.ghost.danger:hover{background:var(--bad);border-color:var(--bad);color:#000}
 @media (max-width:560px){#bigT{left:16px;right:16px;max-width:none}.bt{grid-template-columns:1fr auto;align-items:center}.bt-t{font-size:2rem}}
+.st.jam{border-color:#5FD08A;color:#5FD08A}
+#jutro.on{border-color:var(--y);color:var(--y)}
+.c-panel .pmsgtxt{width:100%;min-height:130px}
 .flash{animation:fl 1.6s ease}
 @keyframes fl{0%,40%{box-shadow:0 0 0 3px var(--y)}100%{box-shadow:none}}
 @media (max-width:720px){.cal-d{min-height:64px;padding:4px}.cal-d .ev{font-size:0;padding:3px;height:8px}.cal-d .ev b{display:none}.kpis{grid-template-columns:repeat(2,1fr)}}
@@ -211,6 +217,7 @@ main{padding-block:24px 60px;display:grid;gap:28px}
     <button type="button" class="btn ghost" id="refresh">Osvježi</button>
     <a class="btn ghost" id="sheetLink" target="_blank" rel="noopener">Otvori tablicu</a>
     <a class="btn ghost" href="./" target="_blank" rel="noopener">Web stranica</a>
+    <button type="button" class="btn ghost" id="jutro" title="Svaki dan u 7:30 stiže ti mail s pregledom dana">☀ Jutarnji mail</button>
     <button type="button" class="btn ghost" id="logout">Odjava</button>
   </div>
 </div></header>
@@ -218,10 +225,11 @@ main{padding-block:24px 60px;display:grid;gap:28px}
 <section class="login wrap" id="login">
   <form id="loginForm">
     <h2>Prijava</h2>
-    <p>Upiši admin lozinku iz Apps Scripta.</p>
+    <p>Upiši admin lozinku.</p>
     <input type="password" id="pw" autocomplete="current-password" placeholder="Lozinka" aria-label="Lozinka" required>
     <button type="submit" class="btn" id="loginBtn">Uđi</button>
     <p class="msg" id="loginMsg" role="status"></p>
+    <blockquote class="quote" id="quote"><p id="qT"></p><cite id="qA"></cite></blockquote>
   </form>
 </section>
 
@@ -269,8 +277,28 @@ main{padding-block:24px 60px;display:grid;gap:28px}
 
 <script>
 const ENDPOINT = 'https://script.google.com/macros/s/AKfycbyv0oOsEt64FaU36zxAKkZkQTahaW8kVsD_Pzx2FL0pVfmaxO3h9ttryOrXMpaX7bpP/exec';
+const CITATI = [
+  ['Dvaput mjeri, jednom reži.', 'narodna poslovica'],
+  ['Bolje spriječiti nego liječiti.', 'narodna poslovica'],
+  ['Tko rano rani, dvije sreće grabi.', 'narodna poslovica'],
+  ['Strpljen – spašen.', 'narodna poslovica'],
+  ['Svaki je početak težak.', 'narodna poslovica'],
+  ['Unca prevencije vrijedi koliko funta liječenja.', 'Benjamin Franklin'],
+  ['Jednostavnost je preduvjet pouzdanosti.', 'Edsger W. Dijkstra'],
+  ['Priča je jeftina. Pokaži mi kod.', 'Linus Torvalds'],
+  ['Najbolji način da predvidiš budućnost jest da je izmisliš.', 'Alan Kay'],
+  ['Preuranjena optimizacija korijen je svih zala.', 'Donald Knuth'],
+  ['Ostani gladan, ostani lud.', 'Steve Jobs'],
+  ['Lakše je tražiti oprost nego dopuštenje.', 'Grace Hopper']
+];
+(() => { let i = Math.floor(Math.random() * CITATI.length); try { const last = +sessionStorage.getItem('hz_q'); if (i === last) i = (i + 1) % CITATI.length; sessionStorage.setItem('hz_q', i); } catch (e) {}
+  const t = document.getElementById('qT'), a = document.getElementById('qA'); if (t) { t.textContent = '„' + CITATI[i][0] + '”'; a.textContent = '— ' + CITATI[i][1]; } })();
 const CIJENA_SATA = 55;
 const PDV = 0.25; // 25 % PDV
+// Link za Google recenziju (Google profil tvrtke → Zatraži recenzije → kopiraj link). Prazno = gumb se ne prikazuje.
+const GOOGLE_RECENZIJA = '';
+const SERVIS_TEL = '091/358 4122';
+const STATUS_URL = new URL('status.html', location.href).href;
 (() => {
 const $ = s => document.querySelector(s);
 const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -310,6 +338,7 @@ async function load() {
   D = { prijave: rowsOf(j.prijave), upiti: rowsOf(j.upiti), posjete: (j.posjete && j.posjete.rows) || [], tablica: j.tablica };
   if (!load._fixed) { load._fixed = true; setTimeout(() => fixStale().catch(() => {}), 0); }
   $('#sheetLink').href = D.tablica || '#';
+  D.jutro = !!j.jutro; $('#jutro').textContent = '☀ Jutarnji mail: ' + (D.jutro ? 'uključen' : 'isključen'); $('#jutro').classList.toggle('on', D.jutro);
   render();
   $('#foot').textContent = 'Zadnje osvježeno: ' + new Date().toLocaleString('hr-HR');
 }
@@ -369,6 +398,16 @@ function panelHTML(o, kind, p) {
       <div class="frow"><button type="button" class="btn" data-do="saveTermin">Spremi u kalendar</button><button type="button" class="btn ghost" data-do="close">Odustani</button></div>
       <p class="pmsg" role="status"></p></div>`;
   }
+  if (p === 'javi') {
+    const T = poruke(o), tel = get(o, 'Kontakt broj mobitela', 'Telefon'), mail = get(o, 'E-pošta');
+    const keys = Object.keys(T);
+    const sel = open['javiT_' + kind + '-' + o._i] || keys[0];
+    return `<div class="c-panel" data-p="javi"><h4>Javi klijentu</h4>
+      <div class="filters">${keys.map(k => `<button type="button" class="chip${k === sel ? ' on' : ''}" data-do="javiT" data-t="${k}">${T[k].l}</button>`).join('')}</div>
+      <textarea class="pmsgtxt" rows="6">${esc(T[sel].t)}</textarea>
+      <div class="frow">${tel && isTel(tel) ? `<a class="btn" data-send="wa" target="_blank" rel="noopener">WhatsApp</a><a class="btn ghost" data-send="vb">Viber</a><a class="btn ghost" data-send="sms">SMS</a>` : ''}${mail ? `<a class="btn ghost" data-send="mail">E-mail</a>` : ''}<button type="button" class="btn ghost" data-do="copyMsg">Kopiraj tekst</button><button type="button" class="btn ghost" data-do="close">Zatvori</button></div>
+      <p class="pmsg" role="status"></p></div>`;
+  }
   if (p === 'odbij') {
     return `<div class="c-panel" data-p="odbij"><h4>Odbij nalog</h4>
       <label>Razlog (vidljiv samo tebi)<textarea class="pr2" placeholder="npr. popravak se ne isplati, dijelovi nedostupni, klijent odustao"></textarea></label>
@@ -394,6 +433,7 @@ function panelHTML(o, kind, p) {
       ${items.map(row).join('')}</tbody></table></div>
       <div class="frow"><button type="button" class="btn ghost" data-do="addItem">+ Dodaj stavku</button></div>
       <div class="totals"><span>Osnovica (bez PDV-a)</span><span class="t-net">0,00 €</span><span>PDV ${PDV * 100} %</span><span class="t-vat">0,00 €</span><span>Ukupno za naplatu</span><span class="t-gross grand">0,00 €</span><span>Nabava novih dijelova (interno)</span><span class="t-nab">0,00 €</span></div>
+      <div class="frow"><label>Jamstvo na radove i dijelove<select class="pj">${[0, 3, 6, 12, 24].map(m => `<option value="${m}"${String(m) === String(o['Jamstvo (mj)'] || 6) ? ' selected' : ''}>${m ? m + ' mj.' : 'bez jamstva'}</option>`).join('')}</select></label></div>
       <label>Bilješka (što je napravljeno)<textarea class="pb" placeholder="npr. očišćen hladnjak, nova termalna pasta, Windows 11">${esc(o['Bilješka'] || '')}</textarea></label>
       <div class="frow"><button type="button" class="btn" data-do="saveZavrsi">✓ Zaključi nalog</button><button type="button" class="btn ghost" data-do="saveStavke">Spremi bez zaključivanja</button><button type="button" class="btn ghost" data-do="close">Odustani</button></div>
       <p class="pmsg" role="status"></p><template class="tpl">${row({ n: '', v: 'novi', q: 1, c: '', m: 'bez' })}</template></div>`;
@@ -424,7 +464,7 @@ function stavkeFields(panel) {
   const VV = { novi: 'novi', rabljeni: 'rabljeni', mat: 'materijal' };
   const txt = r.items.map(it => `${it.n} [${VV[it.v] || 'novi'}${it.v === 'novi' ? ', ' + it.d + ', nabavna ' + r2(num(it.nab)) + ' €' : ''}] × ${it.q || 1} à ${r2(num(it.c))} € (${it.m === 's' ? 's PDV-om' : 'bez PDV-a'})`).join('; ');
   return { 'Sati rada': r.sati, 'Rad PDV': r.rm, 'Stavke': JSON.stringify(r.items), 'Stavke (opis)': txt,
-    'Nabava dijelova (€)': r2(r.nab), 'Ukupno bez PDV-a (€)': r2(r.net), 'PDV (€)': r2(r.vat), 'Ukupno s PDV-om (€)': r2(r.gross), 'Bilješka': panel.querySelector('.pb').value.trim() };
+    'Nabava dijelova (€)': r2(r.nab), 'Ukupno bez PDV-a (€)': r2(r.net), 'PDV (€)': r2(r.vat), 'Ukupno s PDV-om (€)': r2(r.gross), 'Bilješka': panel.querySelector('.pb').value.trim(), 'Jamstvo (mj)': panel.querySelector('.pj').value };
 }
 
 function sessions(o) { try { const a = JSON.parse(o['Evidencija rada'] || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
@@ -544,7 +584,14 @@ setInterval(() => {
 
 let LOGO = '';
 fetch('logo.webp').then(r => r.blob()).then(b => { const fr = new FileReader(); fr.onload = () => LOGO = fr.result; fr.readAsDataURL(b); }).catch(() => {});
-const nalogNr = o => 'RN-' + (o._t ? new Date(o._t).getFullYear() : new Date().getFullYear()) + '-' + String(o._i - 1).padStart(4, '0');
+const parseHr = s => { const m = String(s || '').match(/(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})/); return m ? new Date(+m[3], +m[2] - 1, +m[1], 23, 59) : null; };
+const jamstvoDo = o => parseHr(o['Jamstvo do']);
+const digits = t => String(t || '').replace(/\D/g, '').slice(-8);
+function underWarranty(o) {
+  const t = digits(get(o, 'Kontakt broj mobitela', 'Telefon')); if (t.length < 6) return [];
+  return D.prijave.filter(x => x !== o && status(x) === 'Riješeno' && digits(get(x, 'Kontakt broj mobitela')) === t && jamstvoDo(x) && jamstvoDo(x) >= new Date());
+}
+const nalogNr = o => o['Broj naloga'] || 'RN-' + (o._t ? new Date(o._t).getFullYear() : new Date().getFullYear()) + '-' + String(o._i - 1).padStart(4, '0');
 function buildNalog(o, photos, pdf) {
   const g = (...k) => get(o, ...k);
   let items = []; try { items = JSON.parse(o['Stavke'] || '[]'); } catch (e) {}
@@ -579,6 +626,7 @@ table.it{width:100%;border-collapse:collapse;font-size:9.5pt}.it th{background:#
 .tot .g td{font:800 13pt "Bricolage Grotesque",sans-serif;border-top:2px solid #111;color:#111}
 .sig{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:36px}.sig div{border-top:1px solid #111;padding-top:4px;font-size:9pt;color:#555}
 .foot{margin-top:18px;font-size:8pt;color:#777;border-top:1px solid #ddd;padding-top:6px}
+.warn{margin-top:22px;border:2px solid #111;background:#FEE503;padding:9px 12px;font-size:9.5pt;break-inside:avoid}
 .ph{margin-top:14px}.ph .box{margin-bottom:10px}.phg img{display:inline-block;width:32%;height:46mm;object-fit:cover;border:1px solid #ddd;margin:0 1% 6px 0;vertical-align:top}
 @media screen{body{max-width:210mm;margin:16px auto;padding:0 14mm}.pbtn{position:fixed;top:12px;right:12px;background:#FEE503;border:0;padding:10px 16px;font:600 11pt sans-serif;cursor:pointer}}
 @media print{.pbtn{display:none}body{padding:0 2px}}
@@ -588,7 +636,7 @@ ${pdf ? '' : '<button class="pbtn" onclick="print()">Ispiši</button>'}
 <h1>Radni nalog <span class="st">${esc(status(o))}</span></h1><div class="nr">${nr} · zaprimljeno ${esc(o['vrijeme'] || '')}${o['Završeno'] && status(o) === 'Riješeno' ? ` · <b>zatvoren ${esc(o['Završeno'])}</b>` : ''}</div>
 <div class="grid">
  <div class="box"><h2>Naručitelj</h2><table>${row('Ime i prezime', [g('Titula'), g('Ime i prezime')].filter(Boolean).join(' '))}${row('Mobitel', g('Kontakt broj mobitela', 'Telefon'))}${row('E-pošta', g('E-pošta'))}${row('Adresa', [g('Adresa'), g('Poštanski broj'), g('Grad / mjesto')].filter(Boolean).join(', '))}${row('Brzi kontakt', g('Preferirani način brze komunikacije'))}</table></div>
- <div class="box"><h2>Uređaj</h2><table>${row('Vrsta', [g('Vrsta uređaja'), g('Moje računalo je')].filter(Boolean).join(' · '))}${row('Proizvođač', g('Proizvođač / serija laptopa', 'Proizvođač / serija desktop računala'))}${row('Model', g('Točan model uređaja'))}${row('Operativni sustav', g('Koji operativni sustav koristite?'))}${row('Predaja', g('Kako želite predati uređaj?'))}${row('Termin', o._term ? hrDate(o._term) + ' u ' + pad(o._term.getHours()) + ':' + pad(o._term.getMinutes()) : '')}${row('Zamjensko računalo', g('Trebate li zamjensko računalo tijekom servisa?'))}</table></div>
+ <div class="box"><h2>Uređaj</h2><table>${row('Vrsta', [g('Vrsta uređaja'), g('Moje računalo je')].filter(Boolean).join(' · '))}${row('Proizvođač', g('Proizvođač / serija laptopa', 'Proizvođač / serija desktop računala'))}${row('Model', g('Točan model uređaja'))}${row('Operativni sustav', g('Koji operativni sustav koristite?'))}${row('Predaja', g('Kako želite predati uređaj?'))}${row('Termin', o._term ? hrDate(o._term) + ' u ' + pad(o._term.getHours()) + ':' + pad(o._term.getMinutes()) : '')}${row('Zamjensko računalo', g('Trebate li zamjensko računalo tijekom servisa?'))}${row('Jamstvo', o['Jamstvo do'] ? (o['Jamstvo (mj)'] ? o['Jamstvo (mj)'] + ' mj., ' : '') + 'do ' + o['Jamstvo do'] : '')}</table></div>
  <div class="box full"><h2>Opis kvara i tražena usluga</h2><table>${row('Opis kvara', g('Opišite problem ili kvar svojim riječima'))}${row('Usluga', g('Koju uslugu trebate?'))}${row('Backup', g('Jeste li upoznati s izradom backupa podataka?'))}${row('Napomene', g('Dodatne napomene za servis'))}</table></div>
  ${o['Bilješka'] ? `<div class="box full"><h2>Izvršeni radovi</h2><div>${esc(o['Bilješka'])}</div></div>` : ''}
  ${days.length ? `<div class="box full"><h2>Radno vrijeme</h2><table>${days.map(x => row(dayLbl(x.day), new Date(x.from).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }) + '–' + tEnd(x.to) + ' · ' + hm(x.ms))).join('')}</table></div>` : ''}
@@ -598,6 +646,7 @@ ${lines.map(l => `<tr><td>${esc(l[0])}</td><td>${l[1]}</td><td class="n">${l[2]}
 <table class="tot"><tr><td>Osnovica</td><td>${eur(net)}</td></tr><tr><td>PDV ${PDV * 100} %</td><td>${eur(vat)}</td></tr><tr class="g"><td>Ukupno</td><td>${eur(gross)}</td></tr></table>` : '<p style="color:#777">Obračun još nije napravljen.</p>'}
 ${photos && (photos.prije.length || photos.poslije.length) ? `<div class="ph">${['prije', 'poslije'].filter(k => photos[k].length).map(k => `<div class="box"><h2>Fotografije ${k} servisa</h2><div class="phg">${photos[k].map(u => `<img src="${u}" alt="">`).join('')}</div></div>`).join('')}</div>` : ''}
 <div class="sig"><div>Potpis naručitelja (preuzeo/la uređaj)</div><div>Potpis servisera</div></div>
+<div class="warn"><b>VAŽNO – zaštitna naljepnica:</b> molimo korisnike da ne skidaju zaštitnu naljepnicu s uređaja. Naljepnica se pri skidanju trajno oštećuje, a u suprotnom korisnik gubi pravo na jamstvo${o['Jamstvo do'] ? ' (jamstvo vrijedi do ' + esc(o['Jamstvo do']) + ')' : ''}.</div>
 <div class="foot">Naručitelj potvrđuje da je upoznat/a s napomenom o izradi sigurnosne kopije podataka prije servisa. Osobni podaci obrađuju se isključivo radi izvršenja usluge (GDPR).</div>
 ${pdf ? '' : `<script>window.addEventListener('load',()=>{const im=[...document.images].filter(i=>!i.complete);let n=im.length;const go=()=>setTimeout(()=>print(),300);if(!n)return go();im.forEach(i=>i.onload=i.onerror=()=>{if(!--n)go();});});<\/script>`}
 </body></html>`;
@@ -695,6 +744,31 @@ document.addEventListener('change', async e => {
   }
 });
 
+function poruke(o) {
+  const titula = get(o, 'Titula'), ime = get(o, 'Ime i prezime'), nr = nalogNr(o);
+  const poz = 'Poštovani/a ' + (titula ? titula + ' ' : '') + ime + ',';
+  const ured = get(o, 'Točan model uređaja') || get(o, 'Vrsta uređaja') || 'uređaj';
+  const term = o._term ? o._term.toLocaleDateString('hr-HR', { weekday: 'long' }) + ', ' + hrDate(o._term) + ' u ' + pad(o._term.getHours()) + ':' + pad(o._term.getMinutes()) : '[datum i vrijeme]';
+  const iznos = o['Ukupno s PDV-om (€)'] ? o['Ukupno s PDV-om (€)'] + ' €' : '[iznos]';
+  const potpis = '\n\nLijep pozdrav,\nSaša, Horizont LHB servis\n' + SERVIS_TEL;
+  const T = {
+    zapr: { l: 'Zaprimljeno', t: `${poz}\n\nzaprimili smo Vaš servisni nalog ${nr} (${ured}). Javit ćemo se s prijedlogom termina.\n\nStatus naloga: ${STATUS_URL}?nr=${nr}${potpis}` },
+    term: { l: 'Termin', t: `${poz}\n\npotvrđujemo termin servisa za ${ured}: ${term}.\nNalog: ${nr}. Molimo da prije predaje napravite backup važnih podataka.${potpis}` },
+    odob: { l: 'Odobrenje troška', t: `${poz}\n\ntijekom servisa (${ured}, nalog ${nr}) utvrdili smo da je potrebno: [opis zahvata / dijela].\nProcijenjeni trošak: [iznos] €.\n\nMolimo potvrdu prije nego nastavimo s radom.${potpis}` },
+    gotovo: { l: 'Gotovo za preuzimanje', t: `${poz}\n\nservis Vašeg uređaja (${ured}, nalog ${nr}) je završen i uređaj je spreman za preuzimanje.\nIznos: ${iznos}.${o['Jamstvo do'] ? '\nJamstvo vrijedi do ' + o['Jamstvo do'] + '. Molimo ne skidajte zaštitnu naljepnicu s uređaja.' : ''}${potpis}` }
+  };
+  if (GOOGLE_RECENZIJA) T.rec = { l: 'Molba za recenziju', t: `${poz}\n\nhvala što ste povjerili servis svog uređaja nama. Ako ste zadovoljni, bila bi nam velika pomoć kratka recenzija na Googleu:\n${GOOGLE_RECENZIJA}${potpis}` };
+  return T;
+}
+function sendHref(kind, o, text) {
+  const tel = get(o, 'Kontakt broj mobitela', 'Telefon'); let d = String(tel).replace(/[^\d+]/g, ''); if (d.startsWith('00')) d = d.slice(2); else if (d.startsWith('+')) d = d.slice(1); else if (d.startsWith('0')) d = '385' + d.slice(1);
+  const t = encodeURIComponent(text);
+  if (kind === 'wa') return `https://wa.me/${d}?text=${t}`;
+  if (kind === 'vb') return `viber://chat?number=%2B${d}&draft=${t}`;
+  if (kind === 'sms') return `sms:+${d}?body=${t}`;
+  if (kind === 'mail') return `mailto:${encodeURIComponent(get(o, 'E-pošta'))}?subject=${encodeURIComponent('Horizont servis – nalog ' + nalogNr(o))}&body=${t}`;
+}
+
 function card(o, kind) {
   const ime = get(o, 'Ime i prezime') || 'Bez imena', titula = get(o, 'Titula'), mail = get(o, 'E-pošta'), tel = get(o, 'Kontakt broj mobitela', 'Telefon');
   const st = status(o), done = st === 'Riješeno', closed = isClosed(o), isNew = Date.now() - o._t < 2 * DAY && !closed;
@@ -710,6 +784,9 @@ function card(o, kind) {
     ['Usluga', get(o, 'Koju uslugu trebate?')], ['Željeni datum', get(o, 'Željeni datum preuzimanja / početka servisa')], ['Predaja', get(o, 'Kako želite predati uređaj?')],
     ['Grad / adresa', [get(o, 'Grad / mjesto'), get(o, 'Adresa')].filter(Boolean).join(', ')], ['Brzi kontakt', get(o, 'Preferirani način brze komunikacije')],
     ['Zamjensko računalo', get(o, 'Trebate li zamjensko računalo tijekom servisa?')], ['Opis kvara', get(o, 'Opišite problem ili kvar svojim riječima')]];
+  if (o['Jamstvo do']) { const jd = jamstvoDo(o), left = jd ? Math.ceil((jd - Date.now()) / DAY) : 0; keyF.unshift(['Jamstvo', 'do ' + o['Jamstvo do'] + (jd ? (left > 0 ? ' · još ' + left + ' dana' : ' · isteklo') : '')]); }
+  const uw = kind === 'prijave' && !closed ? underWarranty(o) : [];
+  if (uw.length) keyF.unshift(['⚠ Pod jamstvom', uw.map(x => nalogNr(x) + ' (' + (get(x, 'Točan model uređaja') || get(x, 'Vrsta uređaja')) + ', do ' + x['Jamstvo do'] + ')').join('; ')]);
   if (st === 'Odbijen' || o['Razlog odbijanja']) keyF.unshift(['Odbijeno', [o['Odbijeno'], o['Razlog odbijanja']].filter(Boolean).join(' · ')]);
   if (done || o['Ukupno s PDV-om (€)']) keyF.unshift(['Obračun', [o['Završeno'] && done ? 'Zaključeno ' + o['Završeno'] : 'Spremljeno, nije zaključeno', o['Sati rada'] ? String(o['Sati rada']).replace('.', ',') + ' h rada' : '', o['Ukupno s PDV-om (€)'] ? o['Ukupno s PDV-om (€)'] + ' € s PDV-om' : ''].filter(Boolean).join(' · ')], ['Stavke', o['Stavke (opis)']], ['Bilješka', o['Bilješka']]);
   const all = Object.keys(o).filter(k => k[0] !== '_' && o[k] && !['Kalendar ID', 'Stavke', 'Rad PDV', 'Evidencija rada', 'Slike', 'Mapa ID', 'PDF ID'].includes(k)).map(k => `<dt>${esc(k)}</dt><dd>${esc(o[k])}</dd>`).join('');
@@ -723,7 +800,7 @@ function card(o, kind) {
       : `<button type="button" class="btn ghost" data-do="termin">${o._term ? 'Promijeni termin' : '📅 Zakaži termin'}</button><button type="button" class="btn ghost" data-do="zavrsi">🧾 Obračun / Riješeno</button>${o._term ? '<button type="button" class="btn ghost" data-do="otkazi">Otkaži termin</button>' : ''}`) + tail;
   return `<article class="card${isNew ? ' new' : ''}${closed ? ' done' : ''}" id="c-${id}" data-id="${id}" data-kind="${kind}" data-row="${o._i}">
     <div class="c-top">
-      <div class="c-name"><h3>${esc(ime)}${isNew ? '<span class="pill">Novo</span>' : ''}${stChip(st)}</h3><span class="c-meta">${esc(o['vrijeme'] || '')} · redak ${o._i}</span>
+      <div class="c-name"><h3>${esc(ime)}${isNew ? '<span class="pill">Novo</span>' : ''}${stChip(st)}${uw.length ? '<span class="st jam">Jamstvo</span>' : ''}</h3><span class="c-meta">${esc(nalogNr(o))} · ${esc(o['vrijeme'] || '')}</span>
         ${o._term ? `<span class="c-term">📅${esc(termTxt)}</span>` : ''}</div>
       <div class="c-contact">
         ${tel && isTel(tel) ? `<a class="tel" href="${telHref(tel)}"><i aria-hidden="true">☎</i>${esc(tel)}</a>` : tel ? `<span>${esc(tel)}</span>` : ''}
@@ -733,6 +810,7 @@ function card(o, kind) {
         ${tel && isTel(tel) ? `<a class="btn" href="${telHref(tel)}">Nazovi</a>` : ''}
         ${mail ? `<a class="btn ghost" href="${mhref}">Pošalji mail</a>` : ''}
         ${acts}
+        ${(tel || mail) && st !== 'Arhivirano' ? '<button type="button" class="btn ghost" data-do="javi">💬 Javi klijentu</button>' : ''}
         ${kind === 'prijave' ? '<button type="button" class="btn ghost" data-do="print">🖨 Ispiši nalog</button>' : ''}
       </div>
     </div>
@@ -803,6 +881,11 @@ function go(row) {
   if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1700); }
 }
 
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-send]'); if (!a) return;
+  const c = a.closest('.card'), o = D[c.dataset.kind].find(x => x._i === +c.dataset.row);
+  a.href = sendHref(a.dataset.send, o, c.querySelector('.pmsgtxt').value);
+}, true);
 document.addEventListener('click', async e => {
   const g = e.target.closest('[data-go]'); if (g) return go(g.dataset.go);
   const b = e.target.closest('[data-do]'); if (!b) return;
@@ -818,6 +901,9 @@ document.addEventListener('click', async e => {
   };
   if (act === 'print') return printNalog(o);
   if (act === 'odbij') { open[id] = open[id] === 'odbij' ? null : 'odbij'; return render(); }
+  if (act === 'javi') { open[id] = open[id] === 'javi' ? null : 'javi'; return render(); }
+  if (act === 'javiT') { open['javiT_' + id] = b.dataset.t; return render(); }
+  if (act === 'copyMsg') { const t = c.querySelector('.pmsgtxt'); try { await navigator.clipboard.writeText(t.value); msg.textContent = 'Tekst kopiran.'; } catch (e) { t.select(); msg.textContent = 'Označeno, kopiraj s Ctrl+C.'; } return; }
   if (act === 'saveOdbij') {
     const why = c.querySelector('.pr2').value.trim();
     b.disabled = true; b.textContent = 'Spremam…';
@@ -876,6 +962,7 @@ document.addEventListener('click', async e => {
       b.disabled = true; b.textContent = 'Zaključujem…';
       const a0 = sessions(o); const r0 = a0[a0.length - 1]; if (r0 && !r0.e) { r0.e = new Date().toISOString(); f['Evidencija rada'] = JSON.stringify(a0); f['Rad po danima'] = perDayTxt(a0); }
       f['Status'] = 'Riješeno'; f['Završeno'] = new Date().toLocaleString('hr-HR', { dateStyle: 'short', timeStyle: 'short' });
+      const jm = +f['Jamstvo (mj)'] || 0; if (jm) { const jd = new Date(); jd.setMonth(jd.getMonth() + jm); f['Jamstvo do'] = hrDate(jd); } else f['Jamstvo do'] = '';
       try {
         await post(Object.assign({}, base, { akcija: 'update', fields: f }));
         Object.assign(o, f); o._term = parseTermin(o['Termin']);
@@ -921,6 +1008,10 @@ document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
   tab = t.dataset.t; document.querySelectorAll('.tab').forEach(x => { x.classList.toggle('on', x === t); x.setAttribute('aria-selected', x === t); }); render(); });
 document.querySelectorAll('.chip').forEach(c => c.onclick = () => { flt = c.dataset.f; document.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === c)); render(); });
 $('#q').addEventListener('input', render);
+$('#jutro').onclick = async () => { const b = $('#jutro'); const on = !D.jutro; b.disabled = true; b.textContent = on ? 'Uključujem…' : 'Isključujem…';
+  try { await post({ akcija: 'jutro', on }); if (on) { await post({ akcija: 'jutro_test' }); $('#foot').textContent = 'Jutarnji mail je uključen. Probni pregled je upravo poslan na tvoju adresu.'; } await load(); }
+  catch (err) { $('#foot').textContent = 'Jutarnji mail: ' + err.message; b.textContent = '☀ Jutarnji mail'; }
+  b.disabled = false; };
 $('#calPrev').onclick = () => { calM = new Date(calM.getFullYear(), calM.getMonth() - 1, 1); renderCal(); };
 $('#calNext').onclick = () => { calM = new Date(calM.getFullYear(), calM.getMonth() + 1, 1); renderCal(); };
 $('#calToday').onclick = () => { calM = new Date(); calM.setDate(1); renderCal(); };

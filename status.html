@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="hr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Provjerite status svog servisnog naloga – Horizont LHB d.o.o. servis računala i igraćih konzola.">
+<title>Status naloga – Horizont</title>
+<link rel="icon" href="favicon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#0E0E0D;--surface:#171716;--ink:#F5F5F0;--muted:#A6A69D;--line:#2C2C29;--y:#FEE503;--y-ink:#111100;--bad:#FF8A7A;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;--body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;color-scheme:dark}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--body);min-height:100vh;display:flex;flex-direction:column}
+.wrap{max-width:640px;margin:0 auto;width:100%;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
+header{border-bottom:1px solid var(--line);background:#0A0A09}
+header .wrap{display:flex;align-items:center;gap:12px;padding-block:14px;max-width:960px}
+header a{display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none;font:800 1.05rem var(--display)}
+header img{width:46px;background:#fff;border-radius:6px;padding:4px 5px}
+main{flex:1;padding-block:48px}
+h1{font:800 clamp(1.9rem,5vw,2.6rem)/1.05 var(--display);margin:0 0 10px}
+.lead{color:var(--muted);margin:0 0 26px}
+form{display:grid;gap:14px;background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--y);border-radius:12px;padding:24px}
+label{display:grid;gap:6px;font-weight:600}
+input{background:var(--bg);border:1.5px solid #3A3A35;color:var(--ink);padding:12px 14px;border-radius:7px;font:inherit;text-transform:none}
+input:focus{outline:none;border-color:var(--y);box-shadow:0 0 0 3px rgba(254,229,3,.18)}
+#nr{font-family:var(--mono);text-transform:uppercase}
+small{color:var(--muted);font-weight:400}
+.btn{justify-self:start;background:var(--y);color:var(--y-ink);border:0;font:600 1rem var(--body);padding:.85em 1.3em;border-radius:7px;cursor:pointer}
+.btn:disabled{opacity:.5}
+.btn:focus-visible{outline:3px solid var(--y);outline-offset:3px}
+.msg{font-weight:600;margin:0}.msg.bad{color:var(--bad)}
+.res{margin-top:26px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:24px;display:grid;gap:18px}
+.res .nr{font:500 .8rem var(--mono);letter-spacing:.12em;color:var(--muted)}
+.res h2{font:800 1.5rem var(--display);margin:0}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.st{display:grid;gap:8px;font-size:.82rem;color:var(--muted)}
+.st i{height:6px;border-radius:99px;background:#2C2C29}
+.st.on i{background:var(--y)}.st.on{color:var(--ink)}
+.st.cur b{color:var(--y)}
+.info{display:grid;gap:4px;color:var(--muted);font-size:.92rem}.info b{color:var(--ink)}
+footer{border-top:1px solid var(--line);padding-block:18px;color:var(--muted);font-size:.85rem}
+footer a{color:var(--y)}
+@media (max-width:480px){.steps{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><a href="./"><img src="logo-znak.webp" alt="" width="46" height="31">Horizont LHB d.o.o. – servisi</a></div></header>
+<main class="wrap">
+  <h1>Status servisnog naloga</h1>
+  <p class="lead">Upišite broj naloga iz potvrde koju ste dobili mailom i broj mobitela s kojim ste se prijavili.</p>
+  <form id="f" novalidate>
+    <label for="nr">Broj naloga <small>npr. RN-2026-0001</small><input id="nr" autocomplete="off" placeholder="RN-2026-0001" required></label>
+    <label for="tel">Broj mobitela<input id="tel" type="tel" inputmode="tel" autocomplete="tel" placeholder="091 234 5678" required></label>
+    <button class="btn" id="go">Provjeri status</button>
+    <p class="msg" id="msg" role="status"></p>
+  </form>
+  <section class="res" id="res" hidden aria-live="polite"></section>
+</main>
+<footer><div class="wrap">Pitanja? Nazovite ili pošaljite poruku na <b>091/358 4122</b> (Saša, Viber / WhatsApp) · <a href="./">Natrag na stranicu</a></div></footer>
+<script>
+const ENDPOINT = 'https://script.google.com/macros/s/AKfycbyv0oOsEt64FaU36zxAKkZkQTahaW8kVsD_Pzx2FL0pVfmaxO3h9ttryOrXMpaX7bpP/exec';
+(() => {
+  const $ = s => document.querySelector(s);
+  const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const q = new URLSearchParams(location.search);
+  if (q.get('nr')) $('#nr').value = q.get('nr');
+  (q.get('nr') ? $('#tel') : $('#nr')).focus();
+  const STEPS = [['zaprimljeno', 'Zaprimljeno'], ['termin', 'Termin'], ['rad', 'Na servisu'], ['gotovo', 'Gotovo']];
+  $('#f').addEventListener('submit', async e => {
+    e.preventDefault();
+    const nr = $('#nr').value.trim().toUpperCase(), tel = $('#tel').value.trim(), msg = $('#msg'), b = $('#go');
+    if (!/^RN-\d{4}-\d{4}$/.test(nr)) { msg.className = 'msg bad'; msg.textContent = 'Broj naloga je u obliku RN-2026-0001.'; $('#nr').focus(); return; }
+    if (tel.replace(/\D/g, '').length < 6) { msg.className = 'msg bad'; msg.textContent = 'Upišite broj mobitela s kojim ste se prijavili.'; $('#tel').focus(); return; }
+    b.disabled = true; b.textContent = 'Provjeravam…'; msg.className = 'msg'; msg.textContent = '';
+    try {
+      const r = await fetch(ENDPOINT + '?a=status&nr=' + encodeURIComponent(nr) + '&tel=' + encodeURIComponent(tel), { cache: 'no-store' });
+      const j = await r.json();
+      if (!j.ok) { $('#res').hidden = true; msg.className = 'msg bad'; msg.textContent = j.error; }
+      else {
+        const idx = j.korak === 'zatvoreno' ? -1 : STEPS.findIndex(s => s[0] === j.korak);
+        $('#res').innerHTML = `<span class="nr">${esc(j.nr)}</span><h2>${esc(j.poruka)}</h2>
+          ${idx >= 0 ? `<div class="steps">${STEPS.map((s, i) => `<div class="st${i <= idx ? ' on' : ''}${i === idx ? ' cur' : ''}"><i></i><b>${s[1]}</b></div>`).join('')}</div>` : ''}
+          <div class="info">${j.termin ? `<span>Termin: <b>${esc(j.termin.replace(/(\d{4})-(\d{2})-(\d{2})/, (m, y, mo, d) => +d + '. ' + +mo + '. ' + y + '.'))}</b></span>` : ''}
+          ${j.zavrseno && j.korak === 'gotovo' ? `<span>Završeno: <b>${esc(j.zavrseno)}</b></span>` : ''}${j.jamstvo ? `<span>Jamstvo vrijedi do: <b>${esc(j.jamstvo)}</b></span>` : ''}</div>`;
+        $('#res').hidden = false;
+      }
+    } catch (err) { msg.className = 'msg bad'; msg.textContent = 'Provjera trenutno nije moguća. Pokušajte ponovno ili nas nazovite.'; }
+    b.disabled = false; b.textContent = 'Provjeri status';
+  });
+})();
+</script>
+</body>
+</html>

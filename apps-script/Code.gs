@@ -17,6 +17,11 @@ const SHEET_POSJETE = 'Posjete';
 const GALERIJA_ID = '1WI5VmXP9w2IgRyymJDDapsC8MQkkZnyD';
 const GALERIJA_PODMAPA = 'Prije i poslije';
 const ARHIVA_NAZIV = 'Horizont – Arhiva naloga';
+// Podaci za mailove klijentima.
+const SERVIS_NAZIV = 'Horizont LHB d.o.o. – servisi';
+const SERVIS_TEL = '091/358 4122';
+const WEB = 'https://sbatinac.github.io/horizont-servisi/';
+const ADMIN_URL = WEB + 'admin.html';
 // Lozinka za admin stranicu. Upiši svoju ovdje u Apps Scriptu, NE u GitHub repo.
 const ADMIN_KEY = 'UPISI_LOZINKU';
 
@@ -29,9 +34,13 @@ function doPost(e) {
     const upit = data._vrsta === 'upit';
     delete data._vrsta;
     const sheet = getSheet_(upit ? SHEET_UPITI : SHEET_NAME);
+    const nextRow = Math.max(sheet.getLastRow(), 1) + 1;
+    const nr = upit ? '' : 'RN-' + Utilities.formatDate(new Date(), TZ, 'yyyy') + '-' + ('000' + (nextRow - 1)).slice(-4);
+    if (nr) data['Broj naloga [broj_naloga]'] = nr;
     const row = appendRow_(sheet, data);
     notify_(data, row, upit);
-    return json_({ ok: true });
+    try { potvrdaKlijentu_(data, nr, upit); } catch (e) { console.warn(e); }
+    return json_({ ok: true, nr: nr });
   } catch (err) {
     return json_({ ok: false, error: String(err) });
   } finally {
@@ -43,6 +52,7 @@ function doPost(e) {
 function doGet(e) {
   const p = (e && e.parameter) || {};
   if (p.a === 'hit') return json_(hit_());
+  if (p.a === 'status') return json_(statusLookup_(p.nr, p.tel));
   if (p.a === 'foto') {
     if (!ADMIN_KEY || ADMIN_KEY === 'UPISI_LOZINKU' || p.k !== ADMIN_KEY) return json_({ ok: false, error: 'Pogrešna lozinka.' });
     try { const b = DriveApp.getFileById(p.id).getBlob(); return json_({ ok: true, mime: b.getContentType(), data: Utilities.base64Encode(b.getBytes()) }); }
@@ -53,7 +63,7 @@ function doGet(e) {
       Utilities.sleep(800);
       return json_({ ok: false, error: 'Pogrešna lozinka.' });
     }
-    return json_({ ok: true, prijave: table_(SHEET_NAME), upiti: table_(SHEET_UPITI), posjete: table_(SHEET_POSJETE), tablica: SpreadsheetApp.getActiveSpreadsheet().getUrl() });
+    return json_({ ok: true, prijave: table_(SHEET_NAME), upiti: table_(SHEET_UPITI), posjete: table_(SHEET_POSJETE), tablica: SpreadsheetApp.getActiveSpreadsheet().getUrl(), jutro: jutroAktivno_() });
   }
   return json_({ ok: true, servis: 'Horizont LHB – prijave' });
 }
@@ -64,6 +74,8 @@ const TZ = 'Europe/Zagreb';
 
 function admin_(d) {
   if (!ADMIN_KEY || ADMIN_KEY === 'UPISI_LOZINKU' || d.k !== ADMIN_KEY) { Utilities.sleep(800); return { ok: false, error: 'Pogrešna lozinka.' }; }
+  if (d.akcija === 'jutro') { postaviJutarnjiMail_(!!d.on); return { ok: true, jutro: jutroAktivno_() }; }
+  if (d.akcija === 'jutro_test') { jutarnjiSazetak(); return { ok: true }; }
   const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(d.list === 'upiti' ? SHEET_UPITI : SHEET_NAME);
   const row = Number(d.red);
   if (!sh || !row || row < 2 || row > sh.getLastRow()) return { ok: false, error: 'Redak ne postoji. Osvježi stranicu.' };
@@ -271,4 +283,74 @@ function esc_(s) {
 
 function json_(o) {
   return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
+}
+
+
+// ===== POTVRDA KLIJENTU =====
+function potvrdaKlijentu_(data, nr, upit) {
+  const g = k => { const key = Object.keys(data).find(x => x.indexOf('[' + k + ']') !== -1); return key ? String(data[key] || '') : ''; };
+  const to = g('email');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(to)) return;
+  const ime = [g('titula'), g('ime')].filter(String).join(' ');
+  const box = 'font-family:Arial,sans-serif;font-size:15px;line-height:1.55;color:#111;max-width:560px';
+  let subject, html;
+  if (upit) {
+    subject = 'Zaprimili smo Vaš upit – ' + SERVIS_NAZIV;
+    html = '<div style="' + box + '"><p>Poštovani/a ' + esc_(ime) + ',</p><p>hvala na upitu. Zaprimili smo ga i javit ćemo se u najkraćem roku.</p>' +
+      '<p style="background:#f4f4f0;padding:10px 14px;border-left:4px solid #FEE503">' + esc_(g('poruka')).replace(/\n/g, '<br>') + '</p>' +
+      '<p>Za hitne slučajeve: <b>' + SERVIS_TEL + '</b> (Viber / WhatsApp)</p><p>Lijep pozdrav,<br>Saša Batinac<br>' + SERVIS_NAZIV + '</p></div>';
+  } else {
+    subject = 'Zaprimljen servisni nalog ' + nr + ' – ' + SERVIS_NAZIV;
+    const ured = [g('uredaj'), g('tip_racunala'), g('laptop_model') || g('desktop_model')].filter(String).join(' · ');
+    html = '<div style="' + box + '"><p>Poštovani/a ' + esc_(ime) + ',</p>' +
+      '<p>zaprimili smo Vaš servisni nalog. Javit ćemo se s potvrdom termina.</p>' +
+      '<p style="font-size:22px;font-weight:bold;margin:16px 0;background:#FEE503;display:inline-block;padding:6px 14px">' + nr + '</p>' +
+      '<table style="border-collapse:collapse;font-size:14px">' +
+      [['Uređaj', ured], ['Željeni datum', g('datum')], ['Predaja', g('predaja')], ['Opis kvara', g('opis_kvara')]].filter(r => r[1]).map(r => '<tr><td style="color:#666;padding:3px 14px 3px 0;vertical-align:top">' + r[0] + '</td><td style="padding:3px 0">' + esc_(r[1]) + '</td></tr>').join('') + '</table>' +
+      '<p style="margin-top:18px"><b>Važno – backup podataka:</b> prije predaje uređaja napravite sigurnosnu kopiju svih važnih podataka (dokumenti, fotografije, lozinke, licence programa).</p>' +
+      '<p>Status naloga možete provjeriti na <a href="' + WEB + 'status.html?nr=' + encodeURIComponent(nr) + '">' + WEB + 'status.html</a> uz broj naloga i broj mobitela.</p>' +
+      '<p>Za hitne slučajeve: <b>' + SERVIS_TEL + '</b> (Viber / WhatsApp)</p><p>Lijep pozdrav,<br>Saša Batinac<br>' + SERVIS_NAZIV + '</p></div>';
+  }
+  MailApp.sendEmail({ to: to, subject: subject, htmlBody: html, name: SERVIS_NAZIV, replyTo: NOTIFY_EMAIL });
+}
+
+// ===== JAVNA PROVJERA STATUSA (samo status, bez osobnih podataka) =====
+function statusLookup_(nr, tel) {
+  Utilities.sleep(600);
+  nr = String(nr || '').trim().toUpperCase(); const t = String(tel || '').replace(/\D/g, '');
+  if (!/^RN-\d{4}-\d{4}$/.test(nr) || t.length < 6) return { ok: false, error: 'Upišite broj naloga (npr. RN-2026-0001) i broj mobitela.' };
+  const tb = table_(SHEET_NAME), H = tb.headers;
+  const iN = H.indexOf('Broj naloga'), iT = H.indexOf('Kontakt broj mobitela'), iS = H.indexOf('Status'), iTe = H.indexOf('Termin'), iZ = H.indexOf('Završeno'), iJ = H.indexOf('Jamstvo do');
+  const r = tb.rows.find(x => iN > -1 && String(x[iN]).toUpperCase() === nr && String(x[iT] || '').replace(/\D/g, '').slice(-6) === t.slice(-6));
+  if (!r) return { ok: false, error: 'Nalog nije pronađen. Provjerite broj naloga i broj mobitela.' };
+  const st = r[iS] || (r[iTe] ? 'Zakazano' : 'Novo');
+  if (st === 'Arhivirano') return { ok: false, error: 'Nalog nije pronađen. Provjerite broj naloga i broj mobitela.' };
+  const MAP = { 'Novo': ['zaprimljeno', 'Nalog je zaprimljen. Javit ćemo se s potvrdom termina.'], 'Zakazano': ['termin', 'Termin je dogovoren.'],
+    'U radu': ['rad', 'Uređaj je na servisu, radimo na njemu.'], 'Pauzirano': ['rad', 'Uređaj je na servisu.'], 'Za obračun': ['rad', 'Servis je pri kraju.'],
+    'Riješeno': ['gotovo', 'Servis je završen. Uređaj je spreman za preuzimanje.'], 'Odbijen': ['zatvoreno', 'Nalog je zatvoren. Za više informacija nazovite nas.'] };
+  const m = MAP[st] || MAP['Novo'];
+  return { ok: true, nr: nr, korak: m[0], poruka: m[1], termin: iTe > -1 ? r[iTe] : '', zavrseno: iZ > -1 ? r[iZ] : '', jamstvo: iJ > -1 ? r[iJ] : '' };
+}
+
+// ===== JUTARNJI SAŽETAK (svaki dan u 7:30) =====
+function jutroAktivno_() { return ScriptApp.getProjectTriggers().some(t => t.getHandlerFunction() === 'jutarnjiSazetak'); }
+function postaviJutarnjiMail_(on) {
+  ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === 'jutarnjiSazetak').forEach(t => ScriptApp.deleteTrigger(t));
+  if (on) ScriptApp.newTrigger('jutarnjiSazetak').timeBased().everyDays(1).atHour(7).nearMinute(30).inTimezone(TZ).create();
+}
+function jutarnjiSazetak() {
+  const tb = table_(SHEET_NAME), H = tb.headers, c = n => H.indexOf(n);
+  const today = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd');
+  const rows = tb.rows.map(r => ({ nr: r[c('Broj naloga')] || '', ime: r[c('Ime i prezime')] || '', tel: r[c('Kontakt broj mobitela')] || '', ured: r[c('Vrsta uređaja')] || '',
+    st: r[c('Status')] || (r[c('Termin')] ? 'Zakazano' : 'Novo'), term: r[c('Termin')] || '', t: r[c('vrijeme')] || '' }));
+  const open = rows.filter(x => ['Riješeno', 'Odbijen', 'Arhivirano'].indexOf(x.st) === -1);
+  const danas = open.filter(x => String(x.term).indexOf(today) === 0).sort((a, b) => a.term < b.term ? -1 : 1);
+  const obr = open.filter(x => x.st === 'Za obračun' || x.st === 'Pauzirano');
+  const novi = open.filter(x => x.st === 'Novo');
+  const li = x => '<li><b>' + esc_(x.term ? String(x.term).slice(11) + ' ' : '') + esc_(x.ime) + '</b> · ' + esc_(x.ured) + ' · ' + esc_(x.tel) + ' <span style="color:#888">' + esc_(x.nr) + '</span></li>';
+  const sec = (t, a) => '<h3 style="margin:18px 0 6px">' + t + ' (' + a.length + ')</h3>' + (a.length ? '<ul style="padding-left:18px;margin:0">' + a.map(li).join('') + '</ul>' : '<p style="color:#888;margin:0">Nema.</p>');
+  const html = '<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.5;color:#111;max-width:620px"><h2 style="margin:0;background:#FEE503;padding:8px 12px;display:inline-block">Dobro jutro! Pregled za ' + Utilities.formatDate(new Date(), TZ, 'd. M. yyyy.') + '</h2>' +
+    '<p>Otvorenih naloga: <b>' + open.length + '</b></p>' + sec('Današnji termini', danas) + sec('Novi nalozi bez termina', novi) + sec('Na pauzi ili čeka obračun', obr) +
+    '<p style="margin-top:20px"><a href="' + ADMIN_URL + '">Otvori admin</a></p></div>';
+  MailApp.sendEmail({ to: NOTIFY_EMAIL, subject: 'Jutarnji pregled: ' + danas.length + ' termina danas, ' + open.length + ' otvorenih naloga', htmlBody: html, name: SERVIS_NAZIV });
 }
