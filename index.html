@@ -193,14 +193,14 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .cpu-band .wrap{width:100%}
 .cpu-band .sec-head{margin-bottom:0;max-width:44ch}
 @media (max-width:700px){.cpu-band{background:linear-gradient(rgba(14,14,13,.55),rgba(14,14,13,.85)),var(--cpu) 70% center/cover no-repeat,var(--bg)}}
-footer.snail{border-top:0;padding-block:0;min-height:clamp(320px,38vw,540px);display:flex;flex-direction:column;justify-content:space-between;
-  background:linear-gradient(var(--bg),transparent 22%,transparent 68%,rgba(8,8,7,.96)),linear-gradient(90deg,rgba(14,14,13,.9) 0%,rgba(14,14,13,.35) 50%,transparent 70%),var(--puz) 72% center/cover no-repeat,#0A0A09}
-footer.snail .snail-in{display:block;padding-block:clamp(56px,8vw,110px) 0}
+footer.snail{border-top:0;padding-block:0;background:var(--bg)}
+footer.snail .snail-in{display:block;padding-block:clamp(48px,6vw,80px) 0;position:relative;z-index:1}
+.snail-img{line-height:0;margin-top:clamp(-120px,-7vw,-24px)}
+.snail-img img{display:block;width:100%;height:auto;max-height:560px;object-fit:cover;object-position:70% 60%;-webkit-mask-image:linear-gradient(transparent,#000 28%,#000 82%,transparent);mask-image:linear-gradient(transparent,#000 28%,#000 82%,transparent)}
 .snail-t{font:800 clamp(2.1rem,5.2vw,3.8rem)/1.02 var(--display);color:var(--ink);letter-spacing:-.02em;max-width:12ch;text-wrap:balance}
 .snail-t em{font-style:normal;color:var(--copper)}
 .snail-s{color:#CFCFC7;margin-top:12px;max-width:34ch}
-footer.snail .foot-row{padding-block:18px;border-top:1px solid rgba(255,255,255,.08);color:#9C9C94}
-@media (max-width:700px){footer.snail{background:linear-gradient(var(--bg),rgba(14,14,13,.55) 25%,rgba(14,14,13,.55) 60%,rgba(8,8,7,.97)),var(--puz) 78% center/cover no-repeat,#0A0A09}}
+footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px solid rgba(255,255,255,.08);color:#9C9C94}
 </style>
 
 </head>
@@ -374,8 +374,9 @@ footer.snail .foot-row{padding-block:18px;border-top:1px solid rgba(255,255,255,
   </div>
 </div></section>
 
-<footer class="snail" style="--puz:url('puz-raketa.webp')" aria-label="Puž s raketom na leđima juri cestom">
+<footer class="snail">
 <div class="wrap snail-in"><p class="snail-t">Od puža do <em>rakete.</em></p><p class="snail-s">Sporo računalo? Vratimo mu brzinu, a Vama živce.</p></div>
+<div class="snail-img"><img src="puz-raketa.webp" alt="Puž s raketom na leđima juri cestom" width="1584" height="672" loading="lazy"></div>
 <div class="wrap foot-row">
   <span>Servis tim · Horizont LHB d.o.o. · Saša Batinac</span>
   <span>Osobne podatke koristimo isključivo za kontakt i izvršenje usluge (GDPR).</span>
