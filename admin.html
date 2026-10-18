@@ -148,6 +148,20 @@ main{padding-block:24px 60px;display:grid;gap:28px}
 .totals{display:grid;grid-template-columns:auto auto;gap:4px 18px;justify-content:end;font-variant-numeric:tabular-nums;font-size:.92rem}
 .totals span:nth-child(odd){color:var(--muted)}.totals span:nth-child(even){text-align:right;font-family:var(--mono)}
 .totals .grand{font:800 1.3rem var(--display);color:var(--y)}
+.work{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 18px;border-top:1px solid var(--line);background:#121211}
+.work .timer{font:700 1.15rem var(--mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.work.run{background:#1F1D08}.work.run .timer{color:var(--y)}
+.work .dot{width:10px;height:10px;border-radius:50%;background:#555}
+.work.run .dot{background:var(--y);box-shadow:0 0 10px var(--y);animation:pulse 1.2s infinite}
+.work.pause .dot{background:#E39B3B}
+@keyframes pulse{50%{opacity:.35}}
+.work .wl{color:var(--muted);font-size:.85rem;margin-right:auto}
+.work .btn{padding:.55em .95em;font-size:.88rem}
+.confirm{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 18px;border-top:1px solid var(--y);background:#24220A}
+.confirm b{margin-right:auto}
+.st.run{border-color:var(--y);color:var(--y)}.st.pau{border-color:#E39B3B;color:#E39B3B}
+.sess{display:grid;gap:2px;font:.82rem var(--mono);color:var(--muted);margin-top:6px}
+@media (prefers-reduced-motion:reduce){.work.run .dot{animation:none}}
 .flash{animation:fl 1.6s ease}
 @keyframes fl{0%,40%{box-shadow:0 0 0 3px var(--y)}100%{box-shadow:none}}
 @media (max-width:720px){.cal-d{min-height:64px;padding:4px}.cal-d .ev{font-size:0;padding:3px;height:8px}.cal-d .ev b{display:none}.kpis{grid-template-columns:repeat(2,1fr)}}
@@ -279,7 +293,7 @@ function kpis() {
   const sati = mjes.reduce((a, o) => a + num(o['Sati rada']), 0);
   const newP = P.filter(o => now - o._t < 7 * DAY).length;
   const K = [['Posjete danas', today, w + ' u 7 dana · ' + total + ' ukupno', true], ['Otvoreni nalozi', otv, newP + ' novih u 7 dana', otv > 0],
-    ['Termini, 7 dana', zak7, 'zakazano unaprijed'], ['Upiti', D.upiti.filter(o => status(o) !== 'Riješeno').length, 'otvorenih, od ' + D.upiti.length],
+    ['U radu sada', P.filter(o => running(o)).length, zak7 + ' termina u 7 dana'], ['Upiti', D.upiti.filter(o => status(o) !== 'Riješeno').length, 'otvorenih, od ' + D.upiti.length],
     ['Riješeno ovaj mjesec', mjes.length, 'naloga'], ['Sati ovaj mjesec', String(sati).replace('.', ','), 'h rada'],
     ['Naplaćeno ovaj mjesec', eur(zarada), 's PDV-om', zarada > 0], ['Nalozi ukupno', P.length, 'od početka']];
   $('#kpis').innerHTML = K.map(k => `<div class="kpi${k[3] ? ' hi' : ''}"><span class="lbl">${k[0]}</span><b>${k[1]}</b><span>${k[2]}</span></div>`).join('');
@@ -298,7 +312,7 @@ function kpis() {
   $('#nK').textContent = P.filter(o => o._term && status(o) !== 'Riješeno' && o._term >= new Date(ymd(now))).length;
 }
 
-function stChip(st) { const c = st === 'Riješeno' ? 'ok' : st === 'Zakazano' ? 'zak' : ''; return `<span class="st ${c}">${esc(st)}</span>`; }
+function stChip(st) { const c = st === 'Riješeno' ? 'ok' : st === 'Zakazano' ? 'zak' : st === 'U radu' ? 'run' : (st === 'Pauzirano' || st === 'Za obračun') ? 'pau' : ''; return `<span class="st ${c}">${esc(st)}</span>`; }
 
 function panelHTML(o, kind, p) {
   if (p === 'termin') {
@@ -321,7 +335,7 @@ function panelHTML(o, kind, p) {
     const row = it => `<tr class="it"><td><input class="in" value="${esc(it.n)}" placeholder="npr. Termalna pasta, SSD 512 GB, kabel"></td><td><input class="q iq" type="number" min="0" step="1" value="${esc(it.q)}"></td><td><input class="pr ic" type="number" min="0" step="0.01" value="${esc(it.c)}" placeholder="0,00"></td><td><select class="im">${opt(it.m)}</select></td><td class="tot"></td><td><button type="button" class="x" data-do="delItem" aria-label="Ukloni stavku">✕</button></td></tr>`;
     return `<div class="c-panel" data-p="zavrsi"><h4>Obračun i zaključenje naloga</h4>
       <div class="itemsbox"><table class="items"><thead><tr><th>Stavka</th><th>Kol.</th><th>Cijena / kom</th><th>Cijena je</th><th style="text-align:right">Ukupno s PDV</th><th></th></tr></thead><tbody>
-      <tr class="rad"><td>Rad servisera (${CIJENA_SATA} € / h)</td><td><input class="q ph" type="number" min="0" step="0.25" value="${esc(o['Sati rada'] || '')}" placeholder="sati"></td><td class="tot">${CIJENA_SATA},00 €</td><td><select class="rm">${opt(radM)}</select></td><td class="tot"></td><td></td></tr>
+      <tr class="rad"><td>Rad servisera (${CIJENA_SATA} € / h)${sessions(o).length ? `<br><small style="color:var(--muted)">evidentirano ${hms(workedMs(sessions(o)))}, zaokruženo na 15 min</small>` : ''}</td><td><input class="q ph" type="number" min="0" step="0.25" value="${esc(o['Sati rada'] || (sessions(o).length ? hrsQ(workedMs(sessions(o))) : ''))}" placeholder="sati"></td><td class="tot">${CIJENA_SATA},00 €</td><td><select class="rm">${opt(radM)}</select></td><td class="tot"></td><td></td></tr>
       ${items.map(row).join('')}</tbody></table></div>
       <div class="frow"><button type="button" class="btn ghost" data-do="addItem">+ Dodaj stavku</button></div>
       <div class="totals"><span>Osnovica (bez PDV-a)</span><span class="t-net">0,00 €</span><span>PDV ${PDV * 100} %</span><span class="t-vat">0,00 €</span><span>Ukupno za naplatu</span><span class="t-gross grand">0,00 €</span></div>
@@ -356,6 +370,29 @@ function stavkeFields(panel) {
     'Ukupno bez PDV-a (€)': r2(r.net), 'PDV (€)': r2(r.vat), 'Ukupno s PDV-om (€)': r2(r.gross), 'Bilješka': panel.querySelector('.pb').value.trim() };
 }
 
+function sessions(o) { try { const a = JSON.parse(o['Evidencija rada'] || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+const running = o => { const a = sessions(o); return a.length && !a[a.length - 1].e ? a[a.length - 1] : null; };
+const workedMs = (a, now = Date.now()) => a.reduce((t, x) => t + ((x.e ? Date.parse(x.e) : now) - Date.parse(x.s)), 0);
+const hms = ms => { const t = Math.max(0, Math.floor(ms / 1000)); return pad(Math.floor(t / 3600)) + ':' + pad(Math.floor(t / 60) % 60) + ':' + pad(t % 60); };
+const hrsQ = ms => Math.ceil(ms / 9e5) / 4; // zaokruži na 15 min naviše
+const CONF = { start: ['Započeti rad na ovom nalogu?', 'Započni'], pause: ['Zaustaviti rad? Vrijeme se sprema, možeš nastaviti kasnije.', 'Zaustavi'],
+  resume: ['Nastaviti rad na nalogu?', 'Nastavi'], stop: ['Završiti rad? Odrađeno vrijeme ide u obračun.', 'Završi rad'] };
+let confirmAsk = {};
+
+function workBar(o, id) {
+  const a = sessions(o), run = running(o), ms = workedMs(a), st = status(o);
+  if (st === 'Riješeno') return a.length ? `<div class="work"><span class="dot"></span><span class="timer">${hms(ms)}</span><span class="wl">ukupno radno vrijeme · ${a.length} ${a.length === 1 ? 'dio' : 'dijela'}</span></div>` : '';
+  const cls = run ? 'run' : a.length ? 'pause' : '';
+  const lbl = st === 'Za obračun' && !run ? 'Rad završen, čeka obračun' : run ? 'U radu od ' + new Date(run.s).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }) : a.length ? 'Pauzirano · odrađeno do sada' : 'Rad još nije započet';
+  const btns = run ? `<button type="button" class="btn ghost" data-do="ask" data-w="pause">⏸ Zaustavi</button><button type="button" class="btn" data-do="ask" data-w="stop">■ Završi rad</button>`
+    : a.length ? `<button type="button" class="btn" data-do="ask" data-w="resume">▶ Nastavi</button><button type="button" class="btn ghost" data-do="ask" data-w="stop">■ Završi rad</button>`
+    : `<button type="button" class="btn" data-do="ask" data-w="start">▶ Započni rad</button>`;
+  const ask = confirmAsk[id];
+  return `<div class="work ${cls}"><span class="dot" aria-hidden="true"></span><span class="timer"${run ? ` data-run="${Date.parse(run.s)}" data-base="${ms - (Date.now() - Date.parse(run.s))}"` : ''}>${hms(ms)}</span><span class="wl">${lbl}</span>${btns}</div>
+    ${ask ? `<div class="confirm" role="alertdialog"><b>${CONF[ask][0]}</b><button type="button" class="btn" data-do="work" data-w="${ask}">Potvrdi: ${CONF[ask][1]}</button><button type="button" class="btn ghost" data-do="noask">Odustani</button></div>` : ''}`;
+}
+setInterval(() => document.querySelectorAll('.timer[data-run]').forEach(t => t.textContent = hms(+t.dataset.base + Date.now() - +t.dataset.run)), 1000);
+
 function card(o, kind) {
   const ime = get(o, 'Ime i prezime') || 'Bez imena', titula = get(o, 'Titula'), mail = get(o, 'E-pošta'), tel = get(o, 'Kontakt broj mobitela', 'Telefon');
   const st = status(o), done = st === 'Riješeno', isNew = Date.now() - o._t < 2 * DAY && !done;
@@ -372,7 +409,7 @@ function card(o, kind) {
     ['Grad / adresa', [get(o, 'Grad / mjesto'), get(o, 'Adresa')].filter(Boolean).join(', ')], ['Brzi kontakt', get(o, 'Preferirani način brze komunikacije')],
     ['Zamjensko računalo', get(o, 'Trebate li zamjensko računalo tijekom servisa?')], ['Opis kvara', get(o, 'Opišite problem ili kvar svojim riječima')]];
   if (done || o['Ukupno s PDV-om (€)']) keyF.unshift(['Obračun', [o['Završeno'] && done ? 'Zaključeno ' + o['Završeno'] : 'Spremljeno, nije zaključeno', o['Sati rada'] ? String(o['Sati rada']).replace('.', ',') + ' h rada' : '', o['Ukupno s PDV-om (€)'] ? o['Ukupno s PDV-om (€)'] + ' € s PDV-om' : ''].filter(Boolean).join(' · ')], ['Stavke', o['Stavke (opis)']], ['Bilješka', o['Bilješka']]);
-  const all = Object.keys(o).filter(k => k[0] !== '_' && o[k] && k !== 'Kalendar ID' && k !== 'Stavke' && k !== 'Rad PDV').map(k => `<dt>${esc(k)}</dt><dd>${esc(o[k])}</dd>`).join('');
+  const all = Object.keys(o).filter(k => k[0] !== '_' && o[k] && !['Kalendar ID', 'Stavke', 'Rad PDV', 'Evidencija rada'].includes(k)).map(k => `<dt>${esc(k)}</dt><dd>${esc(o[k])}</dd>`).join('');
   const id = kind + '-' + o._i, p = open[id];
   const acts = kind === 'upiti'
     ? (done ? `<button type="button" class="btn ghost" data-do="reopen">Vrati u otvorene</button>` : `<button type="button" class="btn ghost" data-do="quickDone">✓ Riješeno</button>`)
@@ -393,8 +430,9 @@ function card(o, kind) {
       </div>
     </div>
     <dl class="c-key">${keyF.filter(f => f[1]).map(f => `<div><dt class="lbl">${f[0]}</dt><dd>${esc(f[1])}</dd></div>`).join('')}</dl>
+    ${kind === 'prijave' ? workBar(o, id) : ''}
     ${p ? panelHTML(o, kind, p) : ''}
-    <details class="c-all"><summary class="lbl" style="cursor:pointer">Svi podaci iz tablice</summary><dl style="margin-top:12px">${all}</dl></details>
+    <details class="c-all"><summary class="lbl" style="cursor:pointer">Svi podaci iz tablice</summary>${sessions(o).length ? `<div class="sess"><span class="lbl">Evidencija rada</span>${sessions(o).map(x => `<span>${new Date(x.s).toLocaleString('hr-HR', { dateStyle: 'short', timeStyle: 'short' })} – ${x.e ? new Date(x.e).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }) : 'u tijeku'} · ${hms(workedMs([x]))}</span>`).join('')}</div>` : ''}<dl style="margin-top:12px">${all}</dl></details>
   </article>`;
 }
 
@@ -464,9 +502,22 @@ document.addEventListener('click', async e => {
   const base = { list: kind, red: row, ime: get(o, 'Ime i prezime') };
   const run = async (body, okTxt) => {
     b.disabled = true; const t = b.textContent; b.textContent = 'Spremam…';
-    try { await post(Object.assign({}, base, body)); delete open[id]; await load(); }
+    try { await post(Object.assign({}, base, body)); if (act !== 'work') delete open[id]; await load(); }
     catch (err) { b.disabled = false; b.textContent = t; if (msg) { msg.className = 'pmsg bad'; msg.textContent = err.message; } else alertBox(c, err.message); }
   };
+  if (act === 'ask') { confirmAsk[id] = b.dataset.w; return render(); }
+  if (act === 'noask') { delete confirmAsk[id]; return render(); }
+  if (act === 'work') {
+    const w = b.dataset.w, a = sessions(o), nowI = new Date().toISOString();
+    if (w === 'start' || w === 'resume') { if (!running(o)) a.push({ s: nowI }); }
+    else { const r = a[a.length - 1]; if (r && !r.e) r.e = nowI; }
+    const ms = workedMs(a);
+    const f = { 'Evidencija rada': JSON.stringify(a), 'Radno vrijeme (h)': (Math.round(ms / 36e3) / 100).toString().replace('.', ',') };
+    f['Status'] = (w === 'start' || w === 'resume') ? 'U radu' : w === 'stop' ? 'Za obračun' : 'Pauzirano';
+    delete confirmAsk[id];
+    if (w === 'stop') { open[id] = 'zavrsi'; }
+    return run({ akcija: 'update', fields: f });
+  }
   if (act === 'termin' || act === 'zavrsi') { open[id] = open[id] === act ? null : act; render(); const n = document.querySelector('#c-' + CSS.escape(id) + ' .c-panel input'); if (n) n.focus(); return; }
   if (act === 'close') { delete open[id]; return render(); }
   if (act === 'saveTermin') {
@@ -480,11 +531,11 @@ document.addEventListener('click', async e => {
     const pn = c.querySelector('.c-panel'), h = pn.querySelector('.ph').value.replace(',', '.');
     if (act === 'saveZavrsi' && (h === '' || isNaN(+h) || +h < 0)) { msg.className = 'pmsg bad'; msg.textContent = 'Upiši broj sati rada (može i 0), npr. 1,5.'; pn.querySelector('.ph').focus(); return; }
     const f = stavkeFields(pn);
-    if (act === 'saveZavrsi') { f['Status'] = 'Riješeno'; f['Završeno'] = new Date().toLocaleString('hr-HR', { dateStyle: 'short', timeStyle: 'short' }); }
+    if (act === 'saveZavrsi') { const a = sessions(o); const r = a[a.length - 1]; if (r && !r.e) { r.e = new Date().toISOString(); f['Evidencija rada'] = JSON.stringify(a); } f['Status'] = 'Riješeno'; f['Završeno'] = new Date().toLocaleString('hr-HR', { dateStyle: 'short', timeStyle: 'short' }); }
     return run({ akcija: 'update', fields: f });
   }
   if (act === 'quickDone') return run({ akcija: 'update', fields: { 'Status': 'Riješeno', 'Završeno': new Date().toLocaleString('hr-HR', { dateStyle: 'short', timeStyle: 'short' }) } });
-  if (act === 'reopen') return run({ akcija: 'update', fields: { 'Status': o['Termin'] ? 'Zakazano' : 'Novo', 'Završeno': '' } });
+  if (act === 'reopen') return run({ akcija: 'update', fields: { 'Status': sessions(o).length ? 'Pauzirano' : o['Termin'] ? 'Zakazano' : 'Novo', 'Završeno': '' } });
   if (act === 'otkazi') {
     if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Sigurno? Klikni opet'; setTimeout(() => { if (b.isConnected) { b.dataset.sure = ''; b.textContent = 'Otkaži termin'; } }, 3500); return; }
     return run({ akcija: 'otkazi' });
@@ -515,7 +566,7 @@ $('#calNext').onclick = () => { calM = new Date(calM.getFullYear(), calM.getMont
 $('#calToday').onclick = () => { calM = new Date(); calM.setDate(1); renderCal(); };
 
 if (key) load().then(showApp).catch(() => showLogin()); else showLogin();
-setInterval(() => { if (D && !document.hidden && !Object.values(open).some(Boolean)) load().catch(() => {}); }, 120000);
+setInterval(() => { if (D && !document.hidden && !Object.values(open).some(Boolean) && !Object.keys(confirmAsk).length) load().catch(() => {}); }, 120000);
 })();
 </script>
 </body>
