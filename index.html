@@ -248,6 +248,19 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 .wz-done{display:grid;gap:14px;justify-items:start}
 .wz-done .mark{width:56px;height:56px;border-radius:50%;background:var(--copper);color:var(--copper-ink);display:flex;align-items:center;justify-content:center;font:800 1.6rem var(--display)}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.kontakt-sec{padding-block:24px 36px;position:relative;z-index:2}
+.kontakt{display:grid;grid-template-columns:1fr 1.1fr;gap:clamp(24px,4vw,56px);background:rgba(23,23,22,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:12px;padding:clamp(22px,4vw,40px)}
+.k-info{display:grid;gap:14px;align-content:start;min-width:0}
+.k-lead{color:var(--muted)}
+.k-phone{display:grid;gap:8px;margin-top:8px;padding-top:18px;border-top:1px solid var(--line)}
+.k-num{font:800 clamp(1.8rem,4vw,2.6rem)/1 var(--display);color:var(--copper);user-select:all;font-variant-numeric:tabular-nums}
+.k-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.k-btns .btn{padding:.6em 1em;font-size:.92rem}
+.k-form{display:grid;gap:14px;min-width:0}
+.k-form .fld input,.k-form .fld textarea{width:100%;background:var(--surface);border:1.5px solid #3A3A35;color:var(--ink);padding:12px 14px;border-radius:7px;font:inherit}
+.k-form .fld input:focus,.k-form .fld textarea:focus{outline:none;border-color:var(--copper);box-shadow:0 0 0 3px rgba(254,229,3,.18)}
+.k-form .btn{justify-self:start}
+@media (max-width:820px){.kontakt{grid-template-columns:1fr}}
 </style>
 
 </head>
@@ -418,7 +431,7 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
       <ul>
         <li>Termin najranije 24 sata od prijave</li>
         <li>Nedjeljom ne zaprimamo rezervacije</li>
-        <li>Hitno? Javite nam se direktno na Viber ili WhatsApp</li>
+        <li>Hitno? Viber / WhatsApp: <b style="color:var(--copper)">091/358 4122</b> (Saša)</li>
       </ul>
     </div>
     <div class="logo-full"><img src="logo.webp" alt="Horizont LHB d.o.o." width="130" height="106"></div>
@@ -426,11 +439,40 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
   </div>
 </div></section>
 
+<section id="kontakt" class="kontakt-sec"><div class="wrap">
+  <div class="kontakt">
+    <div class="k-info">
+      <span class="lbl">Kontakt</span>
+      <h2 style="margin-top:10px">Pitajte nas bilo što</h2>
+      <p class="k-lead">Niste sigurni što Vašem uređaju treba? Pošaljite kratki upit ili nazovite.</p>
+      <div class="k-phone">
+        <span class="lbl">Saša</span>
+        <b class="k-num" id="kNum">091/358 4122</b>
+        <div class="k-btns">
+          <a class="btn" href="tel:+385913584122">Nazovi</a>
+          <a class="btn ghost" href="https://wa.me/385913584122" target="_blank" rel="noopener">WhatsApp</a>
+          <a class="btn ghost" href="viber://chat?number=%2B385913584122">Viber</a>
+          <button type="button" class="btn ghost" id="kCopy">Kopiraj broj</button>
+        </div>
+      </div>
+    </div>
+    <form class="k-form" id="kForm" novalidate>
+      <div class="fld"><label for="k_ime">Ime i prezime<span class="rq">*</span></label><input type="text" id="k_ime" autocomplete="name" required><p class="err" role="alert"></p></div>
+      <div class="fld"><label for="k_email">E-pošta<span class="rq">*</span></label><input type="email" id="k_email" autocomplete="email" required><p class="err" role="alert"></p></div>
+      <div class="fld"><label for="k_tel">Telefon</label><input type="tel" id="k_tel" autocomplete="tel" inputmode="tel"></div>
+      <div class="fld"><label for="k_poruka">Poruka<span class="rq">*</span></label><textarea id="k_poruka" rows="4" required></textarea><p class="err" role="alert"></p></div>
+      <input type="text" id="k_web" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button type="submit" class="btn" id="kSend">Pošalji upit</button>
+      <p class="wz-msg" id="kMsg" role="status"></p>
+    </form>
+  </div>
+</div></section>
+
 <footer class="snail">
 <div class="snail-img"><img src="puz-raketa.webp" alt="Puž s raketom na leđima juri cestom" width="1584" height="672" loading="lazy"></div>
 <div class="wrap snail-in"><p class="snail-t">Od puža do <em>rakete.</em></p><p class="snail-s">Sporo računalo? Vratimo mu brzinu, a Vama živce.</p></div>
 <div class="wrap foot-row">
-  <span>Servis tim · Horizont LHB d.o.o. · Saša Batinac</span>
+  <span>Servis tim · Horizont LHB d.o.o. · Saša Batinac · 091/358 4122</span>
   <span>Osobne podatke koristimo isključivo za kontakt i izvršenje usluge (GDPR).</span>
 </div></footer>
 
@@ -873,6 +915,38 @@ async function send() {
 }
 
 render(false);
+})();
+</script>
+<script>
+(() => {
+  const f = document.getElementById('kForm'); if (!f) return;
+  const msg = document.getElementById('kMsg'), btn = document.getElementById('kSend');
+  const cp = document.getElementById('kCopy');
+  cp.onclick = async () => {
+    try { await navigator.clipboard.writeText('0913584122'); cp.textContent = 'Kopirano'; }
+    catch (e) { const r = document.createRange(); r.selectNodeContents(document.getElementById('kNum')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); cp.textContent = 'Označeno, kopirajte'; }
+    setTimeout(() => cp.textContent = 'Kopiraj broj', 2200);
+  };
+  const v = id => document.getElementById(id).value.trim();
+  const mark = (id, t) => { const fl = document.getElementById(id).closest('.fld'); fl.classList.toggle('bad', !!t); fl.querySelector('.err').textContent = t; return !t; };
+  f.addEventListener('submit', async e => {
+    e.preventDefault();
+    if (v('k_web')) return;
+    const ok = [mark('k_ime', v('k_ime') ? '' : 'Upišite ime.'),
+      mark('k_email', /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v('k_email')) ? '' : 'Upišite ispravnu e-adresu.'),
+      mark('k_poruka', v('k_poruka') ? '' : 'Napišite poruku.')].every(Boolean);
+    if (!ok) return;
+    if (typeof ENDPOINT === 'undefined' || ENDPOINT.startsWith('UPISI')) { msg.className = 'wz-msg bad'; msg.textContent = 'Slanje trenutno nije moguće. Nazovite nas na 091/358 4122.'; return; }
+    btn.disabled = true; btn.textContent = 'Šaljem…'; msg.className = 'wz-msg'; msg.textContent = '';
+    try {
+      const r = await fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({
+        _vrsta: 'upit', 'vrijeme': new Date().toLocaleString('hr-HR'), 'Ime i prezime [ime]': v('k_ime'), 'E-pošta [email]': v('k_email'), 'Telefon [telefon]': v('k_tel'), 'Poruka [poruka]': v('k_poruka') }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || j.ok === false) throw new Error();
+      f.reset(); msg.className = 'wz-msg'; msg.textContent = 'Hvala! Upit je poslan, javit ćemo se uskoro.';
+    } catch (e) { msg.className = 'wz-msg bad'; msg.textContent = 'Slanje nije uspjelo. Pokušajte ponovno ili nazovite 091/358 4122.'; }
+    btn.disabled = false; btn.textContent = 'Pošalji upit';
+  });
 })();
 </script>
 </body>
