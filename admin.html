@@ -186,6 +186,19 @@ main{padding-block:24px 60px;display:grid;gap:28px}
 .slot.busy{opacity:.55;pointer-events:none}
 .slot .ld{font-size:.8rem}
 @media (max-width:560px){.slots{gap:6px;grid-template-columns:repeat(2,minmax(0,1fr))}.slot .gal{font-size:.66rem;padding:3px 5px}}
+#bigT{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));z-index:20;display:grid;gap:10px;max-width:min(340px,calc(100vw - 32px))}
+.bt{background:#1F1D08;border:2px solid var(--y);border-radius:12px;padding:14px 16px;display:grid;gap:6px;box-shadow:0 12px 40px -10px rgba(254,229,3,.45)}
+.bt .lbl{color:var(--y)}
+.bt-n{font:700 1rem var(--display)}
+.bt-t{font:700 clamp(2.2rem,6vw,3rem)/1 var(--mono);font-variant-numeric:tabular-nums;color:var(--y);letter-spacing:-.02em}
+.bt-c{color:var(--muted);font-size:.8rem}.bt-c i{font-style:normal;font-family:var(--mono);color:var(--ink)}
+.bt .btn{justify-self:start;padding:.5em .9em;font-size:.85rem}
+.cycs{display:flex;flex-wrap:wrap;gap:6px;padding:0 18px 12px;background:#121211}
+.cy{border:1px solid var(--line);border-radius:6px;padding:5px 10px;font:.8rem var(--mono);color:var(--muted)}
+.cy b{color:var(--ink)}.cy.on{border-color:var(--y);color:var(--ink)}.cy.wait{border-color:#E39B3B}.cy i{font-style:normal;color:#E39B3B}
+.st.odb{border-color:var(--bad);color:var(--bad)}.st.arh{border-color:#666;color:#888}
+.btn.ghost.danger:hover{background:var(--bad);border-color:var(--bad);color:#000}
+@media (max-width:560px){#bigT{left:16px;right:16px;max-width:none}.bt{grid-template-columns:1fr auto;align-items:center}.bt-t{font-size:2rem}}
 .flash{animation:fl 1.6s ease}
 @keyframes fl{0%,40%{box-shadow:0 0 0 3px var(--y)}100%{box-shadow:none}}
 @media (max-width:720px){.cal-d{min-height:64px;padding:4px}.cal-d .ev{font-size:0;padding:3px;height:8px}.cal-d .ev b{display:none}.kpis{grid-template-columns:repeat(2,1fr)}}
@@ -233,6 +246,8 @@ main{padding-block:24px 60px;display:grid;gap:28px}
       <button type="button" class="chip on" data-f="otvoreni">Otvoreni</button>
       <button type="button" class="chip" data-f="zakazano">Zakazani</button>
       <button type="button" class="chip" data-f="rijeseno">Riješeni</button>
+      <button type="button" class="chip" data-f="odbijeni">Odbijeni</button>
+      <button type="button" class="chip" data-f="arhiva">Arhiva</button>
       <button type="button" class="chip" data-f="svi">Svi</button>
     </div>
     <div class="list" id="list"></div>
@@ -278,6 +293,8 @@ const telHref = p => { let d = String(p).replace(/[^\d+]/g, ''); if (d.startsWit
 const isTel = p => String(p).replace(/\D/g, '').length >= 8;
 const get = (o, ...ks) => { for (const k of ks) if (o[k]) return o[k]; return ''; };
 const status = o => o['Status'] || (o['Termin'] ? 'Zakazano' : 'Novo');
+const CLOSED = ['Riješeno', 'Odbijen', 'Arhivirano'];
+const isClosed = o => CLOSED.includes(status(o));
 
 function rowsOf(t) {
   if (!t || !t.headers) return [];
@@ -291,6 +308,7 @@ async function load() {
   const j = await r.json();
   if (!j.ok) throw new Error(j.error || 'Greška');
   D = { prijave: rowsOf(j.prijave), upiti: rowsOf(j.upiti), posjete: (j.posjete && j.posjete.rows) || [], tablica: j.tablica };
+  if (!load._fixed) { load._fixed = true; setTimeout(() => fixStale().catch(() => {}), 0); }
   $('#sheetLink').href = D.tablica || '#';
   render();
   $('#foot').textContent = 'Zadnje osvježeno: ' + new Date().toLocaleString('hr-HR');
@@ -310,14 +328,14 @@ function kpis() {
   let w = 0; for (let i = 0; i < 7; i++) w += v[ymd(new Date(now - i * DAY))] || 0;
   const total = Object.values(v).reduce((a, b) => a + b, 0);
   const P = D.prijave;
-  const otv = P.filter(o => status(o) !== 'Riješeno').length;
+  const otv = P.filter(o => !isClosed(o)).length;
   const zak7 = P.filter(o => o._term && status(o) !== 'Riješeno' && o._term >= new Date(ymd(now)) && o._term - now < 7 * DAY).length;
   const mjes = P.filter(o => status(o) === 'Riješeno' && (() => { const t = parseT(o['Završeno']); const d = new Date(t); return t && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); })());
   const zarada = mjes.reduce((a, o) => a + num(o['Ukupno s PDV-om (€)'] || o['Iznos (€)']), 0);
   const sati = mjes.reduce((a, o) => a + num(o['Sati rada']), 0);
   const newP = P.filter(o => now - o._t < 7 * DAY).length;
   const K = [['Posjete danas', today, w + ' u 7 dana · ' + total + ' ukupno', true], ['Otvoreni nalozi', otv, newP + ' novih u 7 dana', otv > 0],
-    ['U radu sada', P.filter(o => running(o)).length, zak7 + ' termina u 7 dana'], ['Upiti', D.upiti.filter(o => status(o) !== 'Riješeno').length, 'otvorenih, od ' + D.upiti.length],
+    ['U radu sada', P.filter(o => running(o)).length, zak7 + ' termina u 7 dana'], ['Upiti', D.upiti.filter(o => !isClosed(o)).length, 'otvorenih, od ' + D.upiti.length],
     ['Riješeno ovaj mjesec', mjes.length, 'naloga'], ['Sati ovaj mjesec', String(sati).replace('.', ','), 'h rada'],
     ['Naplaćeno ovaj mjesec', eur(zarada), 's PDV-om', zarada > 0], ['Nalozi ukupno', P.length, 'od početka']];
   $('#kpis').innerHTML = K.map(k => `<div class="kpi${k[3] ? ' hi' : ''}"><span class="lbl">${k[0]}</span><b>${k[1]}</b><span>${k[2]}</span></div>`).join('');
@@ -336,7 +354,7 @@ function kpis() {
   $('#nK').textContent = P.filter(o => o._term && status(o) !== 'Riješeno' && o._term >= new Date(ymd(now))).length;
 }
 
-function stChip(st) { const c = st === 'Riješeno' ? 'ok' : st === 'Zakazano' ? 'zak' : st === 'U radu' ? 'run' : (st === 'Pauzirano' || st === 'Za obračun') ? 'pau' : ''; return `<span class="st ${c}">${esc(st)}</span>`; }
+function stChip(st) { const c = st === 'Riješeno' ? 'ok' : st === 'Odbijen' ? 'odb' : st === 'Arhivirano' ? 'arh' : st === 'Zakazano' ? 'zak' : st === 'U radu' ? 'run' : (st === 'Pauzirano' || st === 'Za obračun') ? 'pau' : ''; return `<span class="st ${c}">${esc(st)}</span>`; }
 
 function panelHTML(o, kind, p) {
   if (p === 'termin') {
@@ -349,6 +367,12 @@ function panelHTML(o, kind, p) {
       <label>Trajanje<select class="ptr">${[30, 60, 90, 120, 180, 240].map(m => `<option value="${m}"${String(m) === String(tr) ? ' selected' : ''}>${m < 60 ? m + ' min' : (m / 60).toString().replace('.', ',') + ' h'}</option>`).join('')}</select></label></div>
       <label>Napomena za kalendar<textarea class="pn" placeholder="npr. ponijeti termalnu pastu, SSD 512 GB"></textarea></label>
       <div class="frow"><button type="button" class="btn" data-do="saveTermin">Spremi u kalendar</button><button type="button" class="btn ghost" data-do="close">Odustani</button></div>
+      <p class="pmsg" role="status"></p></div>`;
+  }
+  if (p === 'odbij') {
+    return `<div class="c-panel" data-p="odbij"><h4>Odbij nalog</h4>
+      <label>Razlog (vidljiv samo tebi)<textarea class="pr2" placeholder="npr. popravak se ne isplati, dijelovi nedostupni, klijent odustao"></textarea></label>
+      <div class="frow"><button type="button" class="btn" data-do="saveOdbij">Potvrdi: odbij nalog</button><button type="button" class="btn ghost" data-do="close">Odustani</button></div>
       <p class="pmsg" role="status"></p></div>`;
   }
   if (p === 'zavrsi') {
@@ -428,19 +452,95 @@ function daysHTML(a) {
   const rows = perDay(a);
   return `<div class="days">${rows.map(x => `<span class="dd"><b>${dayLbl(x.day)}</b><span>${new Date(x.from).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' })}–${tEnd(x.to)}</span><span class="dh">${hm(x.ms)}</span></span>`).join('')}</div>`;
 }
+const PAUZA_CIKLUS = 30 * 60e3; // pauza dulja od 30 min zatvara ciklus rada
+function cycles(a, now = Date.now()) {
+  const out = [];
+  a.forEach(x => { const s0 = Date.parse(x.s), e0 = x.e ? Date.parse(x.e) : now, last = out[out.length - 1];
+    if (last && s0 - last.end <= PAUZA_CIKLUS) { last.pause += s0 - last.end; last.end = e0; last.work += e0 - s0; last.open = !x.e; }
+    else out.push({ start: s0, end: e0, work: e0 - s0, pause: 0, open: !x.e }); });
+  return out;
+}
+function cyclesHTML(a) {
+  const cs = cycles(a); if (!cs.length) return '';
+  const lastE = a.length && a[a.length - 1].e ? Date.parse(a[a.length - 1].e) : 0;
+  return `<div class="cycs">${cs.map((c, i) => { const closedC = !c.open && !(i === cs.length - 1 && lastE && Date.now() - lastE <= PAUZA_CIKLUS);
+    return `<span class="cy${c.open ? ' on' : closedC ? '' : ' wait'}"><b>Ciklus ${i + 1}</b> ${new Date(c.start).toLocaleString('hr-HR', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' })}–${c.open ? 'sada' : new Date(c.end).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' })} · rad ${hm(c.work)}${c.pause ? ' · pauze ' + hm(c.pause) : ''}${c.open ? ' · u tijeku' : closedC ? ' · zatvoren' : ' · pauza, otvoren još <i class="cdown" data-until="' + (lastE + PAUZA_CIKLUS) + '"></i>'}</span>`; }).join('')}</div>`;
+}
+/* Velika štoperica + zaštita: ako se admin zatvori, rad se odmah zaustavlja */
+function runningAll() { return D ? D.prijave.filter(o => running(o)) : []; }
+function bigTimer() {
+  let el = document.getElementById('bigT');
+  const r = runningAll();
+  if (!r.length) { if (el) el.hidden = true; return; }
+  if (!el) { el = document.createElement('aside'); el.id = 'bigT'; el.setAttribute('aria-live', 'off'); document.body.appendChild(el); }
+  el.hidden = false;
+  el.innerHTML = r.map(o => { const a = sessions(o), run = running(o);
+    return `<div class="bt"><span class="lbl">U radu · ${esc(nalogNr(o))}</span><b class="bt-n">${esc(get(o, 'Ime i prezime'))}</b>
+      <span class="bt-t timer" data-run="${Date.parse(run.s)}" data-base="${workedMs(a) - (Date.now() - Date.parse(run.s))}">${hms(workedMs(a))}</span>
+      <span class="bt-c">ovaj ciklus <i class="timer" data-run="${cycles(a).slice(-1)[0].start}" data-base="0" data-cyc="1">--</i></span>
+      <button type="button" class="btn" data-go="${o._i}">Otvori nalog</button></div>`; }).join('');
+}
+function stopPayload(o) {
+  const a = sessions(o), r = a[a.length - 1]; if (!r || r.e) return null;
+  r.e = new Date().toISOString();
+  return { _vrsta: 'admin', k: key, list: 'prijave', red: o._i, ime: get(o, 'Ime i prezime'), akcija: 'update',
+    fields: { 'Evidencija rada': JSON.stringify(a), 'Rad po danima': perDayTxt(a), 'Radno vrijeme (h)': (Math.round(workedMs(a) / 36e3) / 100).toString().replace('.', ','), 'Status': 'Pauzirano' } };
+}
+async function stopIfRunning(o, base) { const p = stopPayload(o); if (p) await post(p); }
+let closingSent = false;
+function emergencyStop() {
+  if (closingSent || !D) return; const r = runningAll(); if (!r.length) return; closingSent = true;
+  r.forEach(o => { const p = stopPayload(o); if (!p) return; const body = JSON.stringify(p);
+    if (!(navigator.sendBeacon && navigator.sendBeacon(ENDPOINT, new Blob([body], { type: 'text/plain;charset=utf-8' }))))
+      fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body, keepalive: true }).catch(() => {}); });
+}
+window.addEventListener('pagehide', emergencyStop);
+window.addEventListener('beforeunload', e => { if (runningAll().length) { emergencyStop(); } });
+/* Ako se preglednik srušio: zadnji znak života čuva se lokalno, pri sljedećem otvaranju ciklus se zatvara u to vrijeme */
+setInterval(() => { try { if (runningAll().length) localStorage.setItem('hz_alive', String(Math.min(Date.now(), lastAct + PAUZA_CIKLUS))); else localStorage.removeItem('hz_alive'); } catch (e) {} }, 15000);
+/* Neaktivnost: ako nema rada u adminu 30 min dok sat teče, ciklus se zatvara u trenutku zadnje aktivnosti */
+let lastAct = Date.now();
+['pointermove', 'pointerdown', 'keydown', 'scroll', 'touchstart'].forEach(ev => window.addEventListener(ev, () => lastAct = Date.now(), { passive: true }));
+document.addEventListener('visibilitychange', () => { if (!document.hidden) lastAct = Math.max(lastAct, Date.now() - 1000); });
+let idleBusy = false;
+setInterval(async () => {
+  if (idleBusy || !D || Date.now() - lastAct < PAUZA_CIKLUS) return;
+  const r = runningAll(); if (!r.length) return;
+  idleBusy = true;
+  for (const o of r) { const a = sessions(o), last = a[a.length - 1]; if (!last || last.e) continue;
+    last.e = new Date(Math.max(lastAct, Date.parse(last.s))).toISOString();
+    await post({ list: 'prijave', red: o._i, ime: get(o, 'Ime i prezime'), akcija: 'update', fields: { 'Evidencija rada': JSON.stringify(a), 'Rad po danima': perDayTxt(a), 'Radno vrijeme (h)': (Math.round(workedMs(a) / 36e3) / 100).toString().replace('.', ','), 'Status': 'Pauzirano' } }).catch(() => {}); }
+  idleBusy = false;
+  await load().catch(() => {});
+  const n = document.getElementById('foot'); if (n) n.textContent = 'Ciklus rada je automatski zatvoren nakon 30 min neaktivnosti, s vremenom zadnje aktivnosti (' + new Date(lastAct).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }) + ').';
+}, 15000);
+async function fixStale() {
+  let alive = 0; try { alive = +localStorage.getItem('hz_alive') || 0; } catch (e) {}
+  if (!alive || Date.now() - alive < 60e3) return;
+  const r = runningAll(); if (!r.length) { try { localStorage.removeItem('hz_alive'); } catch (e) {} return; }
+  for (const o of r) { const a = sessions(o), last = a[a.length - 1]; if (!last || last.e || Date.parse(last.s) > alive) continue;
+    last.e = new Date(alive).toISOString();
+    await post({ list: 'prijave', red: o._i, ime: get(o, 'Ime i prezime'), akcija: 'update', fields: { 'Evidencija rada': JSON.stringify(a), 'Rad po danima': perDayTxt(a), 'Status': 'Pauzirano' } }).catch(() => {}); }
+  try { localStorage.removeItem('hz_alive'); } catch (e) {}
+  await load();
+}
+
 function workBar(o, id) {
   const a = sessions(o), run = running(o), ms = workedMs(a), st = status(o);
-  if (st === 'Riješeno') return a.length ? `<div class="work"><span class="dot"></span><span class="timer">${hms(ms)}</span><span class="wl">ukupno radno vrijeme · ${perDay(a).length} ${perDay(a).length === 1 ? 'dan' : 'dana'}</span></div>${daysHTML(a)}` : '';
+  if (st === 'Riješeno') return a.length ? `<div class="work"><span class="dot"></span><span class="timer">${hms(ms)}</span><span class="wl">ukupno radno vrijeme · ${perDay(a).length} ${perDay(a).length === 1 ? 'dan' : 'dana'}</span></div>${daysHTML(a)}${cyclesHTML(a)}` : '';
   const cls = run ? 'run' : a.length ? 'pause' : '';
-  const lbl = st === 'Za obračun' && !run ? 'Rad završen, čeka obračun' : run ? 'U radu od ' + new Date(run.s).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }) : a.length ? 'Pauzirano · odrađeno do sada' : 'Rad još nije započet';
+  const lbl = st === 'Za obračun' && !run ? 'Rad završen, čeka obračun' : run ? 'U radu od ' + new Date(run.s).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }) : a.length ? 'Pauzirano · odrađeno ukupno' : 'Rad još nije započet';
   const btns = run ? `<button type="button" class="btn ghost" data-do="ask" data-w="pause">⏸ Zaustavi</button><button type="button" class="btn" data-do="ask" data-w="stop">■ Završi rad</button>`
     : a.length ? `<button type="button" class="btn" data-do="ask" data-w="resume">▶ Nastavi</button><button type="button" class="btn ghost" data-do="ask" data-w="stop">■ Završi rad</button>`
     : `<button type="button" class="btn" data-do="ask" data-w="start">▶ Započni rad</button>`;
   const ask = confirmAsk[id];
-  return `<div class="work ${cls}"><span class="dot" aria-hidden="true"></span><span class="timer"${run ? ` data-run="${Date.parse(run.s)}" data-base="${ms - (Date.now() - Date.parse(run.s))}"` : ''}>${hms(ms)}</span><span class="wl">${lbl}</span>${btns}</div>${daysHTML(a)}
+  return `<div class="work ${cls}"><span class="dot" aria-hidden="true"></span><span class="timer"${run ? ` data-run="${Date.parse(run.s)}" data-base="${ms - (Date.now() - Date.parse(run.s))}"` : ''}>${hms(ms)}</span><span class="wl">${lbl}</span>${btns}</div>${daysHTML(a)}${cyclesHTML(a)}
     ${ask ? `<div class="confirm" role="alertdialog"><b>${CONF[ask][0]}</b><button type="button" class="btn" data-do="work" data-w="${ask}">Potvrdi: ${CONF[ask][1]}</button><button type="button" class="btn ghost" data-do="noask">Odustani</button></div>` : ''}`;
 }
-setInterval(() => document.querySelectorAll('.timer[data-run]').forEach(t => t.textContent = hms(+t.dataset.base + Date.now() - +t.dataset.run)), 1000);
+setInterval(() => {
+  document.querySelectorAll('.timer[data-run]').forEach(t => t.textContent = hms(+t.dataset.base + Date.now() - +t.dataset.run));
+  document.querySelectorAll('.cdown[data-until]').forEach(t => { const l = +t.dataset.until - Date.now(); t.textContent = l > 0 ? hms(l).slice(3) : '0:00'; if (l <= 0 && D) render(); });
+}, 1000);
 
 let LOGO = '';
 fetch('logo.webp').then(r => r.blob()).then(b => { const fr = new FileReader(); fr.onload = () => LOGO = fr.result; fr.readAsDataURL(b); }).catch(() => {});
@@ -597,7 +697,7 @@ document.addEventListener('change', async e => {
 
 function card(o, kind) {
   const ime = get(o, 'Ime i prezime') || 'Bez imena', titula = get(o, 'Titula'), mail = get(o, 'E-pošta'), tel = get(o, 'Kontakt broj mobitela', 'Telefon');
-  const st = status(o), done = st === 'Riješeno', isNew = Date.now() - o._t < 2 * DAY && !done;
+  const st = status(o), done = st === 'Riješeno', closed = isClosed(o), isNew = Date.now() - o._t < 2 * DAY && !closed;
   const subj = kind === 'upiti' ? 'Horizont servis – odgovor na Vaš upit' : 'Horizont servis – Vaš servisni nalog';
   const termTxt = o._term ? ` ${o._term.toLocaleDateString('hr-HR', { weekday: 'short' })} ${hrDate(o._term)} u ${pad(o._term.getHours())}:${pad(o._term.getMinutes())}` : '';
   let body = 'Poštovani/a ' + ((titula ? titula + ' ' : '') + ime) + ',\n\n';
@@ -610,14 +710,18 @@ function card(o, kind) {
     ['Usluga', get(o, 'Koju uslugu trebate?')], ['Željeni datum', get(o, 'Željeni datum preuzimanja / početka servisa')], ['Predaja', get(o, 'Kako želite predati uređaj?')],
     ['Grad / adresa', [get(o, 'Grad / mjesto'), get(o, 'Adresa')].filter(Boolean).join(', ')], ['Brzi kontakt', get(o, 'Preferirani način brze komunikacije')],
     ['Zamjensko računalo', get(o, 'Trebate li zamjensko računalo tijekom servisa?')], ['Opis kvara', get(o, 'Opišite problem ili kvar svojim riječima')]];
+  if (st === 'Odbijen' || o['Razlog odbijanja']) keyF.unshift(['Odbijeno', [o['Odbijeno'], o['Razlog odbijanja']].filter(Boolean).join(' · ')]);
   if (done || o['Ukupno s PDV-om (€)']) keyF.unshift(['Obračun', [o['Završeno'] && done ? 'Zaključeno ' + o['Završeno'] : 'Spremljeno, nije zaključeno', o['Sati rada'] ? String(o['Sati rada']).replace('.', ',') + ' h rada' : '', o['Ukupno s PDV-om (€)'] ? o['Ukupno s PDV-om (€)'] + ' € s PDV-om' : ''].filter(Boolean).join(' · ')], ['Stavke', o['Stavke (opis)']], ['Bilješka', o['Bilješka']]);
   const all = Object.keys(o).filter(k => k[0] !== '_' && o[k] && !['Kalendar ID', 'Stavke', 'Rad PDV', 'Evidencija rada', 'Slike', 'Mapa ID', 'PDF ID'].includes(k)).map(k => `<dt>${esc(k)}</dt><dd>${esc(o[k])}</dd>`).join('');
   const id = kind + '-' + o._i, p = open[id];
-  const acts = kind === 'upiti'
-    ? (done ? `<button type="button" class="btn ghost" data-do="reopen">Vrati u otvorene</button>` : `<button type="button" class="btn ghost" data-do="quickDone">✓ Riješeno</button>`)
-    : (done ? `<button type="button" class="btn ghost" data-do="reopen">Vrati u rad</button>`
-      : `<button type="button" class="btn ghost" data-do="termin">${o._term ? 'Promijeni termin' : '📅 Zakaži termin'}</button><button type="button" class="btn ghost" data-do="zavrsi">🧾 Obračun / Riješeno</button>${o._term ? '<button type="button" class="btn ghost" data-do="otkazi">Otkaži termin</button>' : ''}`);
-  return `<article class="card${isNew ? ' new' : ''}${done ? ' done' : ''}" id="c-${id}" data-id="${id}" data-kind="${kind}" data-row="${o._i}">
+  const arch = st === 'Arhivirano';
+  const tail = arch ? `<button type="button" class="btn ghost" data-do="unarch">↩ Vrati iz arhive</button>`
+    : `${st !== 'Odbijen' && !done ? '<button type="button" class="btn ghost" data-do="odbij">✕ Odbij nalog</button>' : ''}<button type="button" class="btn ghost danger" data-do="arch">🗑 Obriši (u arhivu)</button>`;
+  const acts = arch ? tail : kind === 'upiti'
+    ? (closed ? `<button type="button" class="btn ghost" data-do="reopen">Vrati u otvorene</button>` : `<button type="button" class="btn ghost" data-do="quickDone">✓ Riješeno</button>`) + tail
+    : (closed ? `<button type="button" class="btn ghost" data-do="reopen">${st === 'Odbijen' ? 'Vrati u otvorene' : 'Vrati u rad'}</button>`
+      : `<button type="button" class="btn ghost" data-do="termin">${o._term ? 'Promijeni termin' : '📅 Zakaži termin'}</button><button type="button" class="btn ghost" data-do="zavrsi">🧾 Obračun / Riješeno</button>${o._term ? '<button type="button" class="btn ghost" data-do="otkazi">Otkaži termin</button>' : ''}`) + tail;
+  return `<article class="card${isNew ? ' new' : ''}${closed ? ' done' : ''}" id="c-${id}" data-id="${id}" data-kind="${kind}" data-row="${o._i}">
     <div class="c-top">
       <div class="c-name"><h3>${esc(ime)}${isNew ? '<span class="pill">Novo</span>' : ''}${stChip(st)}</h3><span class="c-meta">${esc(o['vrijeme'] || '')} · redak ${o._i}</span>
         ${o._term ? `<span class="c-term">📅${esc(termTxt)}</span>` : ''}</div>
@@ -644,16 +748,19 @@ function filtered(list) {
   const q = $('#q').value.trim().toLowerCase();
   return list.filter(o => {
     const st = status(o);
-    if (flt === 'otvoreni' && st === 'Riješeno') return false;
-    if (flt === 'zakazano' && !(o._term && st !== 'Riješeno')) return false;
+    if (flt === 'otvoreni' && isClosed(o)) return false;
+    if (flt === 'zakazano' && !(o._term && !isClosed(o))) return false;
     if (flt === 'rijeseno' && st !== 'Riješeno') return false;
+    if (flt === 'odbijeni' && st !== 'Odbijen') return false;
+    if (flt === 'arhiva' && st !== 'Arhivirano') return false;
+    if (flt === 'svi' && st === 'Arhivirano') return false;
     return !q || Object.values(o).join(' ').toLowerCase().includes(q);
   });
 }
 
 function render() {
   if (!D) return;
-  kpis();
+  kpis(); bigTimer();
   const cal = tab === 'kalendar';
   $('#list').hidden = cal; $('#calView').hidden = !cal; $('#filters').hidden = cal; $('#q').hidden = cal;
   if (cal) return renderCal();
@@ -710,6 +817,26 @@ document.addEventListener('click', async e => {
     catch (err) { b.disabled = false; b.textContent = t; if (msg) { msg.className = 'pmsg bad'; msg.textContent = err.message; } else alertBox(c, err.message); }
   };
   if (act === 'print') return printNalog(o);
+  if (act === 'odbij') { open[id] = open[id] === 'odbij' ? null : 'odbij'; return render(); }
+  if (act === 'saveOdbij') {
+    const why = c.querySelector('.pr2').value.trim();
+    b.disabled = true; b.textContent = 'Spremam…';
+    try {
+      if (o['Termin']) await post(Object.assign({}, base, { akcija: 'otkazi' }));
+      await stopIfRunning(o, base);
+      await post(Object.assign({}, base, { akcija: 'update', fields: { 'Status': 'Odbijen', 'Razlog odbijanja': why, 'Odbijeno': new Date().toLocaleString('hr-HR', { dateStyle: 'short', timeStyle: 'short' }) } }));
+      delete open[id]; await load();
+    } catch (err) { b.disabled = false; b.textContent = 'Potvrdi: odbij nalog'; msg.className = 'pmsg bad'; msg.textContent = err.message; }
+    return;
+  }
+  if (act === 'arch') {
+    if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Sigurno? Klikni opet'; setTimeout(() => { if (b.isConnected) { b.dataset.sure = ''; b.textContent = '🗑 Obriši (u arhivu)'; } }, 3500); return; }
+    b.disabled = true;
+    try { await stopIfRunning(o, base); await post(Object.assign({}, base, { akcija: 'update', fields: { 'Status prije arhive': status(o), 'Status': 'Arhivirano', 'Arhivirano': new Date().toLocaleString('hr-HR', { dateStyle: 'short', timeStyle: 'short' }) } })); await load(); }
+    catch (err) { b.disabled = false; alertBox(c, err.message); }
+    return;
+  }
+  if (act === 'unarch') return run({ akcija: 'update', fields: { 'Status': o['Status prije arhive'] || 'Novo', 'Arhivirano': '' } });
   if (act === 'rmFoto') {
     if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Obriši?'; b.classList.add('sure'); setTimeout(() => { if (b.isConnected) { b.dataset.sure = ''; b.textContent = '✕'; b.classList.remove('sure'); } }, 3000); return; }
     const sl = b.closest('.slot'); sl.classList.add('busy');
@@ -762,7 +889,7 @@ document.addEventListener('click', async e => {
     return run({ akcija: 'update', fields: f });
   }
   if (act === 'quickDone') return run({ akcija: 'update', fields: { 'Status': 'Riješeno', 'Završeno': new Date().toLocaleString('hr-HR', { dateStyle: 'short', timeStyle: 'short' }) } });
-  if (act === 'reopen') return run({ akcija: 'update', fields: { 'Status': sessions(o).length ? 'Pauzirano' : o['Termin'] ? 'Zakazano' : 'Novo', 'Završeno': '' } });
+  if (act === 'reopen') return run({ akcija: 'update', fields: { 'Status': sessions(o).length ? 'Pauzirano' : o['Termin'] ? 'Zakazano' : 'Novo', 'Završeno': '', 'Odbijeno': '' } });
   if (act === 'otkazi') {
     if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Sigurno? Klikni opet'; setTimeout(() => { if (b.isConnected) { b.dataset.sure = ''; b.textContent = 'Otkaži termin'; } }, 3500); return; }
     return run({ akcija: 'otkazi' });
