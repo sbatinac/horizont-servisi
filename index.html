@@ -188,6 +188,11 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .dust-bg .chain div{background:rgba(23,23,22,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 @media (max-width:900px){.dust-bg{background:linear-gradient(rgba(14,14,13,.9),rgba(14,14,13,.78)),var(--dust) center/cover no-repeat,var(--surface)}}
 .dust-img-x{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+.cpu-sec{padding-top:0}
+.cpu-band{background:linear-gradient(90deg,var(--bg) 0%,rgba(14,14,13,.88) 30%,rgba(14,14,13,0) 62%),linear-gradient(var(--bg),transparent 22%,transparent 70%,var(--bg)),var(--cpu) 75% center/cover no-repeat,var(--bg);min-height:clamp(260px,30vw,440px);display:flex;align-items:center;margin-bottom:36px}
+.cpu-band .wrap{width:100%}
+.cpu-band .sec-head{margin-bottom:0;max-width:44ch}
+@media (max-width:700px){.cpu-band{background:linear-gradient(rgba(14,14,13,.55),rgba(14,14,13,.85)),var(--cpu) 70% center/cover no-repeat,var(--bg)}}
 </style>
 
 </head>
@@ -240,8 +245,9 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   </div>
 </div></section>
 
-<section id="usluge"><div class="wrap">
+<section id="usluge" class="cpu-sec"><div class="cpu-band" style="--cpu:url('procesori.webp')" role="img" aria-label="Dva procesora na tamnoj podlozi"><div class="wrap">
   <div class="sec-head"><span class="lbl">Usluge</span><h2>Kako Vam možemo pomoći</h2><p>Kompletno održavanje, servis i optimizacija, da uređaj radi brže, tiše i pouzdanije.</p></div>
+</div></div><div class="wrap">
   <div class="svc">
     <div><h3>Dijagnostika kvara</h3><p>Utvrđujemo uzrok prije bilo kakvog zahvata.</p></div>
     <div><h3>Čišćenje od prašine</h3><p>Temeljito unutarnje i vanjsko čišćenje kućišta, ventilatora i hladnjaka.</p></div>
