@@ -17,6 +17,9 @@ const SHEET_POSJETE = 'Posjete';
 const GALERIJA_ID = '1WI5VmXP9w2IgRyymJDDapsC8MQkkZnyD';
 const GALERIJA_PODMAPA = 'Prije i poslije';
 const ARHIVA_NAZIV = 'Horizont – Arhiva naloga';
+// Prodaja rabljenih dijelova: Silicon Graveyard / Tech Outlet.
+const SHEET_DIJELOVI = 'Dijelovi';
+const GARAZA_NAZIV = 'Horizont – Silicon Graveyard (javno)';
 // Podaci za mailove klijentima.
 const SERVIS_NAZIV = 'Horizont LHB d.o.o. – servisi';
 const SERVIS_TEL = '091/358 4122';
@@ -53,6 +56,7 @@ function doGet(e) {
   const p = (e && e.parameter) || {};
   if (p.a === 'hit') return json_(hit_());
   if (p.a === 'status') return json_(statusLookup_(p.nr, p.tel));
+  if (p.a === 'garaza') return json_(garazaJavno_());
   if (p.a === 'foto') {
     if (!ADMIN_KEY || ADMIN_KEY === 'UPISI_LOZINKU' || p.k !== ADMIN_KEY) return json_({ ok: false, error: 'Pogrešna lozinka.' });
     try { const b = DriveApp.getFileById(p.id).getBlob(); return json_({ ok: true, mime: b.getContentType(), data: Utilities.base64Encode(b.getBytes()) }); }
@@ -63,7 +67,7 @@ function doGet(e) {
       Utilities.sleep(800);
       return json_({ ok: false, error: 'Pogrešna lozinka.' });
     }
-    return json_({ ok: true, prijave: table_(SHEET_NAME), upiti: table_(SHEET_UPITI), posjete: table_(SHEET_POSJETE), tablica: SpreadsheetApp.getActiveSpreadsheet().getUrl(), jutro: jutroAktivno_() });
+    return json_({ ok: true, prijave: table_(SHEET_NAME), upiti: table_(SHEET_UPITI), posjete: table_(SHEET_POSJETE), dijelovi: table_(SHEET_DIJELOVI), predlosci: JSON.parse(PropertiesService.getScriptProperties().getProperty('predlosci') || '[]'), tablica: SpreadsheetApp.getActiveSpreadsheet().getUrl(), jutro: jutroAktivno_() });
   }
   return json_({ ok: true, servis: 'Horizont LHB – prijave' });
 }
@@ -76,6 +80,8 @@ function admin_(d) {
   if (!ADMIN_KEY || ADMIN_KEY === 'UPISI_LOZINKU' || d.k !== ADMIN_KEY) { Utilities.sleep(800); return { ok: false, error: 'Pogrešna lozinka.' }; }
   if (d.akcija === 'jutro') { postaviJutarnjiMail_(!!d.on); return { ok: true, jutro: jutroAktivno_() }; }
   if (d.akcija === 'jutro_test') { jutarnjiSazetak(); return { ok: true }; }
+  if (String(d.akcija).indexOf('dio_') === 0) return dijelovi_(d);
+  if (d.akcija === 'predlosci') { PropertiesService.getScriptProperties().setProperty('predlosci', JSON.stringify((d.list || []).slice(0, 60))); return { ok: true }; }
   const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(d.list === 'upiti' ? SHEET_UPITI : SHEET_NAME);
   const row = Number(d.red);
   if (!sh || !row || row < 2 || row > sh.getLastRow()) return { ok: false, error: 'Redak ne postoji. Osvježi stranicu.' };
@@ -353,4 +359,84 @@ function jutarnjiSazetak() {
     '<p>Otvorenih naloga: <b>' + open.length + '</b></p>' + sec('Današnji termini', danas) + sec('Novi nalozi bez termina', novi) + sec('Na pauzi ili čeka obračun', obr) +
     '<p style="margin-top:20px"><a href="' + ADMIN_URL + '">Otvori admin</a></p></div>';
   MailApp.sendEmail({ to: NOTIFY_EMAIL, subject: 'Jutarnji pregled: ' + danas.length + ' termina danas, ' + open.length + ' otvorenih naloga', htmlBody: html, name: SERVIS_NAZIV });
+}
+
+
+// ===== SILICON GRAVEYARD / TECH OUTLET: PRODAJA DIJELOVA =====
+const DIO_POLJA = ['ID', 'Kategorija', 'Proizvođač', 'Tip', 'Naziv', 'Specifikacija', 'Stanje', 'Opis', 'Cijena (€)', 'Jamstvo', 'Status', 'Slike', 'Dodano',
+  'Prodano', 'Kupac', 'Kupac kontakt', 'Prodajna cijena (€)', 'Način plaćanja', 'Izdatnica', 'Napomena'];
+function dijeloviSheet_() {
+  const sh = getSheet_(SHEET_DIJELOVI);
+  if (!sh.getLastRow()) { sh.appendRow(DIO_POLJA); sh.getRange(1, 1, 1, DIO_POLJA.length).setFontWeight('bold').setBackground('#FEE503'); sh.setFrozenRows(1); }
+  return sh;
+}
+function garazaFolder_() {
+  const it = DriveApp.getFoldersByName(GARAZA_NAZIV);
+  const f = it.hasNext() ? it.next() : DriveApp.createFolder(GARAZA_NAZIV);
+  try { f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {}
+  return f;
+}
+function dioRow_(sh, id) {
+  const H = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0], ci = H.indexOf('ID');
+  if (ci === -1 || sh.getLastRow() < 2) return { H: H, row: 0 };
+  const ids = sh.getRange(2, ci + 1, sh.getLastRow() - 1, 1).getDisplayValues().map(r => r[0]);
+  const i = ids.indexOf(String(id));
+  return { H: H, row: i === -1 ? 0 : i + 2 };
+}
+function dijelovi_(d) {
+  const sh = dijeloviSheet_();
+  const now = Utilities.formatDate(new Date(), TZ, 'd.M.yyyy. HH:mm');
+  if (d.akcija === 'dio_spremi') {
+    const f = Object.assign({}, d.fields || {});
+    ['ID', 'Slike', 'Status', 'Dodano', 'Prodano', 'Izdatnica'].forEach(k => delete f[k]);
+    if (f['Cijena (€)'] !== undefined) f['Cijena (€)'] = String(f['Cijena (€)']).replace('.', ',');
+    let id = d.id, row;
+    if (id) { row = dioRow_(sh, id).row; if (!row) return { ok: false, error: 'Dio nije pronađen. Osvježi stranicu.' }; }
+    else {
+      const n = sh.getLastRow(); id = 'D-' + ('000' + n).slice(-4);
+      sh.appendRow(['\'' + id]); row = sh.getLastRow();
+      f['Status'] = 'Na prodaji'; f['Dodano'] = now; f['Slike'] = '[]';
+    }
+    setFields_(sh, row, f);
+    return { ok: true, id: id };
+  }
+  const r = dioRow_(sh, d.id); if (!r.row) return { ok: false, error: 'Dio nije pronađen. Osvježi stranicu.' };
+  let S = []; try { S = JSON.parse(cell_(sh, r.row, r.H, 'Slike') || '[]'); } catch (e) {}
+  if (d.akcija === 'dio_slika') {
+    const naziv = [d.id, cell_(sh, r.row, r.H, 'Naziv')].filter(String).join(' – ');
+    const file = garazaFolder_().createFile(Utilities.newBlob(Utilities.base64Decode(d.data), d.mime || 'image/jpeg', naziv + ' – slika ' + (S.length + 1) + '.jpg'));
+    try { file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {}
+    S.push(file.getId()); setFields_(sh, r.row, { 'Slike': JSON.stringify(S) });
+    return { ok: true, slike: S };
+  }
+  if (d.akcija === 'dio_brisi_sliku') {
+    trash_(d.slika); S = S.filter(x => x !== d.slika); setFields_(sh, r.row, { 'Slike': JSON.stringify(S) });
+    return { ok: true, slike: S };
+  }
+  if (d.akcija === 'dio_status') {
+    const ok = ['Na prodaji', 'Rezervirano', 'Arhivirano'];
+    if (ok.indexOf(d.status) === -1) return { ok: false, error: 'Nepoznat status.' };
+    setFields_(sh, r.row, { 'Status': d.status });
+    return { ok: true };
+  }
+  if (d.akcija === 'dio_prodaj') {
+    let iz = cell_(sh, r.row, r.H, 'Izdatnica');
+    if (!iz) {
+      const props = PropertiesService.getScriptProperties(), god = Utilities.formatDate(new Date(), TZ, 'yyyy');
+      const k = 'izdatnica_' + god, n = Number(props.getProperty(k) || 0) + 1; props.setProperty(k, String(n));
+      iz = 'IZ-' + god + '-' + ('000' + n).slice(-4);
+    }
+    setFields_(sh, r.row, { 'Status': 'Prodano', 'Prodano': now, 'Kupac': d.kupac || '', 'Kupac kontakt': d.kontakt || '', 'Prodajna cijena (€)': String(d.cijena || '').replace('.', ','),
+      'Način plaćanja': d.placanje || '', 'Jamstvo': d.jamstvo || cell_(sh, r.row, r.H, 'Jamstvo'), 'Izdatnica': iz, 'Napomena': d.napomena || '' });
+    return { ok: true, izdatnica: iz };
+  }
+  return { ok: false, error: 'Nepoznata akcija.' };
+}
+// Javni popis: samo dijelovi na prodaji ili rezervirani, bez podataka o kupcima.
+function garazaJavno_() {
+  const t = table_(SHEET_DIJELOVI), H = t.headers, c = n => H.indexOf(n);
+  const items = t.rows.map(r => ({ id: r[c('ID')], kat: r[c('Kategorija')], pro: r[c('Proizvođač')], tip: r[c('Tip')], naziv: r[c('Naziv')], spec: r[c('Specifikacija')],
+    stanje: r[c('Stanje')], opis: r[c('Opis')], cijena: r[c('Cijena (€)')], jamstvo: r[c('Jamstvo')], status: r[c('Status')], slike: (() => { try { return JSON.parse(r[c('Slike')] || '[]'); } catch (e) { return []; } })(), dodano: r[c('Dodano')] }))
+    .filter(x => x.id && (x.status === 'Na prodaji' || x.status === 'Rezervirano'));
+  return { ok: true, items: items.reverse() };
 }

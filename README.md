@@ -50,3 +50,17 @@ Stupci u tablici nastaju sami pri prvoj prijavi. Ako kasnije mijenjaš kod skrip
 Prikazuje posjete (danas, 7 dana, ukupno, graf 14 dana), sve servisne naloge i upite iz tablice. Klik na broj zove, klik na mail otvara poruku.
 
 Lozinku upiši **samo u Apps Scriptu** (`const ADMIN_KEY = '...'`), nikad u ovaj repo, jer je repo javan. Nakon promjene: Implementiraj → Upravljanje implementacijama → ✏️ → Nova verzija.
+
+## 6. Što još radi admin
+- **Nalozi**: termin u Google kalendaru, evidencija rada (ciklusi, velika štoperica), obračun s dijelovima i PDV-om, jamstvo, slike prije/poslije, PDF u mapi naloga, ispis naloga, odbij / arhiva.
+- **Javi klijentu**: 16 gotovih poruka + vlastiti predlošci (spremaju se u skriptu), WhatsApp / Viber / SMS / e-mail.
+- **Tech Outlet** (Silicon Graveyard): unos rabljenih dijelova (kategorija, proizvođač, tip, cijena, slike), rezervacija, prodaja s izdatnicom (IZ-GGGG-NNNN), arhiva. Dijelovi na prodaji se sami prikazuju na web stranici.
+- **Jutarnji mail**: gumb u zaglavlju admina, svaki dan u 7:30.
+
+## 7. Za klijente
+- Potvrda mailom nakon prijave s brojem naloga (RN-GGGG-NNNN).
+- `status.html`: provjera statusa naloga uz broj naloga i mobitel.
+
+## 8. Postavke u kodu
+- `admin.html` → `GOOGLE_RECENZIJA`: link za Google recenzije (prazno = gumb skriven).
+- `apps-script/Code.gs` → `ADMIN_KEY` (samo u Apps Scriptu!), `NOTIFY_EMAIL`, `GALERIJA_ID`.

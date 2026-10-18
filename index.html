@@ -310,6 +310,30 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 @media (prefers-reduced-motion:reduce){.step,.step h3,.step p{transition:none}}
 .adm{display:inline-block;margin-left:10px;color:var(--muted);opacity:.18;text-decoration:none;font-size:.85rem;transition:opacity .2s}
 .adm:hover,.adm:focus-visible{opacity:.7}
+.gz-tools{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:20px}
+.gz-tools input{background:var(--surface);border:1.5px solid #3A3A35;color:var(--ink);padding:10px 14px;border-radius:7px;font:inherit;min-width:0;width:min(300px,100%)}
+.gz-tools input:focus{outline:none;border-color:var(--copper)}
+.gz-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.gz{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;text-align:left;padding:0;font:inherit;color:inherit;display:flex;flex-direction:column;transition:border-color .2s,transform .2s}
+.gz:hover{border-color:var(--copper);transform:translateY(-2px)}
+.gz:focus-visible{outline:3px solid var(--copper);outline-offset:3px}
+.gz .im{aspect-ratio:4/3;background:var(--pcb-soft) center/cover no-repeat;position:relative;display:block}
+.gz .im b{position:absolute;left:8px;top:8px;background:var(--copper);color:var(--copper-ink);font:600 .68rem var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:3px 7px;border-radius:4px}
+.gz .im b.rez{background:#E39B3B}
+.gz .bd{padding:12px 14px;display:grid;gap:4px;flex:1}
+.gz .kt{font:500 .68rem var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.gz .nm{font-weight:700;overflow-wrap:anywhere}
+.gz .sp{color:var(--muted);font-size:.88rem}
+.gz .pr{font:800 1.35rem var(--display);color:var(--copper);margin-top:auto;padding-top:6px}
+.gz-m{background:var(--surface);border:1px solid var(--line);border-radius:12px;width:min(900px,94vw);max-height:90vh;overflow:auto;display:grid;grid-template-columns:1.2fr 1fr;gap:0}
+.gz-m .ph{background:#000;display:grid;gap:4px;align-content:start}
+.gz-m .ph img{width:100%;display:block;max-height:70vh;object-fit:contain}
+.gz-m .thumbs{display:flex;gap:4px;padding:4px;flex-wrap:wrap}.gz-m .thumbs img{width:64px;height:48px;object-fit:cover;cursor:pointer;opacity:.6;border-radius:3px}.gz-m .thumbs img.on{opacity:1;outline:2px solid var(--copper)}
+.gz-m .tx{padding:20px;display:grid;gap:10px;align-content:start}
+.gz-m h3{font-size:1.4rem}.gz-m dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0;font-size:.92rem}.gz-m dt{color:var(--muted)}.gz-m dd{margin:0}
+.gz-m .pr{font:800 2rem var(--display);color:var(--copper)}
+.gz-m .acts{display:flex;gap:8px;flex-wrap:wrap}
+@media (max-width:720px){.gz-m{grid-template-columns:1fr}}
 </style>
 
 <!-- Microsoft Clarity -->
@@ -324,7 +348,7 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 <body>
 <header><div class="wrap">
   <div class="brand"><span class="logo"><img src="logo-znak.webp" alt="Horizont logo" width="52" height="35"></span>Horizont LHB d.o.o. – servisi</div>
-  <nav><a href="#usluge">Usluge</a><a href="#galerija">Galerija</a><a href="#postupak">Kako ide</a><a href="#cijene">Cijene</a><a href="#prijava">Prijava</a><a href="status.html">Status naloga</a></nav>
+  <nav><a href="#usluge">Usluge</a><a href="#galerija">Galerija</a><a href="#postupak">Kako ide</a><a href="#cijene">Cijene</a><a href="#garaza" id="navGz" hidden>Tech Outlet</a><a href="#prijava">Prijava</a><a href="status.html">Status naloga</a></nav>
   <div class="hdr-r">
   <div class="music" id="music" hidden role="group" aria-label="Glazba">
     <span class="mlbl">Glazba</span>
@@ -466,6 +490,17 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
     </div>
   </div>
 </div></section>
+
+<section id="garaza" class="alt" hidden><div class="wrap">
+  <div class="sec-head"><span class="lbl">Silicon Graveyard / Tech Outlet</span><h2>Trgovina rabljenih računalnih dijelova</h2><p>Rabljeni dijelovi i oprema iz naše radionice, testirani prije prodaje. Za popravak, nadogradnju ili rezervu, po poštenoj cijeni.</p></div>
+  <div class="gz-tools"><div class="tabs" id="gzCats"></div><input type="search" id="gzQ" placeholder="Traži, npr. DDR4, SSD, PS4…" aria-label="Pretraga dijelova"></div>
+  <div class="gz-grid" id="gzGrid"></div>
+</div></section>
+
+<div class="modal" id="mGz" role="dialog" aria-label="Detalji dijela">
+  <button class="mx" onclick="closeM('mGz')" aria-label="Zatvori">×</button>
+  <div class="gz-m" id="gzM"></div>
+</div>
 
 <section><div class="wrap">
   <div class="warn">
@@ -667,7 +702,7 @@ function closeM(id) {
   if (id === 'mVid') $('#mVidEl').src = 'about:blank';
 }
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') ['mImg', 'mVid', 'mPdf'].forEach(closeM);
+  if (e.key === 'Escape') ['mImg', 'mVid', 'mPdf', 'mGz'].forEach(closeM);
   if ($('#mImg').classList.contains('open')) { if (e.key === 'ArrowLeft') step(-1); if (e.key === 'ArrowRight') step(1); }
 });
 document.querySelectorAll('.modal').forEach(m => m.addEventListener('click', e => { if (e.target === m) closeM(m.id); }));
@@ -1113,6 +1148,48 @@ render(false);
 /* BROJAČ POSJETA: jednom po sesiji */
 (() => { try { if (sessionStorage.getItem('hz_hit')) return; sessionStorage.setItem('hz_hit', '1'); } catch (e) {}
   if (typeof ENDPOINT === 'string' && !ENDPOINT.startsWith('UPISI')) fetch(ENDPOINT + '?a=hit', { mode: 'no-cors' }).catch(() => {}); })();
+</script>
+<script>
+/* SILICON GRAVEYARD / TECH OUTLET: javni popis dijelova iz admina */
+(() => {
+  const sec = document.getElementById('garaza'); if (!sec || typeof ENDPOINT !== 'string' || ENDPOINT.startsWith('UPISI')) return;
+  const $ = s => document.querySelector(s);
+  const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const th = (id, w) => `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w${w}`;
+  let items = [], cat = 'Sve';
+  function cats() {
+    const c = {}; items.forEach(x => c[x.kat] = (c[x.kat] || 0) + 1);
+    const list = [['Sve', items.length], ...Object.entries(c).sort((a, b) => a[0].localeCompare(b[0], 'hr'))];
+    $('#gzCats').innerHTML = list.map(([k, n]) => `<button type="button" class="tab${k === cat ? ' on' : ''}" data-k="${esc(k)}">${esc(k)} <small>${n}</small></button>`).join('');
+  }
+  function grid() {
+    const q = $('#gzQ').value.trim().toLowerCase();
+    const L = items.filter(x => (cat === 'Sve' || x.kat === cat) && (!q || [x.kat, x.pro, x.tip, x.naziv, x.spec, x.opis, x.stanje, x.id].join(' ').toLowerCase().includes(q)));
+    $('#gzGrid').innerHTML = L.length ? L.map(x => `<button type="button" class="gz" data-id="${esc(x.id)}"><span class="im" style="background-image:url('${x.slike[0] ? th(x.slike[0], 600) : 'logo.webp'}')${x.slike[0] ? '' : ';background-size:50%;background-repeat:no-repeat'}">${x.status === 'Rezervirano' ? '<b class="rez">Rezervirano</b>' : ''}</span>
+      <span class="bd"><span class="kt">${esc(x.kat)}${x.tip ? ' · ' + esc(x.tip) : ''}</span><span class="nm">${esc(x.naziv)}</span>${x.spec ? `<span class="sp">${esc(x.spec)}</span>` : ''}<span class="sp">${esc(x.stanje || '')}</span><span class="pr">${esc(x.cijena)} €</span></span></button>`).join('')
+      : '<p class="msg">Nema dijelova za odabrani filter.</p>';
+  }
+  function detail(id) {
+    const x = items.find(i => i.id === id); if (!x) return;
+    const txt = `Pozdrav, zanima me ${x.id}: ${x.naziv}${x.spec ? ' (' + x.spec + ')' : ''}, ${x.cijena} €. Je li još dostupno?`;
+    $('#gzM').innerHTML = `<div class="ph">${x.slike.length ? `<img id="gzBig" src="${th(x.slike[0], 1600)}" alt="${esc(x.naziv)}">${x.slike.length > 1 ? `<div class="thumbs">${x.slike.map((s, i) => `<img src="${th(s, 200)}" data-big="${th(s, 1600)}" class="${i ? '' : 'on'}" alt="">`).join('')}</div>` : ''}` : `<img src="logo.webp" alt="" style="padding:40px;background:#fff">`}</div>
+      <div class="tx"><span class="lbl">${esc(x.id)} · ${esc(x.kat)}</span><h3>${esc(x.naziv)}</h3><span class="pr">${esc(x.cijena)} €</span>
+      <dl>${[['Proizvođač', x.pro], ['Tip', x.tip], ['Specifikacija', x.spec], ['Stanje', x.stanje], ['Jamstvo', x.jamstvo]].filter(r => r[1]).map(r => `<dt>${r[0]}</dt><dd>${esc(r[1])}</dd>`).join('')}</dl>
+      ${x.opis ? `<p style="color:var(--muted)">${esc(x.opis)}</p>` : ''}${x.status === 'Rezervirano' ? '<p style="color:#E39B3B;font-weight:600">Trenutno rezervirano – javite se ako želite biti sljedeći.</p>' : ''}
+      <div class="acts"><a class="btn" href="https://wa.me/385913584122?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener">Pitaj na WhatsApp</a><button type="button" class="btn ghost" id="gzAsk">Pošalji upit</button></div>
+      <p style="color:var(--muted);font-size:.85rem">Ili nazovite: <b style="color:var(--copper)">091/358 4122</b> (Saša)</p></div>`;
+    document.getElementById('mGz').classList.add('open');
+    $('#gzAsk').onclick = () => { closeM('mGz'); const p = document.getElementById('k_poruka'); if (p) { p.value = txt; document.getElementById('kontakt').scrollIntoView({ behavior: 'smooth' }); setTimeout(() => document.getElementById('k_ime').focus(), 500); } };
+  }
+  document.addEventListener('click', e => {
+    const t = e.target.closest('#gzCats .tab'); if (t) { cat = t.dataset.k; cats(); grid(); return; }
+    const g = e.target.closest('.gz[data-id]'); if (g) return detail(g.dataset.id);
+    const tb = e.target.closest('#gzM .thumbs img'); if (tb) { document.getElementById('gzBig').src = tb.dataset.big; document.querySelectorAll('#gzM .thumbs img').forEach(i => i.classList.toggle('on', i === tb)); }
+  });
+  $('#gzQ').addEventListener('input', grid);
+  document.getElementById('mGz').addEventListener('click', e => { if (e.target.id === 'mGz') closeM('mGz'); });
+  fetch(ENDPOINT + '?a=garaza').then(r => r.json()).then(j => { if (!j.ok || !j.items || !j.items.length) return; items = j.items; sec.hidden = false; document.getElementById('navGz').hidden = false; cats(); grid(); }).catch(() => {});
+})();
 </script>
 </body>
 </html>
