@@ -313,6 +313,7 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 .gz-tools{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:20px}
 .gz-tools input{background:var(--surface);border:1.5px solid #3A3A35;color:var(--ink);padding:10px 14px;border-radius:7px;font:inherit;min-width:0;width:min(300px,100%)}
 .gz-tools input:focus{outline:none;border-color:var(--copper)}
+.gz-empty{grid-column:1/-1;display:grid;gap:6px;border:1.5px dashed #3A3A35;border-radius:10px;padding:28px;color:var(--muted)}.gz-empty b{color:var(--ink)}.gz-empty span b{color:var(--copper)}
 .gz-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
 .gz{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;text-align:left;padding:0;font:inherit;color:inherit;display:flex;flex-direction:column;transition:border-color .2s,transform .2s}
 .gz:hover{border-color:var(--copper);transform:translateY(-2px)}
@@ -334,6 +335,23 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 .gz-m .pr{font:800 2rem var(--display);color:var(--copper)}
 .gz-m .acts{display:flex;gap:8px;flex-wrap:wrap}
 @media (max-width:720px){.gz-m{grid-template-columns:1fr}}
+.prov-sec{padding-block:48px}
+.prov{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:20px 40px;align-items:center;background:var(--surface);border:2px solid var(--copper);border-radius:14px;padding:clamp(22px,4vw,36px);box-shadow:0 0 30px rgba(254,229,3,.12)}
+.prov-t{display:grid;gap:8px}.prov-t p{color:var(--muted)}
+.prov-f{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end}
+.prov-f label{display:grid;gap:5px;font-weight:600;font-size:.88rem;min-width:0}
+.prov-f input{background:var(--bg);border:1.5px solid #3A3A35;color:var(--ink);padding:12px 14px;border-radius:7px;font:inherit;min-width:0;width:100%}
+.prov-f input:focus{outline:none;border-color:var(--copper);box-shadow:0 0 0 3px rgba(254,229,3,.18)}
+#pvNr{font-family:var(--mono);text-transform:uppercase}
+.prov-r{grid-column:1/-1}.prov-r:empty{display:none}
+.pv-box{display:grid;gap:12px;border-top:1px solid var(--line);padding-top:16px}
+.pv-box h3{font-size:1.25rem}.pv-box .bad{color:#FF8A7A;font-weight:600}
+.pv-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.pv-st{display:grid;gap:6px;font-size:.82rem;color:var(--muted)}.pv-st i{height:6px;border-radius:99px;background:#2C2C29}
+.pv-st.on i{background:var(--copper)}.pv-st.on{color:var(--ink)}.pv-st.cur b{color:var(--copper)}
+.pv-info{color:var(--muted);font-size:.92rem;display:flex;gap:18px;flex-wrap:wrap}.pv-info b{color:var(--ink)}
+@media (max-width:900px){.prov{grid-template-columns:1fr}}
+@media (max-width:560px){.prov-f{grid-template-columns:1fr}.pv-steps{grid-template-columns:repeat(2,1fr)}}
 </style>
 
 <!-- Microsoft Clarity -->
@@ -348,7 +366,7 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 <body>
 <header><div class="wrap">
   <div class="brand"><span class="logo"><img src="logo-znak.webp" alt="Horizont logo" width="52" height="35"></span>Horizont LHB d.o.o. – servisi</div>
-  <nav><a href="#usluge">Usluge</a><a href="#galerija">Galerija</a><a href="#postupak">Kako ide</a><a href="#cijene">Cijene</a><a href="#garaza" id="navGz" hidden>Tech Outlet</a><a href="#prijava">Prijava</a><a href="status.html">Status naloga</a></nav>
+  <nav><a href="#usluge">Usluge</a><a href="#galerija">Galerija</a><a href="#postupak">Kako ide</a><a href="#cijene">Cijene</a><a href="#garaza" id="navGz">Tech Outlet</a><a href="#prijava">Prijava</a><a href="#provjera">Status naloga</a></nav>
   <div class="hdr-r">
   <div class="music" id="music" hidden role="group" aria-label="Glazba">
     <span class="mlbl">Glazba</span>
@@ -470,6 +488,18 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
   </div>
 </div></section>
 
+<section id="provjera" class="prov-sec"><div class="wrap">
+  <div class="prov">
+    <div class="prov-t"><span class="lbl">Provjera naloga</span><h2>Gdje je moj uređaj?</h2><p>Upišite broj naloga iz potvrde i broj mobitela s kojim ste se prijavili.</p></div>
+    <form class="prov-f" id="pvF" novalidate>
+      <label for="pvNr">Broj naloga<input id="pvNr" placeholder="RN-2026-0001" autocomplete="off"></label>
+      <label for="pvTel">Broj mobitela<input id="pvTel" type="tel" inputmode="tel" autocomplete="tel" placeholder="091 234 5678"></label>
+      <button class="btn" id="pvGo">Provjeri</button>
+    </form>
+    <div class="prov-r" id="pvR" aria-live="polite"></div>
+  </div>
+</div></section>
+
 <section id="cijene" class="alt"><div class="wrap">
   <div class="sec-head"><span class="lbl">Cijene</span><h2>Jasno, unaprijed dogovoreno</h2></div>
   <div class="prices">
@@ -491,10 +521,10 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
   </div>
 </div></section>
 
-<section id="garaza" class="alt" hidden><div class="wrap">
+<section id="garaza" class="alt"><div class="wrap">
   <div class="sec-head"><span class="lbl">Silicon Graveyard / Tech Outlet</span><h2>Trgovina rabljenih računalnih dijelova</h2><p>Rabljeni dijelovi i oprema iz naše radionice, testirani prije prodaje. Za popravak, nadogradnju ili rezervu, po poštenoj cijeni.</p></div>
   <div class="gz-tools"><div class="tabs" id="gzCats"></div><input type="search" id="gzQ" placeholder="Traži, npr. DDR4, SSD, PS4…" aria-label="Pretraga dijelova"></div>
-  <div class="gz-grid" id="gzGrid"></div>
+  <div class="gz-grid" id="gzGrid"><p class="msg">Učitavam dijelove…</p></div>
 </div></section>
 
 <div class="modal" id="mGz" role="dialog" aria-label="Detalji dijela">
@@ -1188,7 +1218,33 @@ render(false);
   });
   $('#gzQ').addEventListener('input', grid);
   document.getElementById('mGz').addEventListener('click', e => { if (e.target.id === 'mGz') closeM('mGz'); });
-  fetch(ENDPOINT + '?a=garaza').then(r => r.json()).then(j => { if (!j.ok || !j.items || !j.items.length) return; items = j.items; sec.hidden = false; document.getElementById('navGz').hidden = false; cats(); grid(); }).catch(() => {});
+  const empty = () => { $('#gzCats').innerHTML = ''; $('#gzQ').hidden = true; $('#gzGrid').innerHTML = '<div class="gz-empty"><b>Police se upravo pune.</b><span>Prvi provjereni dijelovi stižu uskoro. Tražite nešto određeno? Javite nam se na <b>091/358 4122</b> ili kroz kontakt formu, možda to već imamo u radionici.</span></div>'; };
+  fetch(ENDPOINT + '?a=garaza').then(r => r.json()).then(j => { if (!j.ok || !j.items || !j.items.length) return empty(); items = j.items; $('#gzQ').hidden = false; cats(); grid(); }).catch(empty);
+})();
+</script>
+<script>
+/* PROVJERA NALOGA na stranici */
+(() => {
+  const f = document.getElementById('pvF'); if (!f) return;
+  const $ = s => document.querySelector(s), R = $('#pvR');
+  const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const STEPS = [['zaprimljeno', 'Zaprimljeno'], ['termin', 'Termin'], ['rad', 'Na servisu'], ['gotovo', 'Gotovo']];
+  f.addEventListener('submit', async e => {
+    e.preventDefault();
+    const nr = $('#pvNr').value.trim().toUpperCase(), tel = $('#pvTel').value.trim(), b = $('#pvGo');
+    if (!/^RN-\d{4}-\d{4}$/.test(nr)) { R.innerHTML = '<div class="pv-box"><p class="bad">Broj naloga je u obliku RN-2026-0001.</p></div>'; $('#pvNr').focus(); return; }
+    if (tel.replace(/\D/g, '').length < 6) { R.innerHTML = '<div class="pv-box"><p class="bad">Upišite broj mobitela s kojim ste se prijavili.</p></div>'; $('#pvTel').focus(); return; }
+    b.disabled = true; b.textContent = 'Provjeravam…';
+    try {
+      const r = await fetch(ENDPOINT + '?a=status&nr=' + encodeURIComponent(nr) + '&tel=' + encodeURIComponent(tel), { cache: 'no-store' }); const j = await r.json();
+      if (!j.ok) R.innerHTML = `<div class="pv-box"><p class="bad">${esc(j.error)}</p></div>`;
+      else { const idx = j.korak === 'zatvoreno' ? -1 : STEPS.findIndex(s => s[0] === j.korak);
+        R.innerHTML = `<div class="pv-box"><span class="lbl">${esc(j.nr)}</span><h3>${esc(j.poruka)}</h3>
+          ${idx >= 0 ? `<div class="pv-steps">${STEPS.map((s, i) => `<div class="pv-st${i <= idx ? ' on' : ''}${i === idx ? ' cur' : ''}"><i></i><b>${s[1]}</b></div>`).join('')}</div>` : ''}
+          <div class="pv-info">${j.termin ? `<span>Termin: <b>${esc(j.termin.replace(/(\d{4})-(\d{2})-(\d{2})/, (m, y, mo, d) => +d + '. ' + +mo + '. ' + y + '.'))}</b></span>` : ''}${j.jamstvo ? `<span>Jamstvo do: <b>${esc(j.jamstvo)}</b></span>` : ''}</div></div>`; }
+    } catch (err) { R.innerHTML = '<div class="pv-box"><p class="bad">Provjera trenutno nije moguća. Nazovite nas na 091/358 4122.</p></div>'; }
+    b.disabled = false; b.textContent = 'Provjeri';
+  });
 })();
 </script>
 </body>
