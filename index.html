@@ -310,6 +310,13 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 @media (prefers-reduced-motion:reduce){.step,.step h3,.step p{transition:none}}
 .adm{display:inline-block;margin-left:10px;color:var(--muted);opacity:.18;text-decoration:none;font-size:.85rem;transition:opacity .2s}
 .adm:hover,.adm:focus-visible{opacity:.7}
+.btn-blic{font-size:1.2rem;padding:1.05em 1.8em;font-weight:700;animation:blic 1.6s ease-in-out infinite}
+@keyframes blic{0%,100%{box-shadow:0 0 0 0 rgba(254,229,3,.75),0 0 14px rgba(254,229,3,.35);filter:brightness(1)}50%{box-shadow:0 0 0 10px rgba(254,229,3,0),0 0 34px rgba(254,229,3,.85);filter:brightness(1.18)}}
+@media (prefers-reduced-motion:reduce){.btn-blic{animation:none}}
+#garaza .sec-head h2.gz-h{color:var(--copper)}
+.gz-ban{margin:0 0 26px;border-radius:12px;overflow:hidden;border:1px solid var(--line);position:relative}
+.gz-ban img{display:block;width:100%;height:clamp(160px,28vw,320px);object-fit:cover}
+.gz-ban::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(14,14,13,.7));pointer-events:none}
 .gz-tools{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:20px}
 .gz-tools input{background:var(--surface);border:1.5px solid #3A3A35;color:var(--ink);padding:10px 14px;border-radius:7px;font:inherit;min-width:0;width:min(300px,100%)}
 .gz-tools input:focus{outline:none;border-color:var(--copper)}
@@ -385,7 +392,7 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
     <h1 style="margin-top:14px">Sporo, vruće, bučno? <em>Vraćamo ga u život.</em></h1>
     <p class="lead">Laptopi, stolna računala i konzole. Čišćenje, popravak, nadogradnja i optimizacija. Direktno s Vama, uz poštenu cijenu, račun i garanciju.</p>
     <div class="cta">
-      <a class="btn" href="#obrazac">Ispuni servisni nalog →</a>
+      <a class="btn btn-blic" href="#obrazac">Ispuni servisni nalog →</a>
       <a class="btn ghost" href="#usluge">Pogledaj usluge</a>
     </div>
     <div class="facts">
@@ -522,7 +529,8 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 </div></section>
 
 <section id="garaza" class="alt"><div class="wrap">
-  <div class="sec-head"><span class="lbl">Silicon Graveyard / Tech Outlet</span><h2>Trgovina rabljenih računalnih dijelova</h2><p>Rabljeni dijelovi i oprema iz naše radionice, testirani prije prodaje. Za popravak, nadogradnju ili rezervu, po poštenoj cijeni.</p></div>
+  <div class="sec-head"><span class="lbl">Silicon Graveyard / Tech Outlet</span><h2 class="gz-h">Trgovina rabljenih računalnih dijelova</h2><p>Rabljeni dijelovi i oprema iz naše radionice, testirani prije prodaje. Za popravak, nadogradnju ili rezervu, po poštenoj cijeni.</p></div>
+  <figure class="gz-ban"><img src="garaza.webp" alt="Police pune starih računala, monitora, konzola i dijelova" width="1024" height="564" loading="lazy"></figure>
   <div class="gz-tools"><div class="tabs" id="gzCats"></div><input type="search" id="gzQ" placeholder="Traži, npr. DDR4, SSD, PS4…" aria-label="Pretraga dijelova"></div>
   <div class="gz-grid" id="gzGrid"><p class="msg">Učitavam dijelove…</p></div>
 </div></section>
