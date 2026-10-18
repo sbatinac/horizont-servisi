@@ -299,6 +299,13 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 .wz-x:hover{border-color:var(--copper);color:var(--copper)}
 .wz-x:focus-visible{outline:3px solid var(--copper);outline-offset:2px}
 .wiz .wz-top{padding-right:110px}
+.step{transition:border-color .25s,box-shadow .25s;cursor:default}
+.step h3,.step p{transition:color .25s,text-shadow .25s}
+.step:hover{box-shadow:0 -6px 18px -6px rgba(254,229,3,.8)}
+.step:hover h3{color:var(--copper);text-shadow:0 0 14px rgba(254,229,3,.65),0 0 30px rgba(254,229,3,.3)}
+.step:hover p{color:var(--ink)}
+.step:hover::before{text-shadow:0 0 10px rgba(254,229,3,.8)}
+@media (prefers-reduced-motion:reduce){.step,.step h3,.step p{transition:none}}
 </style>
 
 <!-- Microsoft Clarity -->
