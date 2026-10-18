@@ -26,7 +26,8 @@ h1,h2,h3{font-family:var(--display);margin:0;line-height:1.1}
 a{color:inherit}
 .btn{display:inline-flex;align-items:center;gap:.5em;background:var(--y);color:var(--y-ink);font:600 .92rem var(--body);border:0;padding:.7em 1.1em;border-radius:7px;cursor:pointer;text-decoration:none;white-space:nowrap}
 .btn.ghost{background:transparent;color:var(--ink);border:1.5px solid #3A3A35}
-.btn.ghost:hover{border-color:var(--y)}
+.btn.ghost{transition:background .2s,color .2s,border-color .2s}
+.btn.ghost:hover{border-color:var(--y);background:var(--y);color:var(--y-ink)}
 .btn:focus-visible,a:focus-visible,input:focus-visible,button:focus-visible{outline:3px solid var(--y);outline-offset:2px}
 input{background:var(--surface);border:1.5px solid #3A3A35;color:var(--ink);padding:11px 13px;border-radius:7px;font:inherit;min-width:0}
 input:focus{outline:none;border-color:var(--y)}
@@ -102,6 +103,54 @@ main{padding-block:24px 60px;display:grid;gap:28px}
   .c-all dl{grid-template-columns:1fr}.c-all dd{margin-bottom:8px}
 }
 @media (max-width:460px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpis{grid-template-columns:repeat(4,1fr)}
+.st{display:inline-block;font:600 .68rem var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:4px;border:1px solid #3A3A35;color:var(--muted);margin-left:6px;vertical-align:middle}
+.st.zak{border-color:#5B8DEF;color:#9DBBFF}
+.st.ok{border-color:var(--ok);color:var(--ok)}
+.card.done{opacity:.78}
+.card.done.new{border-left-color:var(--ok)}
+.c-term{display:inline-flex;gap:8px;align-items:center;font:600 .9rem var(--mono);color:#9DBBFF}
+.c-panel{border-top:1px solid var(--line);background:var(--surface2);padding:16px 18px;display:grid;gap:12px}
+.c-panel h4{margin:0;font:700 1rem var(--display)}
+.c-panel .frow{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+.c-panel label{display:grid;gap:4px;font-size:.82rem;color:var(--muted)}
+.c-panel input,.c-panel select,.c-panel textarea{background:var(--bg);border:1.5px solid #3A3A35;color:var(--ink);padding:9px 11px;border-radius:7px;font:inherit}
+.c-panel textarea{width:100%;min-height:64px;resize:vertical}
+.c-panel .sum{font:800 1.4rem var(--display);color:var(--y)}
+.c-panel .pmsg{font-weight:600;margin:0}.c-panel .pmsg.bad{color:var(--bad)}
+.filters{display:flex;gap:6px;flex-wrap:wrap}
+.chip{background:transparent;border:1px solid var(--line);color:var(--muted);padding:5px 12px;border-radius:999px;cursor:pointer;font:600 .8rem var(--body)}
+.chip.on{border-color:var(--y);color:var(--y)}
+.cal{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:12px}
+.cal-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.cal-h h2{font-size:1.3rem;text-transform:capitalize}
+.cal-g{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cal-g .dn{font:500 .7rem var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:4px 6px}
+.cal-d{min-height:96px;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.cal-d.out{opacity:.35}
+.cal-d.today{border-color:var(--y)}
+.cal-d.sun{background:#121211}
+.cal-d .n{font:600 .8rem var(--mono);color:var(--muted)}
+.cal-d.today .n{color:var(--y)}
+.ev{display:block;width:100%;text-align:left;background:#1B2A45;border:0;border-left:3px solid #5B8DEF;color:var(--ink);font:500 .75rem/1.25 var(--body);padding:4px 6px;border-radius:3px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ev.ok{background:#16301F;border-left-color:var(--ok)}
+.ev b{font-family:var(--mono);font-weight:600;margin-right:4px}
+.agenda{display:grid;gap:6px}
+.agenda .ev{white-space:normal;font-size:.88rem;padding:8px 10px}
+.items{width:100%;border-collapse:collapse;font-size:.88rem}
+.items th{font:500 .68rem var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:left;padding:4px 6px}
+.items td{padding:4px 6px;vertical-align:middle}
+.items input,.items select{width:100%;padding:7px 9px}
+.items .q{width:70px}.items .pr{width:100px}.items .tot{font-family:var(--mono);white-space:nowrap;text-align:right}
+.items .x{background:none;border:0;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:4px 8px}.items .x:hover{color:var(--bad)}
+.items tr.rad td{color:var(--ink)}
+.itemsbox{overflow-x:auto}
+.totals{display:grid;grid-template-columns:auto auto;gap:4px 18px;justify-content:end;font-variant-numeric:tabular-nums;font-size:.92rem}
+.totals span:nth-child(odd){color:var(--muted)}.totals span:nth-child(even){text-align:right;font-family:var(--mono)}
+.totals .grand{font:800 1.3rem var(--display);color:var(--y)}
+.flash{animation:fl 1.6s ease}
+@keyframes fl{0%,40%{box-shadow:0 0 0 3px var(--y)}100%{box-shadow:none}}
+@media (max-width:720px){.cal-d{min-height:64px;padding:4px}.cal-d .ev{font-size:0;padding:3px;height:8px}.cal-d .ev b{display:none}.kpis{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -137,39 +186,67 @@ main{padding-block:24px 60px;display:grid;gap:28px}
     <div class="bar-tools">
       <div class="tabs" role="tablist">
         <button type="button" class="tab on" data-t="prijave" role="tab" aria-selected="true">Nalozi <small id="nP">0</small></button>
+        <button type="button" class="tab" data-t="kalendar" role="tab" aria-selected="false">Kalendar <small id="nK">0</small></button>
         <button type="button" class="tab" data-t="upiti" role="tab" aria-selected="false">Upiti <small id="nU">0</small></button>
       </div>
       <input type="search" id="q" placeholder="Traži ime, broj, uređaj, kvar…" aria-label="Pretraga">
     </div>
+    <div class="filters" id="filters">
+      <button type="button" class="chip on" data-f="otvoreni">Otvoreni</button>
+      <button type="button" class="chip" data-f="zakazano">Zakazani</button>
+      <button type="button" class="chip" data-f="rijeseno">Riješeni</button>
+      <button type="button" class="chip" data-f="svi">Svi</button>
+    </div>
     <div class="list" id="list"></div>
+    <div id="calView" hidden>
+      <div class="cal">
+        <div class="cal-h">
+          <h2 id="calT"></h2>
+          <div class="hdr-a"><button type="button" class="btn ghost" id="calPrev">‹ Prethodni</button><button type="button" class="btn ghost" id="calToday">Danas</button><button type="button" class="btn ghost" id="calNext">Sljedeći ›</button></div>
+        </div>
+        <div class="cal-g" id="calG"></div>
+        <span class="lbl" style="margin-top:6px">Nadolazeći termini</span>
+        <div class="agenda" id="agenda"></div>
+        <p class="foot">Termini se spremaju i u Google kalendar računa na kojem je skripta, s podsjetnikom sat prije.</p>
+      </div>
+    </div>
   </section>
   <p class="foot" id="foot"></p>
 </main>
 
 <script>
 const ENDPOINT = 'https://script.google.com/macros/s/AKfycbyv0oOsEt64FaU36zxAKkZkQTahaW8kVsD_Pzx2FL0pVfmaxO3h9ttryOrXMpaX7bpP/exec';
+const CIJENA_SATA = 55;
+const PDV = 0.25; // 25 % PDV
 (() => {
 const $ = s => document.querySelector(s);
 const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let D = null, tab = 'prijave', key = '';
+let D = null, tab = 'prijave', flt = 'otvoreni', key = '', open = {}, calM = new Date(); calM.setDate(1);
 try { key = sessionStorage.getItem('hz_admin') || ''; } catch (e) {}
+const DAY = 864e5;
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+const hrDate = d => d.getDate() + '. ' + (d.getMonth() + 1) + '. ' + d.getFullYear() + '.';
+const eur = n => (Math.round(n * 100) / 100).toLocaleString('hr-HR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
-/* Vrijeme iz "19. 10. 2026. 00:12:33" ili ISO */
 function parseT(s) {
   const m = String(s).match(/(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})\.?\s*(\d{1,2})?:?(\d{2})?/);
   if (m) return new Date(+m[3], +m[2] - 1, +m[1], +(m[4] || 0), +(m[5] || 0)).getTime();
   const t = Date.parse(s); return isNaN(t) ? 0 : t;
 }
+const parseTermin = s => { const m = String(s).match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/); return m ? new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) : null; };
+const num = v => { const n = Number(String(v).replace(/[^\d,.-]/g, '').replace(',', '.')); return isNaN(n) ? 0 : n; };
 const telHref = p => { let d = String(p).replace(/[^\d+]/g, ''); if (d.startsWith('00')) d = '+' + d.slice(2); else if (d.startsWith('0')) d = '+385' + d.slice(1); return 'tel:' + d; };
 const isTel = p => String(p).replace(/\D/g, '').length >= 8;
+const get = (o, ...ks) => { for (const k of ks) if (o[k]) return o[k]; return ''; };
+const status = o => o['Status'] || (o['Termin'] ? 'Zakazano' : 'Novo');
 
 function rowsOf(t) {
   if (!t || !t.headers) return [];
-  return t.rows.map((r, i) => { const o = { _i: i + 2 }; t.headers.forEach((h, j) => o[h] = r[j] || ''); o._t = parseT(o['vrijeme']); return o; })
+  return t.rows.map((r, i) => { const o = { _i: i + 2 }; t.headers.forEach((h, j) => o[h] = r[j] || ''); o._t = parseT(o['vrijeme']); o._term = parseTermin(o['Termin']); return o; })
     .filter(o => Object.keys(o).some(k => k[0] !== '_' && k !== 'vrijeme' && o[k]))
     .sort((a, b) => b._t - a._t);
 }
-const get = (o, ...ks) => { for (const k of ks) if (o[k]) return o[k]; return ''; };
 
 async function load() {
   const r = await fetch(ENDPOINT + '?a=admin&k=' + encodeURIComponent(key), { cache: 'no-store' });
@@ -181,59 +258,130 @@ async function load() {
   $('#foot').textContent = 'Zadnje osvježeno: ' + new Date().toLocaleString('hr-HR');
 }
 
+async function post(body) {
+  const r = await fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ _vrsta: 'admin', k: key }, body)) });
+  const j = await r.json().catch(() => ({ ok: false, error: 'Neočekivan odgovor skripte.' }));
+  if (!j.ok) throw new Error(j.error || 'Spremanje nije uspjelo.');
+  return j;
+}
+
 function kpis() {
-  const day = 864e5, now = Date.now();
-  const v = {}; D.posjete.forEach(r => v[r[0]] = (v[r[0]] || 0) + (+r[1] || 0));
-  const fmt = d => { const x = new Date(d); return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); };
-  const today = v[fmt(now)] || 0;
-  let w = 0; for (let i = 0; i < 7; i++) w += v[fmt(now - i * day)] || 0;
+  const now = new Date(), v = {};
+  D.posjete.forEach(r => v[r[0]] = (v[r[0]] || 0) + (+r[1] || 0));
+  const today = v[ymd(now)] || 0;
+  let w = 0; for (let i = 0; i < 7; i++) w += v[ymd(new Date(now - i * DAY))] || 0;
   const total = Object.values(v).reduce((a, b) => a + b, 0);
-  const newP = D.prijave.filter(p => now - p._t < 7 * day).length;
-  const newU = D.upiti.filter(p => now - p._t < 7 * day).length;
-  const K = [['Posjete danas', today, 'jedinstvene sesije', true], ['Posjete 7 dana', w, ''], ['Posjete ukupno', total, ''],
-    ['Nalozi ukupno', D.prijave.length, ''], ['Novi nalozi', newP, 'zadnjih 7 dana', newP > 0], ['Upiti', D.upiti.length, newU + ' u zadnjih 7 dana']];
+  const P = D.prijave;
+  const otv = P.filter(o => status(o) !== 'Riješeno').length;
+  const zak7 = P.filter(o => o._term && status(o) !== 'Riješeno' && o._term >= new Date(ymd(now)) && o._term - now < 7 * DAY).length;
+  const mjes = P.filter(o => status(o) === 'Riješeno' && (() => { const t = parseT(o['Završeno']); const d = new Date(t); return t && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); })());
+  const zarada = mjes.reduce((a, o) => a + num(o['Ukupno s PDV-om (€)'] || o['Iznos (€)']), 0);
+  const sati = mjes.reduce((a, o) => a + num(o['Sati rada']), 0);
+  const newP = P.filter(o => now - o._t < 7 * DAY).length;
+  const K = [['Posjete danas', today, w + ' u 7 dana · ' + total + ' ukupno', true], ['Otvoreni nalozi', otv, newP + ' novih u 7 dana', otv > 0],
+    ['Termini, 7 dana', zak7, 'zakazano unaprijed'], ['Upiti', D.upiti.filter(o => status(o) !== 'Riješeno').length, 'otvorenih, od ' + D.upiti.length],
+    ['Riješeno ovaj mjesec', mjes.length, 'naloga'], ['Sati ovaj mjesec', String(sati).replace('.', ','), 'h rada'],
+    ['Naplaćeno ovaj mjesec', eur(zarada), 's PDV-om', zarada > 0], ['Nalozi ukupno', P.length, 'od početka']];
   $('#kpis').innerHTML = K.map(k => `<div class="kpi${k[3] ? ' hi' : ''}"><span class="lbl">${k[0]}</span><b>${k[1]}</b><span>${k[2]}</span></div>`).join('');
-  // graf
-  const days = [...Array(14)].map((_, i) => fmt(now - (13 - i) * day));
+  const days = [...Array(14)].map((_, i) => ymd(new Date(now - (13 - i) * DAY)));
   const vals = days.map(d => v[d] || 0), max = Math.max(4, ...vals);
-  const W = 700, H = 200, pl = 28, pb = 26, pt = 18, bw = (W - pl) / 14;
-  const y = n => pt + (H - pt - pb) * (1 - n / max);
-  const ticks = [0, Math.round(max / 2), max];
+  const W = 700, H = 200, pl = 28, pb = 26, pt = 18, bw = (W - pl) / 14, y = n => pt + (H - pt - pb) * (1 - n / max);
   let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Posjete po danu">`;
-  ticks.forEach(t => svg += `<line class="grid" x1="${pl}" x2="${W}" y1="${y(t)}" y2="${y(t)}"/><text x="${pl - 6}" y="${y(t) + 4}" text-anchor="end">${t}</text>`);
+  [0, Math.round(max / 2), max].forEach(t => svg += `<line class="grid" x1="${pl}" x2="${W}" y1="${y(t)}" y2="${y(t)}"/><text x="${pl - 6}" y="${y(t) + 4}" text-anchor="end">${t}</text>`);
   vals.forEach((n, i) => { const x = pl + i * bw + 4, h = H - pb - y(n);
     svg += `<rect class="bar${i === 13 ? ' today' : ''}" x="${x}" y="${y(n)}" width="${bw - 8}" height="${Math.max(h, n ? 2 : 0)}" rx="3"/>`;
     if (n) svg += `<text class="val" x="${x + (bw - 8) / 2}" y="${y(n) - 5}" text-anchor="middle">${n}</text>`;
-    const d = days[i].slice(8) + '.' + days[i].slice(5, 7) + '.';
-    svg += `<text x="${x + (bw - 8) / 2}" y="${H - 8}" text-anchor="middle">${d}</text>`; });
+    svg += `<text x="${x + (bw - 8) / 2}" y="${H - 8}" text-anchor="middle">${days[i].slice(8)}.${days[i].slice(5, 7)}.</text>`; });
   $('#chart').innerHTML = svg + '</svg>';
   $('#chartNote').textContent = 'Žuto = danas';
-  $('#nP').textContent = D.prijave.length; $('#nU').textContent = D.upiti.length;
+  $('#nP').textContent = otv; $('#nU').textContent = D.upiti.length;
+  $('#nK').textContent = P.filter(o => o._term && status(o) !== 'Riješeno' && o._term >= new Date(ymd(now))).length;
+}
+
+function stChip(st) { const c = st === 'Riješeno' ? 'ok' : st === 'Zakazano' ? 'zak' : ''; return `<span class="st ${c}">${esc(st)}</span>`; }
+
+function panelHTML(o, kind, p) {
+  if (p === 'termin') {
+    const wish = String(get(o, 'Željeni datum preuzimanja / početka servisa')).match(/\d{4}-\d{2}-\d{2}/);
+    const d0 = o._term ? ymd(o._term) : wish ? wish[0] : ymd(new Date(Date.now() + DAY));
+    const t0 = o._term ? pad(o._term.getHours()) + ':' + pad(o._term.getMinutes()) : '09:00';
+    const tr = o['Trajanje (min)'] || '60';
+    return `<div class="c-panel" data-p="termin"><h4>${o._term ? 'Promijeni termin' : 'Zakaži termin'}</h4>
+      <div class="frow"><label>Datum<input type="date" class="pd" value="${d0}"></label><label>Vrijeme<input type="time" class="pt" value="${t0}" step="900"></label>
+      <label>Trajanje<select class="ptr">${[30, 60, 90, 120, 180, 240].map(m => `<option value="${m}"${String(m) === String(tr) ? ' selected' : ''}>${m < 60 ? m + ' min' : (m / 60).toString().replace('.', ',') + ' h'}</option>`).join('')}</select></label></div>
+      <label>Napomena za kalendar<textarea class="pn" placeholder="npr. ponijeti termalnu pastu, SSD 512 GB"></textarea></label>
+      <div class="frow"><button type="button" class="btn" data-do="saveTermin">Spremi u kalendar</button><button type="button" class="btn ghost" data-do="close">Odustani</button></div>
+      <p class="pmsg" role="status"></p></div>`;
+  }
+  if (p === 'zavrsi') {
+    let items = []; try { items = JSON.parse(o['Stavke'] || '[]'); } catch (e) {}
+    if (!items.length) items = [{ n: '', q: 1, c: '', m: 'bez' }];
+    const radM = o['Rad PDV'] || 's';
+    const opt = m => `<option value="bez"${m === 'bez' ? ' selected' : ''}>bez PDV-a</option><option value="s"${m === 's' ? ' selected' : ''}>s PDV-om</option>`;
+    const row = it => `<tr class="it"><td><input class="in" value="${esc(it.n)}" placeholder="npr. Termalna pasta, SSD 512 GB, kabel"></td><td><input class="q iq" type="number" min="0" step="1" value="${esc(it.q)}"></td><td><input class="pr ic" type="number" min="0" step="0.01" value="${esc(it.c)}" placeholder="0,00"></td><td><select class="im">${opt(it.m)}</select></td><td class="tot"></td><td><button type="button" class="x" data-do="delItem" aria-label="Ukloni stavku">✕</button></td></tr>`;
+    return `<div class="c-panel" data-p="zavrsi"><h4>Obračun i zaključenje naloga</h4>
+      <div class="itemsbox"><table class="items"><thead><tr><th>Stavka</th><th>Kol.</th><th>Cijena / kom</th><th>Cijena je</th><th style="text-align:right">Ukupno s PDV</th><th></th></tr></thead><tbody>
+      <tr class="rad"><td>Rad servisera (${CIJENA_SATA} € / h)</td><td><input class="q ph" type="number" min="0" step="0.25" value="${esc(o['Sati rada'] || '')}" placeholder="sati"></td><td class="tot">${CIJENA_SATA},00 €</td><td><select class="rm">${opt(radM)}</select></td><td class="tot"></td><td></td></tr>
+      ${items.map(row).join('')}</tbody></table></div>
+      <div class="frow"><button type="button" class="btn ghost" data-do="addItem">+ Dodaj stavku</button></div>
+      <div class="totals"><span>Osnovica (bez PDV-a)</span><span class="t-net">0,00 €</span><span>PDV ${PDV * 100} %</span><span class="t-vat">0,00 €</span><span>Ukupno za naplatu</span><span class="t-gross grand">0,00 €</span></div>
+      <label>Bilješka (što je napravljeno)<textarea class="pb" placeholder="npr. očišćen hladnjak, nova termalna pasta, Windows 11">${esc(o['Bilješka'] || '')}</textarea></label>
+      <div class="frow"><button type="button" class="btn" data-do="saveZavrsi">✓ Zaključi nalog</button><button type="button" class="btn ghost" data-do="saveStavke">Spremi bez zaključivanja</button><button type="button" class="btn ghost" data-do="close">Odustani</button></div>
+      <p class="pmsg" role="status"></p><template class="tpl">${row({ n: '', q: 1, c: '', m: 'bez' })}</template></div>`;
+  }
+  return '';
+}
+
+function lineAmt(qty, price, mode) { const l = num(qty) * num(price); return mode === 's' ? { net: l / (1 + PDV), gross: l } : { net: l, gross: l * (1 + PDV) }; }
+function collect(panel) {
+  const sati = panel.querySelector('.ph').value.replace(',', '.'), rm = panel.querySelector('.rm').value;
+  const items = [...panel.querySelectorAll('tr.it')].map(tr => ({ n: tr.querySelector('.in').value.trim(), q: tr.querySelector('.iq').value, c: tr.querySelector('.ic').value, m: tr.querySelector('.im').value }))
+    .filter(it => it.n || num(it.c));
+  let net = 0, gross = 0;
+  const rad = lineAmt(sati || 0, CIJENA_SATA, rm); net += rad.net; gross += rad.gross;
+  items.forEach(it => { const a = lineAmt(it.q, it.c, it.m); net += a.net; gross += a.gross; });
+  return { sati, rm, items, net, gross, vat: gross - net };
+}
+function recalc(panel) {
+  const r = collect(panel);
+  panel.querySelector('tr.rad td.tot:not(:nth-child(3))').textContent = eur(lineAmt(r.sati || 0, CIJENA_SATA, r.rm).gross);
+  panel.querySelectorAll('tr.it').forEach(tr => tr.querySelector('.tot').textContent = eur(lineAmt(tr.querySelector('.iq').value, tr.querySelector('.ic').value, tr.querySelector('.im').value).gross));
+  panel.querySelector('.t-net').textContent = eur(r.net); panel.querySelector('.t-vat').textContent = eur(r.vat); panel.querySelector('.t-gross').textContent = eur(r.gross);
+}
+const r2 = n => (Math.round(n * 100) / 100).toFixed(2).replace('.', ',');
+function stavkeFields(panel) {
+  const r = collect(panel);
+  const txt = r.items.map(it => `${it.n} × ${it.q || 1} à ${r2(num(it.c))} € (${it.m === 's' ? 's PDV-om' : 'bez PDV-a'})`).join('; ');
+  return { 'Sati rada': r.sati, 'Rad PDV': r.rm, 'Stavke': JSON.stringify(r.items), 'Stavke (opis)': txt,
+    'Ukupno bez PDV-a (€)': r2(r.net), 'PDV (€)': r2(r.vat), 'Ukupno s PDV-om (€)': r2(r.gross), 'Bilješka': panel.querySelector('.pb').value.trim() };
 }
 
 function card(o, kind) {
-  const ime = get(o, 'Ime i prezime') || 'Bez imena';
-  const titula = get(o, 'Titula');
-  const mail = get(o, 'E-pošta');
-  const tel = get(o, 'Kontakt broj mobitela', 'Telefon');
-  const isNew = Date.now() - o._t < 2 * 864e5;
+  const ime = get(o, 'Ime i prezime') || 'Bez imena', titula = get(o, 'Titula'), mail = get(o, 'E-pošta'), tel = get(o, 'Kontakt broj mobitela', 'Telefon');
+  const st = status(o), done = st === 'Riješeno', isNew = Date.now() - o._t < 2 * DAY && !done;
   const subj = kind === 'upiti' ? 'Horizont servis – odgovor na Vaš upit' : 'Horizont servis – Vaš servisni nalog';
-  const greet = (titula ? titula + ' ' : '') + ime;
-  const mhref = mail ? `mailto:${encodeURIComponent(mail)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent('Poštovani/a ' + greet + ',\n\n')}` : '';
+  const termTxt = o._term ? ` ${o._term.toLocaleDateString('hr-HR', { weekday: 'short' })} ${hrDate(o._term)} u ${pad(o._term.getHours())}:${pad(o._term.getMinutes())}` : '';
+  let body = 'Poštovani/a ' + ((titula ? titula + ' ' : '') + ime) + ',\n\n';
+  if (o._term && !done) body += 'potvrđujemo termin servisa:' + termTxt + '.\n\n';
+  const mhref = mail ? `mailto:${encodeURIComponent(mail)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}` : '';
   let keyF;
   if (kind === 'upiti') keyF = [['Poruka', get(o, 'Poruka')]];
-  else {
-    const ured = [get(o, 'Vrsta uređaja'), get(o, 'Moje računalo je')].filter(Boolean).join(' · ');
-    const model = [get(o, 'Proizvođač / serija laptopa', 'Proizvođač / serija desktop računala'), get(o, 'Točan model uređaja')].filter(Boolean).join(' · ');
-    keyF = [['Uređaj', ured], ['Model', model], ['Usluga', get(o, 'Koju uslugu trebate?')], ['Željeni datum', get(o, 'Željeni datum preuzimanja / početka servisa')],
-      ['Predaja', get(o, 'Kako želite predati uređaj?')], ['Grad / adresa', [get(o, 'Grad / mjesto'), get(o, 'Adresa')].filter(Boolean).join(', ')],
-      ['Brzi kontakt', get(o, 'Preferirani način brze komunikacije')], ['Zamjensko računalo', get(o, 'Trebate li zamjensko računalo tijekom servisa?')],
-      ['Opis kvara', get(o, 'Opišite problem ili kvar svojim riječima')]];
-  }
-  const all = Object.keys(o).filter(k => k[0] !== '_' && o[k]).map(k => `<dt>${esc(k)}</dt><dd>${esc(o[k])}</dd>`).join('');
-  return `<article class="card${isNew ? ' new' : ''}">
+  else keyF = [['Uređaj', [get(o, 'Vrsta uređaja'), get(o, 'Moje računalo je')].filter(Boolean).join(' · ')],
+    ['Model', [get(o, 'Proizvođač / serija laptopa', 'Proizvođač / serija desktop računala'), get(o, 'Točan model uređaja')].filter(Boolean).join(' · ')],
+    ['Usluga', get(o, 'Koju uslugu trebate?')], ['Željeni datum', get(o, 'Željeni datum preuzimanja / početka servisa')], ['Predaja', get(o, 'Kako želite predati uređaj?')],
+    ['Grad / adresa', [get(o, 'Grad / mjesto'), get(o, 'Adresa')].filter(Boolean).join(', ')], ['Brzi kontakt', get(o, 'Preferirani način brze komunikacije')],
+    ['Zamjensko računalo', get(o, 'Trebate li zamjensko računalo tijekom servisa?')], ['Opis kvara', get(o, 'Opišite problem ili kvar svojim riječima')]];
+  if (done || o['Ukupno s PDV-om (€)']) keyF.unshift(['Obračun', [o['Završeno'] && done ? 'Zaključeno ' + o['Završeno'] : 'Spremljeno, nije zaključeno', o['Sati rada'] ? String(o['Sati rada']).replace('.', ',') + ' h rada' : '', o['Ukupno s PDV-om (€)'] ? o['Ukupno s PDV-om (€)'] + ' € s PDV-om' : ''].filter(Boolean).join(' · ')], ['Stavke', o['Stavke (opis)']], ['Bilješka', o['Bilješka']]);
+  const all = Object.keys(o).filter(k => k[0] !== '_' && o[k] && k !== 'Kalendar ID' && k !== 'Stavke' && k !== 'Rad PDV').map(k => `<dt>${esc(k)}</dt><dd>${esc(o[k])}</dd>`).join('');
+  const id = kind + '-' + o._i, p = open[id];
+  const acts = kind === 'upiti'
+    ? (done ? `<button type="button" class="btn ghost" data-do="reopen">Vrati u otvorene</button>` : `<button type="button" class="btn ghost" data-do="quickDone">✓ Riješeno</button>`)
+    : (done ? `<button type="button" class="btn ghost" data-do="reopen">Vrati u rad</button>`
+      : `<button type="button" class="btn ghost" data-do="termin">${o._term ? 'Promijeni termin' : '📅 Zakaži termin'}</button><button type="button" class="btn ghost" data-do="zavrsi">🧾 Obračun / Riješeno</button>${o._term ? '<button type="button" class="btn ghost" data-do="otkazi">Otkaži termin</button>' : ''}`);
+  return `<article class="card${isNew ? ' new' : ''}${done ? ' done' : ''}" id="c-${id}" data-id="${id}" data-kind="${kind}" data-row="${o._i}">
     <div class="c-top">
-      <div class="c-name"><h3>${esc(ime)}${isNew ? '<span class="pill">Novo</span>' : ''}</h3><span class="c-meta">${esc(o['vrijeme'] || '')} · redak ${o._i}</span></div>
+      <div class="c-name"><h3>${esc(ime)}${isNew ? '<span class="pill">Novo</span>' : ''}${stChip(st)}</h3><span class="c-meta">${esc(o['vrijeme'] || '')} · redak ${o._i}</span>
+        ${o._term ? `<span class="c-term">📅${esc(termTxt)}</span>` : ''}</div>
       <div class="c-contact">
         ${tel && isTel(tel) ? `<a class="tel" href="${telHref(tel)}"><i aria-hidden="true">☎</i>${esc(tel)}</a>` : tel ? `<span>${esc(tel)}</span>` : ''}
         ${mail ? `<a href="${mhref}"><i aria-hidden="true">✉</i>${esc(mail)}</a>` : ''}
@@ -241,21 +389,110 @@ function card(o, kind) {
       <div class="c-act">
         ${tel && isTel(tel) ? `<a class="btn" href="${telHref(tel)}">Nazovi</a>` : ''}
         ${mail ? `<a class="btn ghost" href="${mhref}">Pošalji mail</a>` : ''}
+        ${acts}
       </div>
     </div>
     <dl class="c-key">${keyF.filter(f => f[1]).map(f => `<div><dt class="lbl">${f[0]}</dt><dd>${esc(f[1])}</dd></div>`).join('')}</dl>
+    ${p ? panelHTML(o, kind, p) : ''}
     <details class="c-all"><summary class="lbl" style="cursor:pointer">Svi podaci iz tablice</summary><dl style="margin-top:12px">${all}</dl></details>
   </article>`;
+}
+
+function filtered(list) {
+  const q = $('#q').value.trim().toLowerCase();
+  return list.filter(o => {
+    const st = status(o);
+    if (flt === 'otvoreni' && st === 'Riješeno') return false;
+    if (flt === 'zakazano' && !(o._term && st !== 'Riješeno')) return false;
+    if (flt === 'rijeseno' && st !== 'Riješeno') return false;
+    return !q || Object.values(o).join(' ').toLowerCase().includes(q);
+  });
 }
 
 function render() {
   if (!D) return;
   kpis();
-  const q = $('#q').value.trim().toLowerCase();
-  const rows = D[tab].filter(o => !q || Object.values(o).join(' ').toLowerCase().includes(q));
+  const cal = tab === 'kalendar';
+  $('#list').hidden = cal; $('#calView').hidden = !cal; $('#filters').hidden = cal; $('#q').hidden = cal;
+  if (cal) return renderCal();
+  let rows = filtered(D[tab]);
+  if (flt === 'zakazano') rows = rows.sort((a, b) => a._term - b._term);
+  const q = $('#q').value.trim();
+  setTimeout(() => document.querySelectorAll('.c-panel[data-p="zavrsi"]').forEach(recalc));
   $('#list').innerHTML = rows.length ? rows.map(o => card(o, tab)).join('') :
-    `<p class="empty">${q ? 'Nema rezultata za „' + esc(q) + '”.' : tab === 'prijave' ? 'Još nema servisnih naloga.' : 'Još nema upita.'}</p>`;
+    `<p class="empty">${q ? 'Nema rezultata za „' + esc(q) + '”.' : flt === 'rijeseno' ? 'Još ništa nije riješeno.' : flt === 'zakazano' ? 'Nema zakazanih termina.' : tab === 'prijave' ? 'Nema otvorenih naloga.' : 'Nema otvorenih upita.'}</p>`;
 }
+
+function renderCal() {
+  const y = calM.getFullYear(), m = calM.getMonth();
+  $('#calT').textContent = calM.toLocaleDateString('hr-HR', { month: 'long', year: 'numeric' });
+  const first = new Date(y, m, 1), off = (first.getDay() + 6) % 7, startD = new Date(y, m, 1 - off);
+  const ev = D.prijave.filter(o => o._term);
+  const byDay = {}; ev.forEach(o => (byDay[ymd(o._term)] = byDay[ymd(o._term)] || []).push(o));
+  Object.values(byDay).forEach(a => a.sort((a, b) => a._term - b._term));
+  const today = ymd(new Date());
+  let h = ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned'].map(d => `<div class="dn">${d}</div>`).join('');
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(startD.getFullYear(), startD.getMonth(), startD.getDate() + i), k = ymd(d);
+    if (i >= 35 && d.getMonth() !== m) break;
+    h += `<div class="cal-d${d.getMonth() !== m ? ' out' : ''}${k === today ? ' today' : ''}${d.getDay() === 0 ? ' sun' : ''}"><span class="n">${d.getDate()}</span>${(byDay[k] || []).map(o =>
+      `<button type="button" class="ev${status(o) === 'Riješeno' ? ' ok' : ''}" data-go="${o._i}" title="${esc(get(o, 'Ime i prezime'))}"><b>${pad(o._term.getHours())}:${pad(o._term.getMinutes())}</b>${esc(get(o, 'Ime i prezime'))}</button>`).join('')}</div>`;
+  }
+  $('#calG').innerHTML = h;
+  const now = new Date(ymd(new Date()));
+  const up = ev.filter(o => o._term >= now && status(o) !== 'Riješeno').sort((a, b) => a._term - b._term).slice(0, 8);
+  $('#agenda').innerHTML = up.length ? up.map(o => `<button type="button" class="ev" data-go="${o._i}"><b>${o._term.toLocaleDateString('hr-HR', { weekday: 'short' })} ${hrDate(o._term)} ${pad(o._term.getHours())}:${pad(o._term.getMinutes())}</b>${esc(get(o, 'Ime i prezime'))} · ${esc(get(o, 'Vrsta uređaja'))}${get(o, 'Kontakt broj mobitela') ? ' · ' + esc(get(o, 'Kontakt broj mobitela')) : ''}</button>`).join('')
+    : '<p class="empty" style="padding:10px 0;text-align:left">Nema nadolazećih termina. Zakaži ga na nalogu gumbom „Zakaži termin”.</p>';
+}
+
+function go(row) {
+  tab = 'prijave'; flt = 'svi'; $('#q').value = '';
+  document.querySelectorAll('.tab').forEach(x => { const on = x.dataset.t === 'prijave'; x.classList.toggle('on', on); x.setAttribute('aria-selected', on); });
+  document.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c.dataset.f === 'svi'));
+  render();
+  const el = document.getElementById('c-prijave-' + row);
+  if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1700); }
+}
+
+document.addEventListener('click', async e => {
+  const g = e.target.closest('[data-go]'); if (g) return go(g.dataset.go);
+  const b = e.target.closest('[data-do]'); if (!b) return;
+  const c = b.closest('.card'); if (!c) return;
+  const id = c.dataset.id, kind = c.dataset.kind, row = +c.dataset.row;
+  const o = D[kind].find(x => x._i === row); if (!o) return;
+  const act = b.dataset.do, msg = c.querySelector('.pmsg');
+  const base = { list: kind, red: row, ime: get(o, 'Ime i prezime') };
+  const run = async (body, okTxt) => {
+    b.disabled = true; const t = b.textContent; b.textContent = 'Spremam…';
+    try { await post(Object.assign({}, base, body)); delete open[id]; await load(); }
+    catch (err) { b.disabled = false; b.textContent = t; if (msg) { msg.className = 'pmsg bad'; msg.textContent = err.message; } else alertBox(c, err.message); }
+  };
+  if (act === 'termin' || act === 'zavrsi') { open[id] = open[id] === act ? null : act; render(); const n = document.querySelector('#c-' + CSS.escape(id) + ' .c-panel input'); if (n) n.focus(); return; }
+  if (act === 'close') { delete open[id]; return render(); }
+  if (act === 'saveTermin') {
+    const d = c.querySelector('.pd').value, t = c.querySelector('.pt').value;
+    if (!d || !t) { msg.className = 'pmsg bad'; msg.textContent = 'Odaberi datum i vrijeme.'; return; }
+    return run({ akcija: 'termin', start: d + 'T' + t, trajanje: c.querySelector('.ptr').value, napomena: c.querySelector('.pn').value.trim() });
+  }
+  if (act === 'addItem') { const pn = c.querySelector('.c-panel'); pn.querySelector('tbody').insertAdjacentHTML('beforeend', pn.querySelector('.tpl').innerHTML); recalc(pn); pn.querySelector('tr.it:last-child .in').focus(); return; }
+  if (act === 'delItem') { const pn = c.querySelector('.c-panel'); b.closest('tr').remove(); recalc(pn); return; }
+  if (act === 'saveZavrsi' || act === 'saveStavke') {
+    const pn = c.querySelector('.c-panel'), h = pn.querySelector('.ph').value.replace(',', '.');
+    if (act === 'saveZavrsi' && (h === '' || isNaN(+h) || +h < 0)) { msg.className = 'pmsg bad'; msg.textContent = 'Upiši broj sati rada (može i 0), npr. 1,5.'; pn.querySelector('.ph').focus(); return; }
+    const f = stavkeFields(pn);
+    if (act === 'saveZavrsi') { f['Status'] = 'Riješeno'; f['Završeno'] = new Date().toLocaleString('hr-HR', { dateStyle: 'short', timeStyle: 'short' }); }
+    return run({ akcija: 'update', fields: f });
+  }
+  if (act === 'quickDone') return run({ akcija: 'update', fields: { 'Status': 'Riješeno', 'Završeno': new Date().toLocaleString('hr-HR', { dateStyle: 'short', timeStyle: 'short' }) } });
+  if (act === 'reopen') return run({ akcija: 'update', fields: { 'Status': o['Termin'] ? 'Zakazano' : 'Novo', 'Završeno': '' } });
+  if (act === 'otkazi') {
+    if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Sigurno? Klikni opet'; setTimeout(() => { if (b.isConnected) { b.dataset.sure = ''; b.textContent = 'Otkaži termin'; } }, 3500); return; }
+    return run({ akcija: 'otkazi' });
+  }
+});
+const onCalc = e => { const pn = e.target.closest('.c-panel[data-p="zavrsi"]'); if (pn) recalc(pn); };
+document.addEventListener('input', onCalc); document.addEventListener('change', onCalc);
+function alertBox(c, t) { let p = c.querySelector('.err-x'); if (!p) { p = document.createElement('p'); p.className = 'pmsg bad err-x'; p.style.padding = '0 18px 14px'; c.appendChild(p); } p.textContent = t; }
 
 function showApp() { $('#login').hidden = true; $('#app').hidden = false; $('#hdrA').hidden = false; }
 function showLogin(msg) { $('#login').hidden = false; $('#app').hidden = true; $('#hdrA').hidden = true; $('#loginMsg').textContent = msg || ''; $('#loginMsg').className = 'msg' + (msg ? ' bad' : ''); $('#pw').focus(); }
@@ -271,10 +508,14 @@ $('#logout').onclick = () => { try { sessionStorage.removeItem('hz_admin'); } ca
 $('#refresh').onclick = async () => { const b = $('#refresh'); b.textContent = 'Osvježavam…'; try { await load(); } catch (e) {} b.textContent = 'Osvježi'; };
 document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
   tab = t.dataset.t; document.querySelectorAll('.tab').forEach(x => { x.classList.toggle('on', x === t); x.setAttribute('aria-selected', x === t); }); render(); });
+document.querySelectorAll('.chip').forEach(c => c.onclick = () => { flt = c.dataset.f; document.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === c)); render(); });
 $('#q').addEventListener('input', render);
+$('#calPrev').onclick = () => { calM = new Date(calM.getFullYear(), calM.getMonth() - 1, 1); renderCal(); };
+$('#calNext').onclick = () => { calM = new Date(calM.getFullYear(), calM.getMonth() + 1, 1); renderCal(); };
+$('#calToday').onclick = () => { calM = new Date(); calM.setDate(1); renderCal(); };
 
 if (key) load().then(showApp).catch(() => showLogin()); else showLogin();
-setInterval(() => { if (D && !document.hidden) load().catch(() => {}); }, 120000);
+setInterval(() => { if (D && !document.hidden && !Object.values(open).some(Boolean)) load().catch(() => {}); }, 120000);
 })();
 </script>
 </body>

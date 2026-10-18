@@ -32,7 +32,8 @@ a{color:inherit}
 .btn:hover{transform:translateY(-2px)}
 .btn:focus-visible,a:focus-visible{outline:3px solid var(--pcb);outline-offset:3px}
 .btn.ghost{background:transparent;color:var(--ink);border:1.5px solid #4A4A44}
-.btn.ghost:hover{border-color:var(--copper)}
+.btn.ghost{transition:background .2s,color .2s,border-color .2s,transform .15s}
+.btn.ghost:hover{border-color:var(--copper);background:var(--copper);color:var(--copper-ink)}
 
 /* top */
 header{border-bottom:1px solid var(--line);background:#0A0A09}
@@ -300,8 +301,9 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 .wz-x:focus-visible{outline:3px solid var(--copper);outline-offset:2px}
 .wiz .wz-top{padding-right:110px}
 .step{transition:border-color .25s,box-shadow .25s;cursor:default}
-.step h3,.step p{transition:color .25s,text-shadow .25s}
-.step:hover h3{color:var(--copper);text-shadow:0 0 14px rgba(254,229,3,.65),0 0 30px rgba(254,229,3,.3)}
+.step h3,.step p{transition:color .25s,text-shadow .25s,transform .25s}
+.step h3{transform-origin:left center;display:inline-block}
+.step:hover h3{transform:scale(1.12);color:var(--copper);text-shadow:0 0 14px rgba(254,229,3,.65),0 0 30px rgba(254,229,3,.3)}
 @media (prefers-reduced-motion:reduce){.step,.step h3,.step p{transition:none}}
 </style>
 

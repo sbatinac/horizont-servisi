@@ -21,6 +21,7 @@ function doPost(e) {
   lock.waitLock(20000);
   try {
     const data = JSON.parse(e.postData.contents);
+    if (data._vrsta === 'admin') return json_(admin_(data));
     const upit = data._vrsta === 'upit';
     delete data._vrsta;
     const sheet = getSheet_(upit ? SHEET_UPITI : SHEET_NAME);
@@ -46,6 +47,68 @@ function doGet(e) {
     return json_({ ok: true, prijave: table_(SHEET_NAME), upiti: table_(SHEET_UPITI), posjete: table_(SHEET_POSJETE), tablica: SpreadsheetApp.getActiveSpreadsheet().getUrl() });
   }
   return json_({ ok: true, servis: 'Horizont LHB – prijave' });
+}
+
+// ===== ADMIN AKCIJE (status, satnica, termin u kalendaru) =====
+const CIJENA_SATA = 55;
+const TZ = 'Europe/Zagreb';
+
+function admin_(d) {
+  if (!ADMIN_KEY || ADMIN_KEY === 'UPISI_LOZINKU' || d.k !== ADMIN_KEY) { Utilities.sleep(800); return { ok: false, error: 'Pogrešna lozinka.' }; }
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(d.list === 'upiti' ? SHEET_UPITI : SHEET_NAME);
+  const row = Number(d.red);
+  if (!sh || !row || row < 2 || row > sh.getLastRow()) return { ok: false, error: 'Redak ne postoji. Osvježi stranicu.' };
+  const H = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+  const ci = H.indexOf('Ime i prezime');
+  if (ci > -1 && d.ime !== undefined && String(sh.getRange(row, ci + 1).getDisplayValue()) !== String(d.ime)) {
+    return { ok: false, error: 'Tablica se promijenila u međuvremenu. Osvježi stranicu i pokušaj ponovno.' };
+  }
+  if (d.akcija === 'update') {
+    const f = Object.assign({}, d.fields || {});
+    if (f['Sati rada'] !== undefined && f['Sati rada'] !== '') {
+      const h = Number(String(f['Sati rada']).replace(',', '.'));
+      if (isNaN(h) || h < 0) return { ok: false, error: 'Neispravan broj sati.' };
+      f['Sati rada'] = h; f['Iznos (€)'] = Math.round(h * CIJENA_SATA * 100) / 100;
+    }
+    setFields_(sh, row, f);
+    return { ok: true };
+  }
+  if (d.akcija === 'termin') {
+    const start = Utilities.parseDate(d.start, TZ, "yyyy-MM-dd'T'HH:mm");
+    const end = new Date(start.getTime() + (Number(d.trajanje) || 60) * 60000);
+    const get = h => { const i = H.indexOf(h); return i > -1 ? sh.getRange(row, i + 1).getDisplayValue() : ''; };
+    const title = 'Servis: ' + (get('Ime i prezime') || 'klijent') + (get('Vrsta uređaja') ? ' – ' + get('Vrsta uređaja') : '');
+    const desc = [['Telefon', get('Kontakt broj mobitela') || get('Telefon')], ['E-pošta', get('E-pošta')], ['Uređaj', [get('Vrsta uređaja'), get('Moje računalo je'), get('Točan model uređaja')].filter(String).join(' · ')],
+      ['Usluga', get('Koju uslugu trebate?')], ['Kvar', get('Opišite problem ili kvar svojim riječima') || get('Poruka')], ['Predaja', get('Kako želite predati uređaj?')],
+      ['Napomena', d.napomena || ''], ['Redak u tablici', row]].filter(x => x[1]).map(x => x[0] + ': ' + x[1]).join('\n');
+    const loc = [get('Adresa'), get('Poštanski broj'), get('Grad / mjesto')].filter(String).join(', ');
+    const cal = CalendarApp.getDefaultCalendar();
+    let ev = null; const oldId = get('Kalendar ID');
+    if (oldId) { try { ev = cal.getEventById(oldId); } catch (e) {} }
+    if (ev) { ev.setTime(start, end); ev.setTitle(title); ev.setDescription(desc); ev.setLocation(loc); }
+    else ev = cal.createEvent(title, start, end, { description: desc, location: loc });
+    ev.addPopupReminder(60);
+    setFields_(sh, row, { 'Termin': "'" + Utilities.formatDate(start, TZ, 'yyyy-MM-dd HH:mm'), 'Trajanje (min)': Number(d.trajanje) || 60, 'Kalendar ID': ev.getId(), 'Status': d.status || 'Zakazano' });
+    return { ok: true, id: ev.getId() };
+  }
+  if (d.akcija === 'otkazi') {
+    const i = H.indexOf('Kalendar ID');
+    const id = i > -1 ? sh.getRange(row, i + 1).getDisplayValue() : '';
+    if (id) { try { const ev = CalendarApp.getDefaultCalendar().getEventById(id); if (ev) ev.deleteEvent(); } catch (e) {} }
+    setFields_(sh, row, { 'Termin': '', 'Trajanje (min)': '', 'Kalendar ID': '', 'Status': 'Novo' });
+    return { ok: true };
+  }
+  return { ok: false, error: 'Nepoznata akcija.' };
+}
+
+// Upiše vrijednosti u redak po nazivu stupca; stupci koji ne postoje dodaju se na kraj.
+function setFields_(sh, row, fields) {
+  let H = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+  Object.keys(fields).forEach(k => {
+    let i = H.indexOf(k);
+    if (i === -1) { i = H.length; sh.getRange(1, i + 1).setValue(k).setFontWeight('bold').setBackground('#FEE503'); H.push(k); }
+    sh.getRange(row, i + 1).setValue(safe_(fields[k]));
+  });
 }
 
 // Broj posjeta po danu (jedan posjet = jedna sesija posjetitelja).
@@ -95,7 +158,7 @@ function appendRow_(sheet, data) {
   // Brojevi telefona i slično ostaju tekst (da se ne izgubi početna nula).
   const row = headers.map(h => {
     const v = byLabel[h] !== undefined ? byLabel[h] : '';
-    return (typeof v === 'string' && /^[+0][\d\s\/().-]*$/.test(v)) ? "'" + v : v;
+    return (typeof v === 'string' && /^[+0][\d\s\/().-]*$/.test(v)) ? "'" + v : safe_(v);
   });
   sheet.appendRow(row);
   return sheet.getLastRow();
@@ -125,6 +188,11 @@ function notify_(data, row, upit) {
     '<table style="font-family:sans-serif;font-size:14px;border-collapse:collapse">' + lines + '</table>';
   const replyTo = g('email');
   MailApp.sendEmail({ to: NOTIFY_EMAIL, subject: subject, htmlBody: html, replyTo: replyTo || undefined });
+}
+
+// Tekst koji počinje s = + - @ tablica bi shvatila kao formulu; ovako ostaje običan tekst.
+function safe_(v) {
+  return (typeof v === 'string' && /^[=+\-@]/.test(v) && v.charAt(0) !== "'") ? "'" + v : v;
 }
 
 function esc_(s) {
