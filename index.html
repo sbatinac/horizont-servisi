@@ -258,7 +258,7 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 .k-num{font:800 clamp(1.8rem,4vw,2.6rem)/1 var(--display);color:var(--copper);user-select:all;font-variant-numeric:tabular-nums}
 .k-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
 .k-btns .btn{padding:.6em 1em;font-size:.92rem}
-.k-form{display:grid;gap:14px;min-width:0}
+.k-form{display:grid;gap:14px;min-width:0;align-content:start}
 .k-form .fld input,.k-form .fld textarea{width:100%;background:var(--surface);border:1.5px solid #3A3A35;color:var(--ink);padding:12px 14px;border-radius:7px;font:inherit}
 .k-form .fld input:focus,.k-form .fld textarea:focus{outline:none;border-color:var(--copper);box-shadow:0 0 0 3px rgba(254,229,3,.18)}
 .k-form .btn{justify-self:start}
@@ -282,6 +282,8 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 .warn .mark{box-shadow:0 0 14px rgba(254,229,3,.8),0 0 34px rgba(254,229,3,.45)}
 @keyframes glow{0%,100%{box-shadow:0 0 14px rgba(254,229,3,.28),0 0 36px rgba(254,229,3,.14),inset 0 0 20px rgba(254,229,3,.05)}50%{box-shadow:0 0 26px rgba(254,229,3,.55),0 0 70px rgba(254,229,3,.28),inset 0 0 30px rgba(254,229,3,.1)}}
 @media (prefers-reduced-motion:reduce){.warn{animation:none}}
+.k-share{display:grid;gap:8px;padding-top:18px;border-top:1px solid var(--line)}
+.k-sh-t{color:var(--muted);font-size:.95rem}
 </style>
 
 <!-- Microsoft Clarity -->
@@ -489,6 +491,19 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
           <a class="btn ghost" href="https://wa.me/385913584122" target="_blank" rel="noopener">WhatsApp</a>
           <a class="btn ghost" href="viber://chat?number=%2B385913584122">Viber</a>
           <button type="button" class="btn ghost" id="kCopy">Kopiraj broj</button>
+        </div>
+      </div>
+      <div class="k-share">
+        <span class="lbl">Recite prijateljima za nas</span>
+        <p class="k-sh-t">Znate nekoga čije računalo zvuči kao usisavač? Pošaljite mu nas.</p>
+        <div class="k-btns" id="shBtns">
+          <button type="button" class="btn ghost" id="shNative" hidden>Podijeli</button>
+          <a class="btn ghost" data-s="wa" target="_blank" rel="noopener">WhatsApp</a>
+          <a class="btn ghost" data-s="vb">Viber</a>
+          <a class="btn ghost" data-s="fb" target="_blank" rel="noopener">Facebook</a>
+          <a class="btn ghost" data-s="tg" target="_blank" rel="noopener">Telegram</a>
+          <a class="btn ghost" data-s="em">E-mail</a>
+          <button type="button" class="btn ghost" id="shCopy">Kopiraj link</button>
         </div>
       </div>
       <div class="k-slogan"><p class="snail-t">Od puža do <em>rakete.</em></p><p class="snail-s">Sporo računalo? Vratimo mu brzinu, a Vama živce.</p></div>
@@ -1001,6 +1016,24 @@ render(false);
     mark();
   }));
   audio.addEventListener('pause', mark); audio.addEventListener('play', mark);
+})();
+</script>
+<script>
+/* PODIJELI */
+(() => {
+  const url = 'https://sbatinac.github.io/horizont-servisi/';
+  const text = 'Horizont LHB d.o.o. – servis računala i igraćih konzola. Sporo, vruće, bučno? Vraćaju ga u život! ';
+  const u = encodeURIComponent(url), t = encodeURIComponent(text + url);
+  const L = { wa: 'https://wa.me/?text=' + t, vb: 'viber://forward?text=' + t, fb: 'https://www.facebook.com/sharer/sharer.php?u=' + u,
+    tg: 'https://t.me/share/url?url=' + u + '&text=' + encodeURIComponent(text), em: 'mailto:?subject=' + encodeURIComponent('Servis računala Horizont') + '&body=' + t };
+  document.querySelectorAll('#shBtns [data-s]').forEach(a => a.href = L[a.dataset.s]);
+  const n = document.getElementById('shNative');
+  if (navigator.share) { n.hidden = false; n.onclick = () => navigator.share({ title: 'Horizont LHB – servisi', text, url }).catch(() => {}); }
+  const c = document.getElementById('shCopy');
+  c.onclick = async () => {
+    try { await navigator.clipboard.writeText(url); c.textContent = 'Link kopiran'; } catch (e) { c.textContent = url; }
+    setTimeout(() => c.textContent = 'Kopiraj link', 2500);
+  };
 })();
 </script>
 </body>
