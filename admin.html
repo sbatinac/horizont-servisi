@@ -166,6 +166,26 @@ main{padding-block:24px 60px;display:grid;gap:28px}
 .work.run+.days,.work.run~.days{background:#1F1D08}
 .dd{display:inline-flex;gap:8px;align-items:baseline;border:1px solid var(--line);border-radius:6px;padding:5px 10px;font:.8rem var(--mono);color:var(--muted)}
 .dd b{color:var(--ink);font-weight:600;text-transform:capitalize}.dd .dh{color:var(--y);font-weight:600}
+.c-foto{border-top:1px solid var(--line);padding:12px 18px}
+.c-foto summary{cursor:pointer}.c-foto summary a{color:var(--y)}
+.fgrid{display:grid;gap:12px;margin-top:12px}
+.frow2{display:grid;gap:6px}
+.slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.slot{position:relative;aspect-ratio:4/3;border:2px dashed #3A3A35;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;overflow:hidden;color:var(--muted);font-size:.82rem;transition:border-color .15s,background .15s}
+.slot:hover,.slot.over{border-color:var(--y);background:#1F1D08;color:var(--ink)}
+.slot:focus-visible{outline:3px solid var(--y);outline-offset:2px}
+.slot.has{border-style:solid;border-color:var(--line);cursor:default}
+.slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.slot .hint{font-size:1rem;line-height:1.4}.slot .hint small{font-size:.72rem;color:var(--muted)}
+.slots{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.slot .sl{position:absolute;left:6px;top:6px;background:rgba(0,0,0,.7);color:var(--ink);font:500 .66rem var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:2px 6px;border-radius:3px}
+.slot .gal{position:absolute;left:6px;bottom:6px;background:rgba(0,0,0,.78);color:var(--ink);font-size:.76rem;padding:4px 8px;border-radius:4px;display:flex;gap:5px;align-items:center;cursor:pointer}
+.slot .gal input{accent-color:var(--y)}
+.slot .rm{position:absolute;right:6px;top:6px;background:rgba(0,0,0,.78);border:0;color:var(--ink);border-radius:4px;padding:3px 8px;cursor:pointer;font-size:.8rem}
+.slot .rm.sure{background:var(--bad);color:#000}
+.slot.busy{opacity:.55;pointer-events:none}
+.slot .ld{font-size:.8rem}
+@media (max-width:560px){.slots{gap:6px;grid-template-columns:repeat(2,minmax(0,1fr))}.slot .gal{font-size:.66rem;padding:3px 5px}}
 .flash{animation:fl 1.6s ease}
 @keyframes fl{0%,40%{box-shadow:0 0 0 3px var(--y)}100%{box-shadow:none}}
 @media (max-width:720px){.cal-d{min-height:64px;padding:4px}.cal-d .ev{font-size:0;padding:3px;height:8px}.cal-d .ev b{display:none}.kpis{grid-template-columns:repeat(2,1fr)}}
@@ -424,7 +444,8 @@ setInterval(() => document.querySelectorAll('.timer[data-run]').forEach(t => t.t
 
 let LOGO = '';
 fetch('logo.webp').then(r => r.blob()).then(b => { const fr = new FileReader(); fr.onload = () => LOGO = fr.result; fr.readAsDataURL(b); }).catch(() => {});
-function printNalog(o) {
+const nalogNr = o => 'RN-' + (o._t ? new Date(o._t).getFullYear() : new Date().getFullYear()) + '-' + String(o._i - 1).padStart(4, '0');
+function buildNalog(o, photos, pdf) {
   const g = (...k) => get(o, ...k);
   let items = []; try { items = JSON.parse(o['Stavke'] || '[]'); } catch (e) {}
   const VV = { novi: 'novi dio', rabljeni: 'rabljeni dio', mat: 'materijal' };
@@ -436,7 +457,7 @@ function printNalog(o) {
   const net = lines.length ? num(o['Ukupno bez PDV-a (€)']) : 0, vat = num(o['PDV (€)']), gross = num(o['Ukupno s PDV-om (€)']);
   const days = perDay(sessions(o));
   const row = (l, v) => v ? `<tr><th>${esc(l)}</th><td>${esc(v)}</td></tr>` : '';
-  const nr = 'RN-' + (o._t ? new Date(o._t).getFullYear() : new Date().getFullYear()) + '-' + String(o._i - 1).padStart(4, '0');
+  const nr = nalogNr(o);
   const logo = LOGO || new URL('logo.webp', location.href).href;
   const html = `<!doctype html><html lang="hr"><head><meta charset="utf-8"><title>Radni nalog ${nr}</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -458,12 +479,13 @@ table.it{width:100%;border-collapse:collapse;font-size:9.5pt}.it th{background:#
 .tot .g td{font:800 13pt "Bricolage Grotesque",sans-serif;border-top:2px solid #111;color:#111}
 .sig{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:36px}.sig div{border-top:1px solid #111;padding-top:4px;font-size:9pt;color:#555}
 .foot{margin-top:18px;font-size:8pt;color:#777;border-top:1px solid #ddd;padding-top:6px}
+.ph{margin-top:14px}.ph .box{margin-bottom:10px}.phg img{display:inline-block;width:32%;height:46mm;object-fit:cover;border:1px solid #ddd;margin:0 1% 6px 0;vertical-align:top}
 @media screen{body{max-width:210mm;margin:16px auto;padding:0 14mm}.pbtn{position:fixed;top:12px;right:12px;background:#FEE503;border:0;padding:10px 16px;font:600 11pt sans-serif;cursor:pointer}}
 @media print{.pbtn{display:none}body{padding:0 2px}}
 </style></head><body>
-<button class="pbtn" onclick="print()">Ispiši</button>
+${pdf ? '' : '<button class="pbtn" onclick="print()">Ispiši</button>'}
 <div class="top"><img src="${logo}" alt="Horizont LHB d.o.o."><div class="co"><b>Horizont LHB d.o.o.</b>Servis računala i igraćih konzola<br>Saša Batinac · 091/358 4122<br>horizont.servisi@gmail.com</div></div>
-<h1>Radni nalog <span class="st">${esc(status(o))}</span></h1><div class="nr">${nr} · zaprimljeno ${esc(o['vrijeme'] || '')}</div>
+<h1>Radni nalog <span class="st">${esc(status(o))}</span></h1><div class="nr">${nr} · zaprimljeno ${esc(o['vrijeme'] || '')}${o['Završeno'] && status(o) === 'Riješeno' ? ` · <b>zatvoren ${esc(o['Završeno'])}</b>` : ''}</div>
 <div class="grid">
  <div class="box"><h2>Naručitelj</h2><table>${row('Ime i prezime', [g('Titula'), g('Ime i prezime')].filter(Boolean).join(' '))}${row('Mobitel', g('Kontakt broj mobitela', 'Telefon'))}${row('E-pošta', g('E-pošta'))}${row('Adresa', [g('Adresa'), g('Poštanski broj'), g('Grad / mjesto')].filter(Boolean).join(', '))}${row('Brzi kontakt', g('Preferirani način brze komunikacije'))}</table></div>
  <div class="box"><h2>Uređaj</h2><table>${row('Vrsta', [g('Vrsta uređaja'), g('Moje računalo je')].filter(Boolean).join(' · '))}${row('Proizvođač', g('Proizvođač / serija laptopa', 'Proizvođač / serija desktop računala'))}${row('Model', g('Točan model uređaja'))}${row('Operativni sustav', g('Koji operativni sustav koristite?'))}${row('Predaja', g('Kako želite predati uređaj?'))}${row('Termin', o._term ? hrDate(o._term) + ' u ' + pad(o._term.getHours()) + ':' + pad(o._term.getMinutes()) : '')}${row('Zamjensko računalo', g('Trebate li zamjensko računalo tijekom servisa?'))}</table></div>
@@ -474,14 +496,104 @@ table.it{width:100%;border-collapse:collapse;font-size:9.5pt}.it th{background:#
 ${lines.length ? `<table class="it"><thead><tr><th>Stavka</th><th>Količina</th><th style="text-align:right">Jed. cijena bez PDV-a</th><th style="text-align:right">Iznos bez PDV-a</th><th style="text-align:right">Iznos s PDV-om</th></tr></thead><tbody>
 ${lines.map(l => `<tr><td>${esc(l[0])}</td><td>${l[1]}</td><td class="n">${l[2]}</td><td class="n">${l[3]}</td><td class="n">${l[4]}</td></tr>`).join('')}</tbody></table>
 <table class="tot"><tr><td>Osnovica</td><td>${eur(net)}</td></tr><tr><td>PDV ${PDV * 100} %</td><td>${eur(vat)}</td></tr><tr class="g"><td>Ukupno</td><td>${eur(gross)}</td></tr></table>` : '<p style="color:#777">Obračun još nije napravljen.</p>'}
+${photos && (photos.prije.length || photos.poslije.length) ? `<div class="ph">${['prije', 'poslije'].filter(k => photos[k].length).map(k => `<div class="box"><h2>Fotografije ${k} servisa</h2><div class="phg">${photos[k].map(u => `<img src="${u}" alt="">`).join('')}</div></div>`).join('')}</div>` : ''}
 <div class="sig"><div>Potpis naručitelja (preuzeo/la uređaj)</div><div>Potpis servisera</div></div>
 <div class="foot">Naručitelj potvrđuje da je upoznat/a s napomenom o izradi sigurnosne kopije podataka prije servisa. Osobni podaci obrađuju se isključivo radi izvršenja usluge (GDPR).</div>
-<script>window.addEventListener('load',()=>{const i=document.images[0];const go=()=>setTimeout(()=>print(),300);i&&!i.complete?i.onload=i.onerror=go:go();});<\/script>
+${pdf ? '' : `<script>window.addEventListener('load',()=>{const im=[...document.images].filter(i=>!i.complete);let n=im.length;const go=()=>setTimeout(()=>print(),300);if(!n)return go();im.forEach(i=>i.onload=i.onerror=()=>{if(!--n)go();});});<\/script>`}
 </body></html>`;
+  return html;
+}
+async function photosOf(o) {
+  const S = slike(o), out = { prije: [], poslije: [] };
+  for (const k of ['prije', 'poslije']) for (const slot of fotoKeys(S, k)) { const u = await getFoto(S[slot].id).catch(() => ''); if (u) out[k].push(u); }
+  return out;
+}
+async function printNalog(o) {
   const w = window.open('', '_blank');
   if (!w) { alert('Preglednik je blokirao novi prozor. Dopusti skočne prozore za ovu stranicu.'); return; }
+  w.document.write('<p style="font:16px sans-serif;padding:20px">Pripremam nalog…</p>');
+  const html = buildNalog(o, await photosOf(o), false);
   w.document.open(); w.document.write(html); w.document.close();
 }
+
+const FOTO = {};
+function slike(o) { try { return JSON.parse(o['Slike'] || '{}') || {}; } catch (e) { return {}; } }
+async function getFoto(id) {
+  if (FOTO[id]) return FOTO[id];
+  const r = await fetch(ENDPOINT + '?a=foto&k=' + encodeURIComponent(key) + '&id=' + encodeURIComponent(id), { cache: 'force-cache' });
+  const j = await r.json(); if (!j.ok) throw new Error(j.error);
+  return FOTO[id] = 'data:' + j.mime + ';base64,' + j.data;
+}
+function resizeImg(file, max = 1600) {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => { const k = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement('canvas');
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', .85)); };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('Datoteka nije slika.')); };
+    img.src = url;
+  });
+}
+const openF = new Set();
+const fotoKeys = (S, k) => Object.keys(S).filter(x => new RegExp('^' + k + '\\d+$').test(x)).sort((p, q) => +p.slice(k.length) - +q.slice(k.length));
+const nextN = (S, k) => fotoKeys(S, k).reduce((m, x) => Math.max(m, +x.slice(k.length)), 0) + 1;
+const fotoName = (o, slot) => { const m = slot.match(/^(prije|poslije)(\d+)$/); return nalogNr(o) + ' – ' + (m[1] === 'prije' ? 'prije servisa' : 'poslije servisa') + ' – slika ' + m[2]; };
+function photosHTML(o, id) {
+  const S = slike(o), n = Object.keys(S).length;
+  const tile = (slot) => { const x = S[slot], src = FOTO[x.id], num = slot.replace(/\D/g, '');
+    return `<div class="slot has" data-slot="${slot}" title="${esc(fotoName(o, slot))}">
+      ${src ? `<img src="${src}" alt="${esc(fotoName(o, slot))}">` : `<span class="ld" data-fid="${x.id}">Učitavam…</span>`}
+      <span class="sl">slika ${num}</span>
+      <label class="gal"><input type="checkbox" class="galcb"${x.gid ? ' checked' : ''}> U galeriju</label><button type="button" class="rm" data-do="rmFoto" aria-label="Ukloni sliku">✕</button>
+    </div>`; };
+  const sec = k => { const keys = fotoKeys(S, k);
+    return `<div class="frow2" data-sec="${k}"><span class="lbl">${k === 'prije' ? 'Prije servisa' : 'Poslije servisa'} · ${keys.length}</span><div class="slots">${keys.map(tile).join('')}
+      <div class="slot add" data-add="${k}" tabindex="0" role="button" aria-label="Dodaj slike ${k} servisa"><span class="hint">＋<br>Povuci slike ovdje<br><small>ili klikni · može više odjednom</small></span></div></div></div>`; };
+  return `<details class="c-foto"${openF.has(id) ? ' open' : ''}><summary class="lbl">Fotografije · ${n}${o['Mapa'] ? ` · <a href="${esc(o['Mapa'])}" target="_blank" rel="noopener" onclick="event.stopPropagation()">mapa naloga</a>` : ''}${o['PDF'] ? ` · <a href="${esc(o['PDF'])}" target="_blank" rel="noopener" onclick="event.stopPropagation()">PDF</a>` : ''}</summary>
+    <div class="fgrid">${sec('prije')}${sec('poslije')}</div>
+    <input type="file" accept="image/*" class="fin" multiple hidden>
+    <p class="pmsg fmsg" role="status"></p></details>`;
+}
+function loadVisibleFotos() {
+  document.querySelectorAll('details.c-foto[open] .ld[data-fid]').forEach(el => { const id = el.dataset.fid; el.removeAttribute('data-fid');
+    getFoto(id).then(u => { const img = new Image(); img.src = u; img.alt = ''; el.replaceWith(img); }).catch(() => el.textContent = 'Nije dostupna'); });
+}
+async function uploadMany(card, k, files) {
+  const id = card.dataset.id, kind = card.dataset.kind, row = +card.dataset.row, o = D[kind].find(x => x._i === row); if (!o) return;
+  files = [...files].filter(f => /^image\//.test(f.type));
+  const msgEl = () => document.querySelector('#c-' + CSS.escape(id) + ' .fmsg');
+  if (!files.length) { const m = msgEl(); m.className = 'pmsg fmsg bad'; m.textContent = 'Odaberi slike (JPG, PNG…).'; return; }
+  openF.add(id);
+  for (let i = 0; i < files.length; i++) {
+    const m = msgEl(); if (m) { m.className = 'pmsg fmsg'; m.textContent = `Šaljem sliku ${i + 1} od ${files.length}…`; }
+    try {
+      const url = await resizeImg(files[i]);
+      const slot = k + nextN(slike(o), k);
+      const j = await post({ akcija: 'slika', list: kind, red: row, ime: get(o, 'Ime i prezime'), nr: nalogNr(o), slot, data: url.split(',')[1], mime: 'image/jpeg', gal: false });
+      FOTO[j.slike[slot].id] = url; o['Slike'] = JSON.stringify(j.slike); render();
+    } catch (err) { const m2 = msgEl(); if (m2) { m2.className = 'pmsg fmsg bad'; m2.textContent = (err.message || 'Slanje nije uspjelo') + ` (slika ${i + 1})`; } return; }
+  }
+  const m = msgEl(); if (m) { m.className = 'pmsg fmsg'; m.textContent = files.length === 1 ? 'Slika je spremljena u mapu naloga.' : `${files.length} slika spremljeno u mapu naloga.`; }
+  load().catch(() => {});
+}
+document.addEventListener('toggle', e => { const d = e.target; if (!d.classList || !d.classList.contains('c-foto')) return; const id = d.closest('.card').dataset.id; d.open ? openF.add(id) : openF.delete(id); if (d.open) loadVisibleFotos(); }, true);
+document.addEventListener('dragover', e => { const sec = e.target.closest('.frow2'); if (sec) { e.preventDefault(); sec.querySelector('.add').classList.add('over'); } });
+document.addEventListener('dragleave', e => { const sec = e.target.closest('.frow2'); if (sec && !sec.contains(e.relatedTarget)) sec.querySelector('.add').classList.remove('over'); });
+document.addEventListener('drop', e => { const sec = e.target.closest('.frow2'); if (!sec) return; e.preventDefault(); sec.querySelector('.add').classList.remove('over'); uploadMany(sec.closest('.card'), sec.dataset.sec, e.dataTransfer.files); });
+let pickSec = null;
+document.addEventListener('click', e => { const ad = e.target.closest('.slot.add'); if (!ad) return; pickSec = ad.closest('.frow2'); const fi = ad.closest('.c-foto').querySelector('.fin'); fi.value = ''; fi.click(); });
+document.addEventListener('keydown', e => { const sl = e.target.closest && e.target.closest('.slot.add'); if (sl && (e.key === 'Enter' || e.key === ' ') && e.target === sl) { e.preventDefault(); sl.click(); } });
+document.addEventListener('change', async e => {
+  if (e.target.classList.contains('fin') && pickSec) return uploadMany(pickSec.closest('.card'), pickSec.dataset.sec, e.target.files);
+  if (e.target.classList.contains('galcb')) {
+    const cb = e.target, sl = cb.closest('.slot'), card = cb.closest('.card'), row = +card.dataset.row, kind = card.dataset.kind, o = D[kind].find(x => x._i === row), msg = card.querySelector('.fmsg');
+    cb.disabled = true; msg.className = 'pmsg fmsg'; msg.textContent = cb.checked ? 'Dodajem u galeriju…' : 'Uklanjam iz galerije…';
+    try { const j = await post({ akcija: 'galerija', list: kind, red: row, ime: get(o, 'Ime i prezime'), nr: nalogNr(o), slot: sl.dataset.slot, on: cb.checked });
+      o['Slike'] = JSON.stringify(j.slike); msg.textContent = cb.checked ? 'Slika je u galeriji na web stranici.' : 'Slika je uklonjena iz galerije.'; }
+    catch (err) { cb.checked = !cb.checked; msg.className = 'pmsg fmsg bad'; msg.textContent = err.message; }
+    cb.disabled = false;
+  }
+});
 
 function card(o, kind) {
   const ime = get(o, 'Ime i prezime') || 'Bez imena', titula = get(o, 'Titula'), mail = get(o, 'E-pošta'), tel = get(o, 'Kontakt broj mobitela', 'Telefon');
@@ -499,7 +611,7 @@ function card(o, kind) {
     ['Grad / adresa', [get(o, 'Grad / mjesto'), get(o, 'Adresa')].filter(Boolean).join(', ')], ['Brzi kontakt', get(o, 'Preferirani način brze komunikacije')],
     ['Zamjensko računalo', get(o, 'Trebate li zamjensko računalo tijekom servisa?')], ['Opis kvara', get(o, 'Opišite problem ili kvar svojim riječima')]];
   if (done || o['Ukupno s PDV-om (€)']) keyF.unshift(['Obračun', [o['Završeno'] && done ? 'Zaključeno ' + o['Završeno'] : 'Spremljeno, nije zaključeno', o['Sati rada'] ? String(o['Sati rada']).replace('.', ',') + ' h rada' : '', o['Ukupno s PDV-om (€)'] ? o['Ukupno s PDV-om (€)'] + ' € s PDV-om' : ''].filter(Boolean).join(' · ')], ['Stavke', o['Stavke (opis)']], ['Bilješka', o['Bilješka']]);
-  const all = Object.keys(o).filter(k => k[0] !== '_' && o[k] && !['Kalendar ID', 'Stavke', 'Rad PDV', 'Evidencija rada'].includes(k)).map(k => `<dt>${esc(k)}</dt><dd>${esc(o[k])}</dd>`).join('');
+  const all = Object.keys(o).filter(k => k[0] !== '_' && o[k] && !['Kalendar ID', 'Stavke', 'Rad PDV', 'Evidencija rada', 'Slike', 'Mapa ID', 'PDF ID'].includes(k)).map(k => `<dt>${esc(k)}</dt><dd>${esc(o[k])}</dd>`).join('');
   const id = kind + '-' + o._i, p = open[id];
   const acts = kind === 'upiti'
     ? (done ? `<button type="button" class="btn ghost" data-do="reopen">Vrati u otvorene</button>` : `<button type="button" class="btn ghost" data-do="quickDone">✓ Riješeno</button>`)
@@ -522,6 +634,7 @@ function card(o, kind) {
     </div>
     <dl class="c-key">${keyF.filter(f => f[1]).map(f => `<div><dt class="lbl">${f[0]}</dt><dd>${esc(f[1])}</dd></div>`).join('')}</dl>
     ${kind === 'prijave' ? workBar(o, id) : ''}
+    ${kind === 'prijave' ? photosHTML(o, id) : ''}
     ${p ? panelHTML(o, kind, p) : ''}
     <details class="c-all"><summary class="lbl" style="cursor:pointer">Svi podaci iz tablice</summary>${sessions(o).length ? `<div class="sess"><span class="lbl">Evidencija rada</span>${sessions(o).map(x => `<span>${new Date(x.s).toLocaleString('hr-HR', { dateStyle: 'short', timeStyle: 'short' })} – ${x.e ? new Date(x.e).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }) : 'u tijeku'} · ${hms(workedMs([x]))}</span>`).join('')}</div>` : ''}<dl style="margin-top:12px">${all}</dl></details>
   </article>`;
@@ -547,7 +660,7 @@ function render() {
   let rows = filtered(D[tab]);
   if (flt === 'zakazano') rows = rows.sort((a, b) => a._term - b._term);
   const q = $('#q').value.trim();
-  setTimeout(() => document.querySelectorAll('.c-panel[data-p="zavrsi"]').forEach(recalc));
+  setTimeout(() => { document.querySelectorAll('.c-panel[data-p="zavrsi"]').forEach(recalc); loadVisibleFotos(); });
   $('#list').innerHTML = rows.length ? rows.map(o => card(o, tab)).join('') :
     `<p class="empty">${q ? 'Nema rezultata za „' + esc(q) + '”.' : flt === 'rijeseno' ? 'Još ništa nije riješeno.' : flt === 'zakazano' ? 'Nema zakazanih termina.' : tab === 'prijave' ? 'Nema otvorenih naloga.' : 'Nema otvorenih upita.'}</p>`;
 }
@@ -597,6 +710,13 @@ document.addEventListener('click', async e => {
     catch (err) { b.disabled = false; b.textContent = t; if (msg) { msg.className = 'pmsg bad'; msg.textContent = err.message; } else alertBox(c, err.message); }
   };
   if (act === 'print') return printNalog(o);
+  if (act === 'rmFoto') {
+    if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Obriši?'; b.classList.add('sure'); setTimeout(() => { if (b.isConnected) { b.dataset.sure = ''; b.textContent = '✕'; b.classList.remove('sure'); } }, 3000); return; }
+    const sl = b.closest('.slot'); sl.classList.add('busy');
+    try { const j = await post({ akcija: 'brisi_sliku', list: kind, red: row, ime: get(o, 'Ime i prezime'), nr: nalogNr(o), slot: sl.dataset.slot }); o['Slike'] = JSON.stringify(j.slike); render(); }
+    catch (err) { sl.classList.remove('busy'); alertBox(c, err.message); }
+    return;
+  }
   if (act === 'ask') { confirmAsk[id] = b.dataset.w; return render(); }
   if (act === 'noask') { delete confirmAsk[id]; return render(); }
   if (act === 'work') {
@@ -625,7 +745,20 @@ document.addEventListener('click', async e => {
     const bad = [...pn.querySelectorAll('tr.it')].find(tr => tr.querySelector('.iv').value === 'novi' && (tr.querySelector('.in').value.trim() || num(tr.querySelector('.ic').value)) && (!tr.querySelector('.isup').value.trim() || tr.querySelector('.inab').value === ''));
     if (bad) { msg.className = 'pmsg bad'; msg.textContent = 'Za novi dio upiši dobavljača i nabavnu cijenu.'; (bad.querySelector('.isup').value.trim() ? bad.querySelector('.inab') : bad.querySelector('.isup')).focus(); return; }
     const f = stavkeFields(pn);
-    if (act === 'saveZavrsi') { const a = sessions(o); const r = a[a.length - 1]; if (r && !r.e) { r.e = new Date().toISOString(); f['Evidencija rada'] = JSON.stringify(a); } f['Status'] = 'Riješeno'; f['Završeno'] = new Date().toLocaleString('hr-HR', { dateStyle: 'short', timeStyle: 'short' }); }
+    if (act === 'saveZavrsi') {
+      b.disabled = true; b.textContent = 'Zaključujem…';
+      const a0 = sessions(o); const r0 = a0[a0.length - 1]; if (r0 && !r0.e) { r0.e = new Date().toISOString(); f['Evidencija rada'] = JSON.stringify(a0); f['Rad po danima'] = perDayTxt(a0); }
+      f['Status'] = 'Riješeno'; f['Završeno'] = new Date().toLocaleString('hr-HR', { dateStyle: 'short', timeStyle: 'short' });
+      try {
+        await post(Object.assign({}, base, { akcija: 'update', fields: f }));
+        Object.assign(o, f); o._term = parseTermin(o['Termin']);
+        msg.className = 'pmsg'; msg.textContent = 'Nalog je zaključen. Spremam PDF u mapu naloga…';
+        try { await post(Object.assign({}, base, { akcija: 'pdf', nr: nalogNr(o), html: buildNalog(o, await photosOf(o), true) })); } catch (e2) { console.warn(e2); }
+        delete open[id]; await load();
+      } catch (err) { b.disabled = false; b.textContent = '✓ Zaključi nalog'; msg.className = 'pmsg bad'; msg.textContent = err.message; }
+      return;
+    }
+    if (false) { const a = sessions(o); const r = a[a.length - 1]; if (r && !r.e) { r.e = new Date().toISOString(); f['Evidencija rada'] = JSON.stringify(a); } f['Status'] = 'Riješeno'; f['Završeno'] = new Date().toLocaleString('hr-HR', { dateStyle: 'short', timeStyle: 'short' }); }
     return run({ akcija: 'update', fields: f });
   }
   if (act === 'quickDone') return run({ akcija: 'update', fields: { 'Status': 'Riješeno', 'Završeno': new Date().toLocaleString('hr-HR', { dateStyle: 'short', timeStyle: 'short' }) } });

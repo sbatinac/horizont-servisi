@@ -13,6 +13,10 @@ const SHEET_NAME = 'Prijave';
 const SHEET_UPITI = 'Upiti';
 // List s brojem posjeta po danu.
 const SHEET_POSJETE = 'Posjete';
+// Drive: mapa galerije na stranici (Slike) i naziv mape za arhivu naloga.
+const GALERIJA_ID = '1WI5VmXP9w2IgRyymJDDapsC8MQkkZnyD';
+const GALERIJA_PODMAPA = 'Prije i poslije';
+const ARHIVA_NAZIV = 'Horizont – Arhiva naloga';
 // Lozinka za admin stranicu. Upiši svoju ovdje u Apps Scriptu, NE u GitHub repo.
 const ADMIN_KEY = 'UPISI_LOZINKU';
 
@@ -39,6 +43,11 @@ function doPost(e) {
 function doGet(e) {
   const p = (e && e.parameter) || {};
   if (p.a === 'hit') return json_(hit_());
+  if (p.a === 'foto') {
+    if (!ADMIN_KEY || ADMIN_KEY === 'UPISI_LOZINKU' || p.k !== ADMIN_KEY) return json_({ ok: false, error: 'Pogrešna lozinka.' });
+    try { const b = DriveApp.getFileById(p.id).getBlob(); return json_({ ok: true, mime: b.getContentType(), data: Utilities.base64Encode(b.getBytes()) }); }
+    catch (err) { return json_({ ok: false, error: 'Slika nije dostupna.' }); }
+  }
   if (p.a === 'admin') {
     if (!ADMIN_KEY || ADMIN_KEY === 'UPISI_LOZINKU' || p.k !== ADMIN_KEY) {
       Utilities.sleep(800);
@@ -98,7 +107,68 @@ function admin_(d) {
     setFields_(sh, row, { 'Termin': '', 'Trajanje (min)': '', 'Kalendar ID': '', 'Status': 'Novo' });
     return { ok: true };
   }
+  if (d.akcija === 'slika' || d.akcija === 'galerija' || d.akcija === 'brisi_sliku' || d.akcija === 'pdf') return media_(sh, row, H, d);
   return { ok: false, error: 'Nepoznata akcija.' };
+}
+
+// ===== SLIKE, GALERIJA I ARHIVA NALOGA =====
+function cell_(sh, row, H, name) { const i = H.indexOf(name); return i > -1 ? sh.getRange(row, i + 1).getDisplayValue() : ''; }
+
+function arhiva_() {
+  const it = DriveApp.getFoldersByName(ARHIVA_NAZIV);
+  return it.hasNext() ? it.next() : DriveApp.createFolder(ARHIVA_NAZIV);
+}
+
+function folderFor_(sh, row, H, d) {
+  const id = cell_(sh, row, H, 'Mapa ID');
+  if (id) { try { const f = DriveApp.getFolderById(id); if (!f.isTrashed()) return f; } catch (e) {} }
+  const m = String(cell_(sh, row, H, 'vrijeme')).match(/(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})/);
+  const datum = m ? m[3] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[1]).slice(-2) : Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd');
+  const name = [d.nr || ('RN-' + row), datum, cell_(sh, row, H, 'Ime i prezime')].filter(String).join(' – ');
+  const f = arhiva_().createFolder(name);
+  setFields_(sh, row, { 'Mapa ID': f.getId(), 'Mapa': f.getUrl() });
+  return f;
+}
+
+function galerija_() {
+  const g = DriveApp.getFolderById(GALERIJA_ID);
+  const it = g.getFoldersByName(GALERIJA_PODMAPA);
+  return it.hasNext() ? it.next() : g.createFolder(GALERIJA_PODMAPA);
+}
+
+function trash_(id) { if (!id) return; try { DriveApp.getFileById(id).setTrashed(true); } catch (e) {} }
+
+function media_(sh, row, H, d) {
+  let S = {}; try { S = JSON.parse(cell_(sh, row, H, 'Slike') || '{}'); } catch (e) {}
+  if (d.akcija === 'pdf') {
+    const f = folderFor_(sh, row, H, d);
+    trash_(cell_(sh, row, H, 'PDF ID'));
+    const pdf = Utilities.newBlob(d.html, 'text/html', 'nalog.html').getAs('application/pdf').setName((d.nr || 'Radni nalog') + '.pdf');
+    const file = f.createFile(pdf);
+    setFields_(sh, row, { 'PDF ID': file.getId(), 'PDF': file.getUrl() });
+    return { ok: true, url: file.getUrl() };
+  }
+  const sm = String(d.slot).match(/^(prije|poslije)(\d{1,3})$/);
+  if (!sm) return { ok: false, error: 'Nepoznato mjesto za sliku.' };
+  const cur = S[d.slot] || {};
+  const label = (d.nr || 'RN') + ' – ' + (sm[1] === 'prije' ? 'prije servisa' : 'poslije servisa') + ' – slika ' + sm[2];
+  if (d.akcija === 'slika') {
+    const f = folderFor_(sh, row, H, d);
+    trash_(cur.id); trash_(cur.gid);
+    const blob = Utilities.newBlob(Utilities.base64Decode(d.data), d.mime || 'image/jpeg', label + '.jpg');
+    const file = f.createFile(blob);
+    S[d.slot] = { id: file.getId() };
+    if (d.gal) { const c = file.makeCopy(label + '.jpg', galerija_()); S[d.slot].gid = c.getId(); }
+  } else if (d.akcija === 'galerija') {
+    if (!cur.id) return { ok: false, error: 'Na tom mjestu nema slike.' };
+    if (d.on && !cur.gid) { cur.gid = DriveApp.getFileById(cur.id).makeCopy(label + '.jpg', galerija_()).getId(); }
+    if (!d.on && cur.gid) { trash_(cur.gid); delete cur.gid; }
+    S[d.slot] = cur;
+  } else if (d.akcija === 'brisi_sliku') {
+    trash_(cur.id); trash_(cur.gid); delete S[d.slot];
+  }
+  setFields_(sh, row, { 'Slike': JSON.stringify(S) });
+  return { ok: true, slike: S };
 }
 
 // Upiše vrijednosti u redak po nazivu stupca; stupci koji ne postoje dodaju se na kraj.
