@@ -1224,9 +1224,9 @@ render(false);
     const g = e.target.closest('.gz[data-id]'); if (g) return detail(g.dataset.id);
     const tb = e.target.closest('#gzM .thumbs img'); if (tb) { document.getElementById('gzBig').src = tb.dataset.big; document.querySelectorAll('#gzM .thumbs img').forEach(i => i.classList.toggle('on', i === tb)); }
   });
-  $('#gzQ').addEventListener('input', grid);
+  $('#gzQ').addEventListener('input', () => items.length ? grid() : null);
   document.getElementById('mGz').addEventListener('click', e => { if (e.target.id === 'mGz') closeM('mGz'); });
-  const empty = () => { $('#gzCats').innerHTML = ''; $('#gzQ').hidden = true; $('#gzGrid').innerHTML = '<div class="gz-empty"><b>Police se upravo pune.</b><span>Prvi provjereni dijelovi stižu uskoro. Tražite nešto određeno? Javite nam se na <b>091/358 4122</b> ili kroz kontakt formu, možda to već imamo u radionici.</span></div>'; };
+  const empty = () => { items = []; cats(); $('#gzQ').hidden = false; $('#gzGrid').innerHTML = '<div class="gz-empty"><b>Police se upravo pune.</b><span>Prvi provjereni dijelovi stižu uskoro. Tražite nešto određeno? Javite nam se na <b>091/358 4122</b> ili kroz kontakt formu, možda to već imamo u radionici.</span></div>'; };
   fetch(ENDPOINT + '?a=garaza').then(r => r.json()).then(j => { if (!j.ok || !j.items || !j.items.length) return empty(); items = j.items; $('#gzQ').hidden = false; cats(); grid(); }).catch(empty);
 })();
 </script>
