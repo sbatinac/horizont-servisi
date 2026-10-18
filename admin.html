@@ -141,7 +141,7 @@ main{padding-block:24px 60px;display:grid;gap:28px}
 .items th{font:500 .68rem var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:left;padding:4px 6px}
 .items td{padding:4px 6px;vertical-align:middle}
 .items input,.items select{width:100%;padding:7px 9px}
-.items .q{width:70px}.items .pr{width:100px}.items .tot{font-family:var(--mono);white-space:nowrap;text-align:right}
+.items .q{width:64px}.items .pr{width:96px}.items .isup{min-width:120px}.items input:disabled{opacity:.35}.items .in{min-width:170px}.items .tot{font-family:var(--mono);white-space:nowrap;text-align:right}
 .items .x{background:none;border:0;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:4px 8px}.items .x:hover{color:var(--bad)}
 .items tr.rad td{color:var(--ink)}
 .itemsbox{overflow-x:auto}
@@ -333,19 +333,26 @@ function panelHTML(o, kind, p) {
   }
   if (p === 'zavrsi') {
     let items = []; try { items = JSON.parse(o['Stavke'] || '[]'); } catch (e) {}
-    if (!items.length) items = [{ n: '', q: 1, c: '', m: 'bez' }];
+    if (!items.length) items = [{ n: '', v: 'novi', q: 1, c: '', m: 'bez' }];
     const radM = o['Rad PDV'] || 's';
     const opt = m => `<option value="bez"${m === 'bez' ? ' selected' : ''}>bez PDV-a</option><option value="s"${m === 's' ? ' selected' : ''}>s PDV-om</option>`;
-    const row = it => `<tr class="it"><td><input class="in" value="${esc(it.n)}" placeholder="npr. Termalna pasta, SSD 512 GB, kabel"></td><td><input class="q iq" type="number" min="0" step="1" value="${esc(it.q)}"></td><td><input class="pr ic" type="number" min="0" step="0.01" value="${esc(it.c)}" placeholder="0,00"></td><td><select class="im">${opt(it.m)}</select></td><td class="tot"></td><td><button type="button" class="x" data-do="delItem" aria-label="Ukloni stavku">✕</button></td></tr>`;
+    const row = it => { const v = it.v || 'novi', nv = v === 'novi';
+      return `<tr class="it" data-v="${v}"><td><input class="in" value="${esc(it.n)}" placeholder="npr. SSD 512 GB, ventilator, termalna pasta"></td>
+      <td><select class="iv"><option value="novi"${v === 'novi' ? ' selected' : ''}>Novi dio</option><option value="rabljeni"${v === 'rabljeni' ? ' selected' : ''}>Rabljeni dio</option><option value="mat"${v === 'mat' ? ' selected' : ''}>Potrošni materijal</option></select></td>
+      <td><input class="isup" value="${esc(it.d || '')}" placeholder="${nv ? 'dobavljač *' : '—'}"${nv ? '' : ' disabled'}></td>
+      <td><input class="pr inab" type="number" min="0" step="0.01" value="${esc(it.nab || '')}" placeholder="${nv ? 'nabavna *' : '—'}"${nv ? '' : ' disabled'}></td>
+      <td><input class="q iq" type="number" min="0" step="1" value="${esc(it.q)}"></td>
+      <td><input class="pr ic" type="number" min="0" step="0.01" value="${esc(it.c)}" placeholder="${v === 'rabljeni' ? 'po dogovoru' : '0,00'}"></td>
+      <td><select class="im">${opt(it.m)}</select></td><td class="tot"></td><td><button type="button" class="x" data-do="delItem" aria-label="Ukloni stavku">✕</button></td></tr>`; };
     return `<div class="c-panel" data-p="zavrsi"><h4>Obračun i zaključenje naloga</h4>
-      <div class="itemsbox"><table class="items"><thead><tr><th>Stavka</th><th>Kol.</th><th>Cijena / kom</th><th>Cijena je</th><th style="text-align:right">Ukupno s PDV</th><th></th></tr></thead><tbody>
-      <tr class="rad"><td>Rad servisera (${CIJENA_SATA} € / h)${sessions(o).length ? `<br><small style="color:var(--muted)">evidentirano ${hms(workedMs(sessions(o)))}, zaokruženo na 15 min</small>` : ''}</td><td><input class="q ph" type="number" min="0" step="0.25" value="${esc(o['Sati rada'] || (sessions(o).length ? hrsQ(workedMs(sessions(o))) : ''))}" placeholder="sati"></td><td class="tot">${CIJENA_SATA},00 €</td><td><select class="rm">${opt(radM)}</select></td><td class="tot"></td><td></td></tr>
+      <div class="itemsbox"><table class="items"><thead><tr><th>Stavka</th><th>Vrsta</th><th>Dobavljač</th><th>Nabavna / kom</th><th>Kol.</th><th>Prodajna / kom</th><th>Cijena je</th><th style="text-align:right">Ukupno s PDV</th><th></th></tr></thead><tbody>
+      <tr class="rad"><td colspan="4">Rad servisera (${CIJENA_SATA} € / h)${sessions(o).length ? `<br><small style="color:var(--muted)">evidentirano ${hms(workedMs(sessions(o)))}, zaokruženo na 15 min</small>` : ''}</td><td><input class="q ph" type="number" min="0" step="0.25" value="${esc(o['Sati rada'] || (sessions(o).length ? hrsQ(workedMs(sessions(o))) : ''))}" placeholder="sati"></td><td class="tot">${CIJENA_SATA},00 €</td><td><select class="rm">${opt(radM)}</select></td><td class="tot"></td><td></td></tr>
       ${items.map(row).join('')}</tbody></table></div>
       <div class="frow"><button type="button" class="btn ghost" data-do="addItem">+ Dodaj stavku</button></div>
-      <div class="totals"><span>Osnovica (bez PDV-a)</span><span class="t-net">0,00 €</span><span>PDV ${PDV * 100} %</span><span class="t-vat">0,00 €</span><span>Ukupno za naplatu</span><span class="t-gross grand">0,00 €</span></div>
+      <div class="totals"><span>Osnovica (bez PDV-a)</span><span class="t-net">0,00 €</span><span>PDV ${PDV * 100} %</span><span class="t-vat">0,00 €</span><span>Ukupno za naplatu</span><span class="t-gross grand">0,00 €</span><span>Nabava novih dijelova (interno)</span><span class="t-nab">0,00 €</span></div>
       <label>Bilješka (što je napravljeno)<textarea class="pb" placeholder="npr. očišćen hladnjak, nova termalna pasta, Windows 11">${esc(o['Bilješka'] || '')}</textarea></label>
       <div class="frow"><button type="button" class="btn" data-do="saveZavrsi">✓ Zaključi nalog</button><button type="button" class="btn ghost" data-do="saveStavke">Spremi bez zaključivanja</button><button type="button" class="btn ghost" data-do="close">Odustani</button></div>
-      <p class="pmsg" role="status"></p><template class="tpl">${row({ n: '', q: 1, c: '', m: 'bez' })}</template></div>`;
+      <p class="pmsg" role="status"></p><template class="tpl">${row({ n: '', v: 'novi', q: 1, c: '', m: 'bez' })}</template></div>`;
   }
   return '';
 }
@@ -353,25 +360,27 @@ function panelHTML(o, kind, p) {
 function lineAmt(qty, price, mode) { const l = num(qty) * num(price); return mode === 's' ? { net: l / (1 + PDV), gross: l } : { net: l, gross: l * (1 + PDV) }; }
 function collect(panel) {
   const sati = panel.querySelector('.ph').value.replace(',', '.'), rm = panel.querySelector('.rm').value;
-  const items = [...panel.querySelectorAll('tr.it')].map(tr => ({ n: tr.querySelector('.in').value.trim(), q: tr.querySelector('.iq').value, c: tr.querySelector('.ic').value, m: tr.querySelector('.im').value }))
+  const items = [...panel.querySelectorAll('tr.it')].map(tr => { const v = tr.querySelector('.iv').value; return { n: tr.querySelector('.in').value.trim(), v, d: v === 'novi' ? tr.querySelector('.isup').value.trim() : '', nab: v === 'novi' ? tr.querySelector('.inab').value : '', q: tr.querySelector('.iq').value, c: tr.querySelector('.ic').value, m: tr.querySelector('.im').value }; })
     .filter(it => it.n || num(it.c));
   let net = 0, gross = 0;
   const rad = lineAmt(sati || 0, CIJENA_SATA, rm); net += rad.net; gross += rad.gross;
   items.forEach(it => { const a = lineAmt(it.q, it.c, it.m); net += a.net; gross += a.gross; });
-  return { sati, rm, items, net, gross, vat: gross - net };
+  const nab = items.filter(it => it.v === 'novi').reduce((a, it) => a + num(it.nab) * (num(it.q) || 1), 0);
+  return { sati, rm, items, net, gross, vat: gross - net, nab };
 }
 function recalc(panel) {
   const r = collect(panel);
   panel.querySelector('tr.rad td.tot:not(:nth-child(3))').textContent = eur(lineAmt(r.sati || 0, CIJENA_SATA, r.rm).gross);
   panel.querySelectorAll('tr.it').forEach(tr => tr.querySelector('.tot').textContent = eur(lineAmt(tr.querySelector('.iq').value, tr.querySelector('.ic').value, tr.querySelector('.im').value).gross));
-  panel.querySelector('.t-net').textContent = eur(r.net); panel.querySelector('.t-vat').textContent = eur(r.vat); panel.querySelector('.t-gross').textContent = eur(r.gross);
+  panel.querySelector('.t-net').textContent = eur(r.net); panel.querySelector('.t-vat').textContent = eur(r.vat); panel.querySelector('.t-gross').textContent = eur(r.gross); panel.querySelector('.t-nab').textContent = eur(r.nab);
 }
 const r2 = n => (Math.round(n * 100) / 100).toFixed(2).replace('.', ',');
 function stavkeFields(panel) {
   const r = collect(panel);
-  const txt = r.items.map(it => `${it.n} × ${it.q || 1} à ${r2(num(it.c))} € (${it.m === 's' ? 's PDV-om' : 'bez PDV-a'})`).join('; ');
+  const VV = { novi: 'novi', rabljeni: 'rabljeni', mat: 'materijal' };
+  const txt = r.items.map(it => `${it.n} [${VV[it.v] || 'novi'}${it.v === 'novi' ? ', ' + it.d + ', nabavna ' + r2(num(it.nab)) + ' €' : ''}] × ${it.q || 1} à ${r2(num(it.c))} € (${it.m === 's' ? 's PDV-om' : 'bez PDV-a'})`).join('; ');
   return { 'Sati rada': r.sati, 'Rad PDV': r.rm, 'Stavke': JSON.stringify(r.items), 'Stavke (opis)': txt,
-    'Ukupno bez PDV-a (€)': r2(r.net), 'PDV (€)': r2(r.vat), 'Ukupno s PDV-om (€)': r2(r.gross), 'Bilješka': panel.querySelector('.pb').value.trim() };
+    'Nabava dijelova (€)': r2(r.nab), 'Ukupno bez PDV-a (€)': r2(r.net), 'PDV (€)': r2(r.vat), 'Ukupno s PDV-om (€)': r2(r.gross), 'Bilješka': panel.querySelector('.pb').value.trim() };
 }
 
 function sessions(o) { try { const a = JSON.parse(o['Evidencija rada'] || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
@@ -550,6 +559,8 @@ document.addEventListener('click', async e => {
   if (act === 'saveZavrsi' || act === 'saveStavke') {
     const pn = c.querySelector('.c-panel'), h = pn.querySelector('.ph').value.replace(',', '.');
     if (act === 'saveZavrsi' && (h === '' || isNaN(+h) || +h < 0)) { msg.className = 'pmsg bad'; msg.textContent = 'Upiši broj sati rada (može i 0), npr. 1,5.'; pn.querySelector('.ph').focus(); return; }
+    const bad = [...pn.querySelectorAll('tr.it')].find(tr => tr.querySelector('.iv').value === 'novi' && (tr.querySelector('.in').value.trim() || num(tr.querySelector('.ic').value)) && (!tr.querySelector('.isup').value.trim() || tr.querySelector('.inab').value === ''));
+    if (bad) { msg.className = 'pmsg bad'; msg.textContent = 'Za novi dio upiši dobavljača i nabavnu cijenu.'; (bad.querySelector('.isup').value.trim() ? bad.querySelector('.inab') : bad.querySelector('.isup')).focus(); return; }
     const f = stavkeFields(pn);
     if (act === 'saveZavrsi') { const a = sessions(o); const r = a[a.length - 1]; if (r && !r.e) { r.e = new Date().toISOString(); f['Evidencija rada'] = JSON.stringify(a); } f['Status'] = 'Riješeno'; f['Završeno'] = new Date().toLocaleString('hr-HR', { dateStyle: 'short', timeStyle: 'short' }); }
     return run({ akcija: 'update', fields: f });
@@ -561,7 +572,13 @@ document.addEventListener('click', async e => {
     return run({ akcija: 'otkazi' });
   }
 });
-const onCalc = e => { const pn = e.target.closest('.c-panel[data-p="zavrsi"]'); if (pn) recalc(pn); };
+const onCalc = e => {
+  const pn = e.target.closest('.c-panel[data-p="zavrsi"]'); if (!pn) return;
+  if (e.target.classList.contains('iv')) { const tr = e.target.closest('tr'), nv = e.target.value === 'novi';
+    tr.dataset.v = e.target.value; ['.isup', '.inab'].forEach(c => { const i = tr.querySelector(c); i.disabled = !nv; if (!nv) i.value = ''; i.placeholder = nv ? (c === '.isup' ? 'dobavljač *' : 'nabavna *') : '—'; });
+    tr.querySelector('.ic').placeholder = e.target.value === 'rabljeni' ? 'po dogovoru' : '0,00'; }
+  recalc(pn);
+};
 document.addEventListener('input', onCalc); document.addEventListener('change', onCalc);
 function alertBox(c, t) { let p = c.querySelector('.err-x'); if (!p) { p = document.createElement('p'); p.className = 'pmsg bad err-x'; p.style.padding = '0 18px 14px'; c.appendChild(p); } p.textContent = t; }
 
