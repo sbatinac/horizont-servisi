@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="hr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Horizont Admin</title>
+<link rel="icon" href="favicon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Admin: crna podloga i žuta iz bannera, sažetak gore, nalozi kao kartice ispod */
+:root{
+  --bg:#0E0E0D; --surface:#171716; --surface2:#1E1E1C; --ink:#F5F5F0; --muted:#A6A69D; --line:#2C2C29;
+  --y:#FEE503; --y-ink:#111100; --ok:#5FD08A; --bad:#FF8A7A;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--body)}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:1.1}
+.lbl{font:500 .7rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+a{color:inherit}
+.btn{display:inline-flex;align-items:center;gap:.5em;background:var(--y);color:var(--y-ink);font:600 .92rem var(--body);border:0;padding:.7em 1.1em;border-radius:7px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid #3A3A35}
+.btn.ghost:hover{border-color:var(--y)}
+.btn:focus-visible,a:focus-visible,input:focus-visible,button:focus-visible{outline:3px solid var(--y);outline-offset:2px}
+input{background:var(--surface);border:1.5px solid #3A3A35;color:var(--ink);padding:11px 13px;border-radius:7px;font:inherit;min-width:0}
+input:focus{outline:none;border-color:var(--y)}
+
+header{border-bottom:1px solid var(--line);background:#0A0A09;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:#0A0A09;z-index:10}
+header .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-block:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font:800 1.05rem var(--display)}
+.brand img{width:44px;height:auto;background:#fff;border-radius:6px;padding:4px 5px}
+.brand small{font:500 .7rem var(--mono);letter-spacing:.12em;color:var(--y);text-transform:uppercase}
+.hdr-a{display:flex;gap:8px;flex-wrap:wrap}
+
+/* login */
+.login{min-height:70vh;display:grid;place-items:center;padding-block:40px}
+.login form{width:min(420px,100%);display:grid;gap:14px;background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--y);border-radius:12px;padding:28px}
+.login p{color:var(--muted);margin:0}
+.msg{font-weight:600;margin:0}.msg.bad{color:var(--bad)}
+
+main{padding-block:24px 60px;display:grid;gap:28px}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:6px;min-width:0}
+.kpi b{font:800 clamp(1.6rem,3vw,2.2rem)/1 var(--display);font-variant-numeric:tabular-nums}
+.kpi.hi{background:var(--y);color:var(--y-ink);border-color:var(--y)}
+.kpi.hi .lbl{color:rgba(17,17,0,.65)}
+.kpi span:last-child{color:var(--muted);font-size:.8rem}
+.kpi.hi span:last-child{color:rgba(17,17,0,.7)}
+
+.chartbox{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:grid;gap:12px}
+.chartbox .row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.chart{overflow-x:auto}
+.chart svg{display:block;width:100%;min-width:560px;height:auto}
+.chart .bar{fill:#4A4A2A}.chart .bar.today{fill:var(--y)}
+.chart text{fill:var(--muted);font:11px var(--mono)}
+.chart .val{fill:var(--ink);font-weight:500}
+.chart .grid{stroke:#262624}
+
+.bar-tools{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{background:var(--surface);border:1px solid var(--line);color:var(--muted);padding:8px 16px;border-radius:999px;cursor:pointer;font:600 .9rem var(--body)}
+.tab.on{background:var(--y);color:var(--y-ink);border-color:var(--y)}
+.tab small{font-family:var(--mono);font-weight:400;margin-left:4px}
+#q{width:min(340px,100%)}
+
+.list{display:grid;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.card.new{border-left:4px solid var(--y)}
+.c-top{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;gap:14px 20px;padding:16px 18px;align-items:start}
+.c-name{display:grid;gap:4px;min-width:0}
+.c-name h3{font-size:1.15rem;overflow-wrap:anywhere}
+.c-meta{color:var(--muted);font-size:.85rem;font-family:var(--mono)}
+.pill{display:inline-block;font:600 .7rem var(--mono);letter-spacing:.08em;text-transform:uppercase;background:var(--y);color:var(--y-ink);padding:3px 7px;border-radius:4px;margin-left:6px;vertical-align:middle}
+.c-contact{display:grid;gap:6px;min-width:0}
+.c-contact a{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-weight:600;overflow-wrap:anywhere;min-width:0}
+.c-contact a:hover{color:var(--y)}
+.c-contact a i{flex:none;width:26px;height:26px;border-radius:50%;background:var(--surface2);display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:.8rem}
+.c-contact a.tel{font:700 1.05rem var(--display);color:var(--y)}
+.c-act{display:flex;flex-direction:column;gap:6px;align-items:stretch}
+.c-key{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 20px;padding:0 18px 16px}
+.c-key div{display:grid;gap:3px;min-width:0}
+.c-key dd{margin:0;overflow-wrap:anywhere}
+.c-all{border-top:1px solid var(--line);background:var(--bg);padding:16px 18px}
+.c-all dl{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:6px 20px;margin:0;font-size:.9rem}
+.c-all dt{color:var(--muted)} .c-all dd{margin:0;overflow-wrap:anywhere;white-space:pre-wrap}
+.empty{color:var(--muted);padding:30px 0;text-align:center}
+.foot{color:var(--muted);font-size:.8rem}
+.copy{background:none;border:0;color:var(--muted);cursor:pointer;font:500 .75rem var(--mono);padding:2px 4px}
+.copy:hover{color:var(--y)}
+
+@media (max-width:1000px){.kpis{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:720px){
+  .c-top{grid-template-columns:1fr}
+  .c-act{flex-direction:row;flex-wrap:wrap}
+  .c-all dl{grid-template-columns:1fr}.c-all dd{margin-bottom:8px}
+}
+@media (max-width:460px){.kpis{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="brand"><img src="logo-znak.webp" alt="" width="44" height="30"><div>Horizont LHB – servisi<br><small>Administracija</small></div></div>
+  <div class="hdr-a" id="hdrA" hidden>
+    <button type="button" class="btn ghost" id="refresh">Osvježi</button>
+    <a class="btn ghost" id="sheetLink" target="_blank" rel="noopener">Otvori tablicu</a>
+    <a class="btn ghost" href="./" target="_blank" rel="noopener">Web stranica</a>
+    <button type="button" class="btn ghost" id="logout">Odjava</button>
+  </div>
+</div></header>
+
+<section class="login wrap" id="login">
+  <form id="loginForm">
+    <h2>Prijava</h2>
+    <p>Upiši admin lozinku iz Apps Scripta.</p>
+    <input type="password" id="pw" autocomplete="current-password" placeholder="Lozinka" aria-label="Lozinka" required>
+    <button type="submit" class="btn" id="loginBtn">Uđi</button>
+    <p class="msg" id="loginMsg" role="status"></p>
+  </form>
+</section>
+
+<main class="wrap" id="app" hidden>
+  <section class="kpis" id="kpis" aria-label="Ključni podaci"></section>
+
+  <section class="chartbox">
+    <div class="row"><h2 style="font-size:1.1rem">Posjete, zadnjih 14 dana</h2><span class="lbl" id="chartNote"></span></div>
+    <div class="chart" id="chart"></div>
+  </section>
+
+  <section style="display:grid;gap:14px">
+    <div class="bar-tools">
+      <div class="tabs" role="tablist">
+        <button type="button" class="tab on" data-t="prijave" role="tab" aria-selected="true">Nalozi <small id="nP">0</small></button>
+        <button type="button" class="tab" data-t="upiti" role="tab" aria-selected="false">Upiti <small id="nU">0</small></button>
+      </div>
+      <input type="search" id="q" placeholder="Traži ime, broj, uređaj, kvar…" aria-label="Pretraga">
+    </div>
+    <div class="list" id="list"></div>
+  </section>
+  <p class="foot" id="foot"></p>
+</main>
+
+<script>
+const ENDPOINT = 'https://script.google.com/macros/s/AKfycbyv0oOsEt64FaU36zxAKkZkQTahaW8kVsD_Pzx2FL0pVfmaxO3h9ttryOrXMpaX7bpP/exec';
+(() => {
+const $ = s => document.querySelector(s);
+const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let D = null, tab = 'prijave', key = '';
+try { key = sessionStorage.getItem('hz_admin') || ''; } catch (e) {}
+
+/* Vrijeme iz "19. 10. 2026. 00:12:33" ili ISO */
+function parseT(s) {
+  const m = String(s).match(/(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})\.?\s*(\d{1,2})?:?(\d{2})?/);
+  if (m) return new Date(+m[3], +m[2] - 1, +m[1], +(m[4] || 0), +(m[5] || 0)).getTime();
+  const t = Date.parse(s); return isNaN(t) ? 0 : t;
+}
+const telHref = p => { let d = String(p).replace(/[^\d+]/g, ''); if (d.startsWith('00')) d = '+' + d.slice(2); else if (d.startsWith('0')) d = '+385' + d.slice(1); return 'tel:' + d; };
+const isTel = p => String(p).replace(/\D/g, '').length >= 8;
+
+function rowsOf(t) {
+  if (!t || !t.headers) return [];
+  return t.rows.map((r, i) => { const o = { _i: i + 2 }; t.headers.forEach((h, j) => o[h] = r[j] || ''); o._t = parseT(o['vrijeme']); return o; })
+    .filter(o => Object.keys(o).some(k => k[0] !== '_' && k !== 'vrijeme' && o[k]))
+    .sort((a, b) => b._t - a._t);
+}
+const get = (o, ...ks) => { for (const k of ks) if (o[k]) return o[k]; return ''; };
+
+async function load() {
+  const r = await fetch(ENDPOINT + '?a=admin&k=' + encodeURIComponent(key), { cache: 'no-store' });
+  const j = await r.json();
+  if (!j.ok) throw new Error(j.error || 'Greška');
+  D = { prijave: rowsOf(j.prijave), upiti: rowsOf(j.upiti), posjete: (j.posjete && j.posjete.rows) || [], tablica: j.tablica };
+  $('#sheetLink').href = D.tablica || '#';
+  render();
+  $('#foot').textContent = 'Zadnje osvježeno: ' + new Date().toLocaleString('hr-HR');
+}
+
+function kpis() {
+  const day = 864e5, now = Date.now();
+  const v = {}; D.posjete.forEach(r => v[r[0]] = (v[r[0]] || 0) + (+r[1] || 0));
+  const fmt = d => { const x = new Date(d); return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); };
+  const today = v[fmt(now)] || 0;
+  let w = 0; for (let i = 0; i < 7; i++) w += v[fmt(now - i * day)] || 0;
+  const total = Object.values(v).reduce((a, b) => a + b, 0);
+  const newP = D.prijave.filter(p => now - p._t < 7 * day).length;
+  const newU = D.upiti.filter(p => now - p._t < 7 * day).length;
+  const K = [['Posjete danas', today, 'jedinstvene sesije', true], ['Posjete 7 dana', w, ''], ['Posjete ukupno', total, ''],
+    ['Nalozi ukupno', D.prijave.length, ''], ['Novi nalozi', newP, 'zadnjih 7 dana', newP > 0], ['Upiti', D.upiti.length, newU + ' u zadnjih 7 dana']];
+  $('#kpis').innerHTML = K.map(k => `<div class="kpi${k[3] ? ' hi' : ''}"><span class="lbl">${k[0]}</span><b>${k[1]}</b><span>${k[2]}</span></div>`).join('');
+  // graf
+  const days = [...Array(14)].map((_, i) => fmt(now - (13 - i) * day));
+  const vals = days.map(d => v[d] || 0), max = Math.max(4, ...vals);
+  const W = 700, H = 200, pl = 28, pb = 26, pt = 18, bw = (W - pl) / 14;
+  const y = n => pt + (H - pt - pb) * (1 - n / max);
+  const ticks = [0, Math.round(max / 2), max];
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Posjete po danu">`;
+  ticks.forEach(t => svg += `<line class="grid" x1="${pl}" x2="${W}" y1="${y(t)}" y2="${y(t)}"/><text x="${pl - 6}" y="${y(t) + 4}" text-anchor="end">${t}</text>`);
+  vals.forEach((n, i) => { const x = pl + i * bw + 4, h = H - pb - y(n);
+    svg += `<rect class="bar${i === 13 ? ' today' : ''}" x="${x}" y="${y(n)}" width="${bw - 8}" height="${Math.max(h, n ? 2 : 0)}" rx="3"/>`;
+    if (n) svg += `<text class="val" x="${x + (bw - 8) / 2}" y="${y(n) - 5}" text-anchor="middle">${n}</text>`;
+    const d = days[i].slice(8) + '.' + days[i].slice(5, 7) + '.';
+    svg += `<text x="${x + (bw - 8) / 2}" y="${H - 8}" text-anchor="middle">${d}</text>`; });
+  $('#chart').innerHTML = svg + '</svg>';
+  $('#chartNote').textContent = 'Žuto = danas';
+  $('#nP').textContent = D.prijave.length; $('#nU').textContent = D.upiti.length;
+}
+
+function card(o, kind) {
+  const ime = get(o, 'Ime i prezime') || 'Bez imena';
+  const titula = get(o, 'Titula');
+  const mail = get(o, 'E-pošta');
+  const tel = get(o, 'Kontakt broj mobitela', 'Telefon');
+  const isNew = Date.now() - o._t < 2 * 864e5;
+  const subj = kind === 'upiti' ? 'Horizont servis – odgovor na Vaš upit' : 'Horizont servis – Vaš servisni nalog';
+  const greet = (titula ? titula + ' ' : '') + ime;
+  const mhref = mail ? `mailto:${encodeURIComponent(mail)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent('Poštovani/a ' + greet + ',\n\n')}` : '';
+  let keyF;
+  if (kind === 'upiti') keyF = [['Poruka', get(o, 'Poruka')]];
+  else {
+    const ured = [get(o, 'Vrsta uređaja'), get(o, 'Moje računalo je')].filter(Boolean).join(' · ');
+    const model = [get(o, 'Proizvođač / serija laptopa', 'Proizvođač / serija desktop računala'), get(o, 'Točan model uređaja')].filter(Boolean).join(' · ');
+    keyF = [['Uređaj', ured], ['Model', model], ['Usluga', get(o, 'Koju uslugu trebate?')], ['Željeni datum', get(o, 'Željeni datum preuzimanja / početka servisa')],
+      ['Predaja', get(o, 'Kako želite predati uređaj?')], ['Grad / adresa', [get(o, 'Grad / mjesto'), get(o, 'Adresa')].filter(Boolean).join(', ')],
+      ['Brzi kontakt', get(o, 'Preferirani način brze komunikacije')], ['Zamjensko računalo', get(o, 'Trebate li zamjensko računalo tijekom servisa?')],
+      ['Opis kvara', get(o, 'Opišite problem ili kvar svojim riječima')]];
+  }
+  const all = Object.keys(o).filter(k => k[0] !== '_' && o[k]).map(k => `<dt>${esc(k)}</dt><dd>${esc(o[k])}</dd>`).join('');
+  return `<article class="card${isNew ? ' new' : ''}">
+    <div class="c-top">
+      <div class="c-name"><h3>${esc(ime)}${isNew ? '<span class="pill">Novo</span>' : ''}</h3><span class="c-meta">${esc(o['vrijeme'] || '')} · redak ${o._i}</span></div>
+      <div class="c-contact">
+        ${tel && isTel(tel) ? `<a class="tel" href="${telHref(tel)}"><i aria-hidden="true">☎</i>${esc(tel)}</a>` : tel ? `<span>${esc(tel)}</span>` : ''}
+        ${mail ? `<a href="${mhref}"><i aria-hidden="true">✉</i>${esc(mail)}</a>` : ''}
+      </div>
+      <div class="c-act">
+        ${tel && isTel(tel) ? `<a class="btn" href="${telHref(tel)}">Nazovi</a>` : ''}
+        ${mail ? `<a class="btn ghost" href="${mhref}">Pošalji mail</a>` : ''}
+      </div>
+    </div>
+    <dl class="c-key">${keyF.filter(f => f[1]).map(f => `<div><dt class="lbl">${f[0]}</dt><dd>${esc(f[1])}</dd></div>`).join('')}</dl>
+    <details class="c-all"><summary class="lbl" style="cursor:pointer">Svi podaci iz tablice</summary><dl style="margin-top:12px">${all}</dl></details>
+  </article>`;
+}
+
+function render() {
+  if (!D) return;
+  kpis();
+  const q = $('#q').value.trim().toLowerCase();
+  const rows = D[tab].filter(o => !q || Object.values(o).join(' ').toLowerCase().includes(q));
+  $('#list').innerHTML = rows.length ? rows.map(o => card(o, tab)).join('') :
+    `<p class="empty">${q ? 'Nema rezultata za „' + esc(q) + '”.' : tab === 'prijave' ? 'Još nema servisnih naloga.' : 'Još nema upita.'}</p>`;
+}
+
+function showApp() { $('#login').hidden = true; $('#app').hidden = false; $('#hdrA').hidden = false; }
+function showLogin(msg) { $('#login').hidden = false; $('#app').hidden = true; $('#hdrA').hidden = true; $('#loginMsg').textContent = msg || ''; $('#loginMsg').className = 'msg' + (msg ? ' bad' : ''); $('#pw').focus(); }
+
+$('#loginForm').addEventListener('submit', async e => {
+  e.preventDefault(); key = $('#pw').value; const b = $('#loginBtn');
+  b.disabled = true; b.textContent = 'Provjeravam…'; $('#loginMsg').textContent = '';
+  try { await load(); try { sessionStorage.setItem('hz_admin', key); } catch (e) {} showApp(); }
+  catch (err) { showLogin(String(err.message).includes('lozinka') ? 'Pogrešna lozinka.' : 'Podaci se ne mogu učitati. Provjeri vezu i pokušaj ponovno.'); }
+  b.disabled = false; b.textContent = 'Uđi';
+});
+$('#logout').onclick = () => { try { sessionStorage.removeItem('hz_admin'); } catch (e) {} key = ''; D = null; $('#pw').value = ''; showLogin(); };
+$('#refresh').onclick = async () => { const b = $('#refresh'); b.textContent = 'Osvježavam…'; try { await load(); } catch (e) {} b.textContent = 'Osvježi'; };
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+  tab = t.dataset.t; document.querySelectorAll('.tab').forEach(x => { x.classList.toggle('on', x === t); x.setAttribute('aria-selected', x === t); }); render(); });
+$('#q').addEventListener('input', render);
+
+if (key) load().then(showApp).catch(() => showLogin()); else showLogin();
+setInterval(() => { if (D && !document.hidden) load().catch(() => {}); }, 120000);
+})();
+</script>
+</body>
+</html>

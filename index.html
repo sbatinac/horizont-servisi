@@ -1098,5 +1098,10 @@ render(false);
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !shell.hidden && !document.querySelector('.modal.open')) close(); });
 })();
 </script>
+<script>
+/* BROJAČ POSJETA: jednom po sesiji */
+(() => { try { if (sessionStorage.getItem('hz_hit')) return; sessionStorage.setItem('hz_hit', '1'); } catch (e) {}
+  if (typeof ENDPOINT === 'string' && !ENDPOINT.startsWith('UPISI')) fetch(ENDPOINT + '?a=hit', { mode: 'no-cors' }).catch(() => {}); })();
+</script>
 </body>
 </html>

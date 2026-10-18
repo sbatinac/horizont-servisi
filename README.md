@@ -44,3 +44,9 @@ Obrazac je dio stranice (sekcija *Servisni nalog*). Prijave šalje u Google tabl
    ```
 
 Stupci u tablici nastaju sami pri prvoj prijavi. Ako kasnije mijenjaš kod skripte: **Deploy → Manage deployments → Edit → Version: New version**, inače ostaje stara verzija.
+
+## 5. Admin stranica
+`https://sbatinac.github.io/horizont-servisi/admin.html`, zaključana lozinkom.
+Prikazuje posjete (danas, 7 dana, ukupno, graf 14 dana), sve servisne naloge i upite iz tablice. Klik na broj zove, klik na mail otvara poruku.
+
+Lozinku upiši **samo u Apps Scriptu** (`const ADMIN_KEY = '...'`), nikad u ovaj repo, jer je repo javan. Nakon promjene: Implementiraj → Upravljanje implementacijama → ✏️ → Nova verzija.
