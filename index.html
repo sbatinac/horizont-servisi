@@ -184,7 +184,10 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .strip::before{top:0;background:linear-gradient(var(--bg),transparent)}
 .strip::after{bottom:0;background:linear-gradient(transparent,var(--surface))}
 .dust-side{display:grid;gap:12px;min-width:0}
-.dust-img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+.dust-bg{background:linear-gradient(90deg,rgba(14,14,13,.96) 0%,rgba(14,14,13,.82) 50%,rgba(14,14,13,.55) 100%),var(--dust) center/cover no-repeat,var(--surface)}
+.dust-bg .chain div{background:rgba(23,23,22,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+@media (max-width:900px){.dust-bg{background:linear-gradient(rgba(14,14,13,.9),rgba(14,14,13,.78)),var(--dust) center/cover no-repeat,var(--surface)}}
+.dust-img-x{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
 </style>
 
 </head>
@@ -257,7 +260,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 
 <div class="strip"><img src="radionica.webp" alt="Servisni stol: nanošenje termalne paste na matičnu ploču laptopa" width="1584" height="672" loading="lazy"></div>
 
-<section class="alt"><div class="wrap dust">
+<section class="alt dust-bg" style="--dust:url('prasina.webp')"><div class="wrap dust">
   <div>
     <span class="lbl">Tihi uzrok kvarova</span>
     <h2 style="margin:12px 0 18px">Prašina i stara termalna pasta</h2>
@@ -266,7 +269,6 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
     <p style="color:var(--ink);font-weight:600">Redovito čišćenje nije luksuz. To je osnovna higijena računala.</p>
   </div>
   <div class="dust-side">
-  <img class="dust-img" src="prasina.webp" alt="Ventilator i hladnjak procesora zatrpani prašinom" width="1200" height="896" loading="lazy">
   <div class="chain" aria-label="Posljedice">
     <div><span class="lbl">Temp ↑</span>Pregrijavanje</div>
     <div><span class="lbl">Brzina ↓</span>Smanjenje radne brzine</div>
