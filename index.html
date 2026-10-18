@@ -284,6 +284,13 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 @media (prefers-reduced-motion:reduce){.warn{animation:none}}
 .k-share{display:grid;gap:8px;padding-top:18px;border-top:1px solid var(--line)}
 .k-sh-t{color:var(--muted);font-size:.95rem}
+.rate{position:relative;overflow:hidden;transition:transform .25s ease,box-shadow .25s ease;will-change:transform}
+.rate>*{position:relative;z-index:1}
+.rate::after{content:"";position:absolute;inset:-40% auto -40% -60%;width:45%;z-index:0;pointer-events:none;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-18deg) translateX(0);animation:shine 5.5s ease-in-out infinite}
+@keyframes shine{0%,62%{transform:skewX(-18deg) translateX(0)}82%,100%{transform:skewX(-18deg) translateX(420%)}}
+.rate.lift{box-shadow:0 22px 50px -18px rgba(254,229,3,.55)}
+#rateNum{display:inline-block;min-width:2ch;text-align:right}
+@media (prefers-reduced-motion:reduce){.rate::after{animation:none;display:none}.rate{transition:none}}
 </style>
 
 <!-- Microsoft Clarity -->
@@ -425,7 +432,7 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
   <div class="prices">
     <div class="rate">
       <span class="lbl">Cijena rada</span>
-      <b>55 €<small> / sat</small></b>
+      <b><span id="rateNum">55</span> €<small> / sat</small></b>
       <p>Točna cijena usluge dogovara se unaprijed, ovisno o vrsti i složenosti zahvata.</p>
     </div>
     <div class="rent">
@@ -1034,6 +1041,30 @@ render(false);
     try { await navigator.clipboard.writeText(url); c.textContent = 'Link kopiran'; } catch (e) { c.textContent = url; }
     setTimeout(() => c.textContent = 'Kopiraj link', 2500);
   };
+})();
+</script>
+<script>
+/* CIJENA: brojač, odsjaj (CSS) i nagib na mišu */
+(() => {
+  const box = document.querySelector('.rate'), num = document.getElementById('rateNum'); if (!box || !num) return;
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!still && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver(es => es.forEach(e => {
+      if (!e.isIntersecting) return; io.disconnect();
+      const end = 55, t0 = performance.now(), d = 1300;
+      const tick = t => { const k = Math.min(1, (t - t0) / d), v = Math.round(end * (1 - Math.pow(1 - k, 3))); num.textContent = v; if (k < 1) requestAnimationFrame(tick); };
+      num.textContent = '0'; requestAnimationFrame(tick);
+    }), { threshold: .6 });
+    io.observe(box);
+  }
+  if (!still && matchMedia('(hover: hover)').matches) {
+    box.addEventListener('mousemove', e => {
+      const r = box.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+      box.style.transform = `perspective(800px) rotateX(${(-y * 7).toFixed(2)}deg) rotateY(${(x * 9).toFixed(2)}deg) translateY(-4px)`;
+      box.classList.add('lift');
+    });
+    box.addEventListener('mouseleave', () => { box.style.transform = ''; box.classList.remove('lift'); });
+  }
 })();
 </script>
 </body>
