@@ -252,6 +252,16 @@ main{padding-block:24px 60px;display:grid;gap:28px}
 @keyframes alPuls{50%{box-shadow:0 10px 40px rgba(0,0,0,.6),0 0 0 12px rgba(254,229,3,0)}}
 @keyframes alZvono{from{transform:rotate(-14deg)}to{transform:rotate(14deg)}}
 #alarmBtn.on{border-color:var(--y);color:var(--y)}
+.bmod{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:150;display:grid;place-items:center;padding:16px}
+.bmod-in{background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--y);border-radius:12px;padding:22px;width:min(460px,100%);display:grid;gap:12px}
+.bmod-in h3{margin:0;font:800 1.3rem var(--display)}
+.bmod-in label{display:grid;gap:6px;font-weight:600}
+.bmod-in input{background:var(--bg);border:1.5px solid #3A3A35;color:var(--ink);padding:10px 12px;border-radius:7px;font:inherit;min-width:0}
+.bmod-in input:focus{outline:none;border-color:var(--y)}
+.brrow{display:flex;align-items:center;gap:8px}.brrow b{font:600 1.2rem var(--mono)}.brrow input{width:120px;font:600 1.2rem var(--mono)}
+.bmod-in .frow{display:flex;gap:10px}.bmod-in .pmsg{margin:0;font-weight:600}.bmod-in .pmsg.bad{color:var(--bad)}.bmod-in .pmsg.ok{color:#9BE37B}
+.btn.danger-fill{background:#C0392B;color:#fff;border-color:#C0392B}
+.c-panel .pw2{max-width:280px}
 </style>
 </head>
 <body>
@@ -262,6 +272,7 @@ main{padding-block:24px 60px;display:grid;gap:28px}
     <a class="btn ghost" id="sheetLink" target="_blank" rel="noopener">Otvori tablicu</a>
     <a class="btn ghost" href="./" target="_blank" rel="noopener">Web stranica</a>
     <button type="button" class="btn ghost" id="jutro" title="Svaki dan u 7:30 stiže ti mail s pregledom dana">☀ Jutarnji mail</button>
+    <button type="button" class="btn ghost" id="brBtn" title="Brojevi naloga">⚙ Brojevi naloga</button>
     <button type="button" class="btn ghost" id="alarmBtn" title="Zvučni alarm kad stigne novi nalog ili upit (dok je admin otvoren)">🔔 Alarm</button>
     <button type="button" class="btn ghost" id="logout">Odjava</button>
   </div>
@@ -401,7 +412,7 @@ async function load() {
   D = { prijave: rowsOf(j.prijave), upiti: rowsOf(j.upiti), posjete: (j.posjete && j.posjete.rows) || [], tablica: j.tablica, dijelovi: dijeloviOf(j.dijelovi) };
   if (!load._fixed) { load._fixed = true; setTimeout(() => fixStale().catch(() => {}), 0); }
   $('#sheetLink').href = D.tablica || '#';
-  D.kap = j.kapacitet || null; D.dani = j.dani || {}; if (!KAPED_DIRTY) KAPED = D.kap ? JSON.parse(JSON.stringify(D.kap)) : null; VLASTITI = Array.isArray(j.predlosci) ? j.predlosci : []; D.jutro = !!j.jutro; $('#jutro').textContent = '☀ Jutarnji mail: ' + (D.jutro ? 'uključen' : 'isključen'); $('#jutro').classList.toggle('on', D.jutro);
+  D.brojac = j.brojac || null; D.kap = j.kapacitet || null; D.dani = j.dani || {}; if (!KAPED_DIRTY) KAPED = D.kap ? JSON.parse(JSON.stringify(D.kap)) : null; VLASTITI = Array.isArray(j.predlosci) ? j.predlosci : []; D.jutro = !!j.jutro; $('#jutro').textContent = '☀ Jutarnji mail: ' + (D.jutro ? 'uključen' : 'isključen'); $('#jutro').classList.toggle('on', D.jutro);
   render();
   $('#foot').textContent = 'Zadnje osvježeno: ' + new Date().toLocaleString('hr-HR');
 }
@@ -472,6 +483,13 @@ function panelHTML(o, kind, p) {
       <div class="frow"><input class="tplName" placeholder="Naziv novog predloška, npr. Vraćen bez popravka" style="flex:1;min-width:220px"><button type="button" class="btn ghost" data-do="saveTpl">★ Spremi tekst kao novi predložak</button></div>
       <p class="foot" style="margin:0">U predlošku možeš koristiti: {pozdrav} {ime} {nr} {uredaj} {termin} {iznos} {status} {jamstvo}. Popunjavaju se sami za svakog klijenta.</p>
       <div class="frow">${tel && isTel(tel) ? `<a class="btn" data-send="wa" target="_blank" rel="noopener">WhatsApp</a><a class="btn ghost" data-send="vb">Viber</a><a class="btn ghost" data-send="sms">SMS</a>` : ''}${mail ? `<a class="btn ghost" data-send="mail">E-mail</a>` : ''}<button type="button" class="btn ghost" data-do="copyMsg">Kopiraj tekst</button><button type="button" class="btn ghost" data-do="close">Zatvori</button></div>
+      <p class="pmsg" role="status"></p></div>`;
+  }
+  if (p === 'trajno') {
+    return `<div class="c-panel" data-p="trajno"><h4>⛔ Trajno brisanje</h4>
+      <p class="foot" style="margin:0;color:#FF8A7A">${kind === 'upiti' ? 'Upit' : 'Nalog ' + esc(nalogNr(o))} će se izbrisati iz tablice zauvijek (i termin iz kalendara). Ovo se ne može vratiti. Slike i PDF u arhivi na Driveu ostaju.</p>
+      <label>Upiši admin lozinku za potvrdu<input type="password" class="pw2" autocomplete="current-password"></label>
+      <div class="frow"><button type="button" class="btn danger-fill" data-do="saveTrajno">Trajno obriši</button><button type="button" class="btn ghost" data-do="close">Odustani</button></div>
       <p class="pmsg" role="status"></p></div>`;
   }
   if (p === 'odbij') {
@@ -1046,8 +1064,9 @@ function card(o, kind) {
   const all = Object.keys(o).filter(k => k[0] !== '_' && o[k] && !['Kalendar ID', 'Stavke', 'Rad PDV', 'Evidencija rada', 'Slike', 'Mapa ID', 'PDF ID'].includes(k)).map(k => `<dt>${esc(k)}</dt><dd>${esc(o[k])}</dd>`).join('');
   const id = kind + '-' + o._i, p = open[id];
   const arch = st === 'Arhivirano';
-  const tail = arch ? `<button type="button" class="btn ghost" data-do="unarch">↩ Vrati iz arhive</button>`
-    : `${st !== 'Odbijen' && !done ? '<button type="button" class="btn ghost" data-do="odbij">✕ Odbij nalog</button>' : ''}<button type="button" class="btn ghost danger" data-do="arch">🗑 Obriši (u arhivu)</button>`;
+  const trajno = `<button type="button" class="btn ghost danger" data-do="trajno">⛔ Trajno obriši</button>`;
+  const tail = arch ? `<button type="button" class="btn ghost" data-do="unarch">↩ Vrati iz arhive</button>${trajno}`
+    : `${st !== 'Odbijen' && !done ? '<button type="button" class="btn ghost" data-do="odbij">✕ Odbij nalog</button>' : ''}<button type="button" class="btn ghost danger" data-do="arch">🗑 Obriši (u arhivu)</button>${trajno}`;
   const acts = arch ? tail : kind === 'upiti'
     ? (dio && !closed ? (dioSt === 'Rezervirano' ? `<button type="button" class="btn ghost" data-do="dioSt" data-dio="${esc(dioId)}" data-st="Na prodaji">↩ Vrati dio na prodaju</button>` : (dioSt || 'Na prodaji') === 'Na prodaji' ? `<button type="button" class="btn" data-do="dioSt" data-dio="${esc(dioId)}" data-st="Rezervirano">📌 Rezerviraj dio</button>` : '') : '')
       + (closed ? `<button type="button" class="btn ghost" data-do="reopen">Vrati u otvorene</button>` : `<button type="button" class="btn ghost" data-do="quickDone">✓ Riješeno</button>`) + tail
@@ -1248,6 +1267,14 @@ document.addEventListener('click', async e => {
     } catch (err) { b.disabled = false; b.textContent = 'Potvrdi: odbij nalog'; msg.className = 'pmsg bad'; msg.textContent = err.message; }
     return;
   }
+  if (act === 'trajno') { open[id] = open[id] === 'trajno' ? null : 'trajno'; render(); const n = document.querySelector('#c-' + CSS.escape(id) + ' .pw2'); if (n) n.focus(); return; }
+  if (act === 'saveTrajno') {
+    const msg = c.querySelector('[data-p="trajno"] .pmsg'), pw = c.querySelector('.pw2').value; if (!pw) { msg.className = 'pmsg bad'; msg.textContent = 'Upiši lozinku.'; return; }
+    b.disabled = true; b.textContent = 'Brišem…';
+    try { await stopIfRunning(o, base); await post(Object.assign({}, base, { akcija: 'brisi_nalog', lozinka: pw })); delete open[id]; await load(); }
+    catch (err) { b.disabled = false; b.textContent = 'Trajno obriši'; msg.className = 'pmsg bad'; msg.textContent = err.message; }
+    return;
+  }
   if (act === 'arch') {
     if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Sigurno? Klikni opet'; setTimeout(() => { if (b.isConnected) { b.dataset.sure = ''; b.textContent = '🗑 Obriši (u arhivu)'; } }, 3500); return; }
     b.disabled = true;
@@ -1351,7 +1378,41 @@ $('#calToday').onclick = () => { calM = new Date(); calM.setDate(1); renderCal()
 
 if (key) load().then(showApp).catch(() => showLogin()); else showLogin();
 setInterval(() => { if (D && !document.hidden && !Object.values(open).some(Boolean) && !Object.keys(confirmAsk).length) load().catch(() => {}); }, 120000);
-window.HZ = { get key() { return key; }, get D() { return D; }, load: () => load() };
+window.HZ = { get key() { return key; }, get D() { return D; }, load: () => load(), get brojac() { return D && D.brojac; }, setBrojac: b => { if (D) D.brojac = b; } };
+})();
+</script>
+<div class="bmod" id="brMod" hidden role="dialog" aria-modal="true" aria-labelledby="brT">
+  <div class="bmod-in">
+    <h3 id="brT">Brojevi naloga</h3>
+    <p class="foot" id="brInfo"></p>
+    <label>Sljedeći nalog će dobiti broj<span class="brrow"><b id="brPre">RN-2026-</b><input type="number" id="brN" min="1" max="9999"></span></label>
+    <p class="foot">Za početak od nule upiši <b>1</b>. Ako neki broj već postoji u tablici, sustav ga sam preskoči, pa dva naloga nikad nemaju isti broj (zato prvo trajno obriši probne naloge).</p>
+    <label>Admin lozinka za potvrdu<input type="password" id="brPw" autocomplete="current-password"></label>
+    <div class="frow"><button type="button" class="btn" id="brSave">Spremi</button><button type="button" class="btn ghost" id="brClose">Zatvori</button></div>
+    <p class="pmsg" id="brMsg" role="status"></p>
+  </div>
+</div>
+<script>
+(() => {
+  const M = document.getElementById('brMod'), $b = id => document.getElementById(id);
+  const fill = b => { if (!b) { $b('brInfo').textContent = 'Podaci o brojaču stižu s novom verzijom skripte.'; return; }
+    $b('brPre').textContent = 'RN-' + b.god + '-'; $b('brN').value = b.sljedeci;
+    $b('brInfo').textContent = 'Zadnji izdani broj ove godine: RN-' + b.god + '-' + String(b.zadnji).padStart(4, '0') + '. Sljedeći: RN-' + b.god + '-' + String(b.sljedeci).padStart(4, '0') + (b.preskace ? ' (neki brojevi su zauzeti pa se preskaču)' : '') + '.'; };
+  $b('brBtn').onclick = () => { fill(window.HZ && HZ.brojac); $b('brPw').value = ''; $b('brMsg').textContent = ''; M.hidden = false; $b('brN').focus(); };
+  $b('brClose').onclick = () => { M.hidden = true; };
+  M.addEventListener('click', e => { if (e.target === M) M.hidden = true; });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') M.hidden = true; });
+  $b('brSave').onclick = async () => {
+    const m = $b('brMsg'), b = $b('brSave'), n = +$b('brN').value, pw = $b('brPw').value;
+    m.className = 'pmsg bad'; if (!n || n < 1) { m.textContent = 'Upiši broj od 1 naviše.'; return; } if (!pw) { m.textContent = 'Upiši lozinku.'; return; }
+    b.disabled = true; b.textContent = 'Spremam…';
+    try {
+      const r = await fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ _vrsta: 'admin', k: HZ.key, akcija: 'brojac', sljedeci: n, lozinka: pw }) });
+      const j = await r.json(); if (!j.ok) throw new Error(j.error || 'Spremanje nije uspjelo.');
+      HZ.setBrojac(j.brojac); fill(j.brojac); $b('brPw').value = ''; m.className = 'pmsg ok'; m.textContent = 'Spremljeno. Sljedeći nalog: RN-' + j.brojac.god + '-' + String(j.brojac.sljedeci).padStart(4, '0') + '.';
+    } catch (err) { m.textContent = err.message; }
+    b.disabled = false; b.textContent = 'Spremi';
+  };
 })();
 </script>
 <div class="alarm" id="alarm" hidden role="alert">

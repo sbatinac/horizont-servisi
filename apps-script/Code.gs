@@ -42,8 +42,7 @@ function doPost(e) {
       if (pun) return json_({ ok: false, puno: true, error: pun });
     }
     const sheet = getSheet_(upit ? SHEET_UPITI : SHEET_NAME);
-    const nextRow = Math.max(sheet.getLastRow(), 1) + 1;
-    const nr = upit ? '' : 'RN-' + Utilities.formatDate(new Date(), TZ, 'yyyy') + '-' + ('000' + (nextRow - 1)).slice(-4);
+    const nr = upit ? '' : noviBrojNaloga_(sheet);
     if (nr) data['Broj naloga [broj_naloga]'] = nr;
     const row = appendRow_(sheet, data);
     notify_(data, row, upit);
@@ -79,7 +78,7 @@ function doGet(e) {
       return json_({ ok: false, error: 'Pogrešna lozinka.' });
     }
     try {
-      return json_({ ok: true, prijave: table_(SHEET_NAME), upiti: table_(SHEET_UPITI), posjete: table_(SHEET_POSJETE), dijelovi: table_(SHEET_DIJELOVI), predlosci: JSON.parse(PropertiesService.getScriptProperties().getProperty('predlosci') || '[]'), tablica: SpreadsheetApp.getActiveSpreadsheet().getUrl(), jutro: jutroAktivno_(), kapacitet: kapPravila_(), dani: kapDani_(kapPravila_(), kapZauzeto_(), 400) });
+      return json_({ ok: true, prijave: table_(SHEET_NAME), upiti: table_(SHEET_UPITI), posjete: table_(SHEET_POSJETE), dijelovi: table_(SHEET_DIJELOVI), predlosci: JSON.parse(PropertiesService.getScriptProperties().getProperty('predlosci') || '[]'), tablica: SpreadsheetApp.getActiveSpreadsheet().getUrl(), jutro: jutroAktivno_(), brojac: brojacInfo_(), kapacitet: kapPravila_(), dani: kapDani_(kapPravila_(), kapZauzeto_(), 400) });
     } catch (err) { return json_({ ok: false, error: 'Greška u skripti: ' + err.message + ' – u Apps Scriptu pokreni funkciju odobriDozvole i odobri pristup.' }); }
   }
   return json_({ ok: true, servis: 'Horizont LHB – prijave' });
@@ -95,6 +94,14 @@ function admin_(d) {
   if (d.akcija === 'jutro_test') { jutarnjiSazetak(); return { ok: true }; }
   if (String(d.akcija).indexOf('dio_') === 0) return dijelovi_(d);
   if (d.akcija === 'kapacitet') return kapSpremi_(d.pravila || {});
+  if (d.akcija === 'brojac') {
+    if (d.lozinka !== ADMIN_KEY) { Utilities.sleep(800); return { ok: false, error: 'Pogrešna lozinka za potvrdu.' }; }
+    const n = Math.floor(Number(d.sljedeci));
+    if (!n || n < 1 || n > 9999) return { ok: false, error: 'Upiši broj od 1 do 9999.' };
+    const sh = getSheet_(SHEET_NAME); popuniBrojeve_(sh);
+    PropertiesService.getScriptProperties().setProperty('nalog_' + Utilities.formatDate(new Date(), TZ, 'yyyy'), String(n - 1));
+    return { ok: true, brojac: brojacInfo_() };
+  }
   if (d.akcija === 'predlosci') { PropertiesService.getScriptProperties().setProperty('predlosci', JSON.stringify((d.list || []).slice(0, 60))); return { ok: true }; }
   const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(d.list === 'upiti' ? SHEET_UPITI : SHEET_NAME);
   const row = Number(d.red);
@@ -103,6 +110,14 @@ function admin_(d) {
   const ci = H.indexOf('Ime i prezime');
   if (ci > -1 && d.ime !== undefined && String(sh.getRange(row, ci + 1).getDisplayValue()) !== String(d.ime)) {
     return { ok: false, error: 'Tablica se promijenila u međuvremenu. Osvježi stranicu i pokušaj ponovno.' };
+  }
+  if (d.akcija === 'brisi_nalog') {
+    if (d.lozinka !== ADMIN_KEY) { Utilities.sleep(800); return { ok: false, error: 'Pogrešna lozinka za potvrdu.' }; }
+    if (d.list !== 'upiti') popuniBrojeve_(sh);
+    const kid = cell_(sh, row, H, 'Kalendar ID');
+    if (kid) { try { const ev = CalendarApp.getDefaultCalendar().getEventById(kid); if (ev) ev.deleteEvent(); } catch (e) {} }
+    sh.deleteRow(row);
+    return { ok: true };
   }
   if (d.akcija === 'update') {
     const f = Object.assign({}, d.fields || {});
@@ -549,4 +564,49 @@ function odobriDozvole() {
   MailApp.getRemainingDailyQuota();
   PropertiesService.getScriptProperties().getKeys();
   Logger.log('Sve dozvole su odobrene.');
+}
+
+// ===== BROJEVI NALOGA (brojač po godini; može se ručno postaviti u adminu) =====
+function popuniBrojeve_(sh) { // stari reci bez upisanog broja dobiju broj kakav su imali (prema retku), da se ne pomaknu nakon brisanja
+  if (!sh || sh.getLastRow() < 2) return;
+  const v = sh.getDataRange().getValues(), H = v[0];
+  let iN = H.indexOf('Broj naloga');
+  if (iN < 0) { iN = H.length; sh.getRange(1, iN + 1).setValue('Broj naloga').setFontWeight('bold').setBackground('#FEE503'); }
+  const iT = H.indexOf('vrijeme');
+  for (let r = 1; r < v.length; r++) {
+    if (v[r][iN]) continue;
+    if (!v[r].some(String)) continue;
+    const m = iT > -1 ? String(v[r][iT]).match(/(20\d\d)/) : null;
+    sh.getRange(r + 1, iN + 1).setValue('RN-' + (m ? m[1] : Utilities.formatDate(new Date(), TZ, 'yyyy')) + '-' + ('000' + r).slice(-4));
+  }
+}
+function brojeviGodine_(sh, god) {
+  const out = {}; if (!sh || sh.getLastRow() < 2) return out;
+  const v = sh.getDataRange().getDisplayValues(), iN = v[0].indexOf('Broj naloga'); if (iN < 0) return out;
+  v.slice(1).forEach(r => { const m = String(r[iN]).match(/^RN-(\d{4})-(\d+)$/); if (m && m[1] === god) out[+m[2]] = true; });
+  return out;
+}
+function brojacZadnji_(sh, god) {
+  const props = PropertiesService.getScriptProperties(), k = 'nalog_' + god;
+  let cur = props.getProperty(k);
+  if (cur === null) { // prvi put: nastavi od najvećeg postojećeg broja (ili od broja redaka za stare naloge)
+    popuniBrojeve_(sh);
+    const used = Object.keys(brojeviGodine_(sh, god)).map(Number);
+    cur = used.length ? Math.max.apply(null, used) : 0;
+    props.setProperty(k, String(cur));
+  }
+  return Number(cur) || 0;
+}
+function noviBrojNaloga_(sh) {
+  const god = Utilities.formatDate(new Date(), TZ, 'yyyy'), used = brojeviGodine_(sh, god);
+  let n = brojacZadnji_(sh, god) + 1;
+  while (used[n]) n++; // nikad dva ista broja
+  PropertiesService.getScriptProperties().setProperty('nalog_' + god, String(n));
+  return 'RN-' + god + '-' + ('000' + n).slice(-4);
+}
+function brojacInfo_() {
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME), god = Utilities.formatDate(new Date(), TZ, 'yyyy');
+  const zadnji = brojacZadnji_(sh, god), used = brojeviGodine_(sh, god);
+  let n = zadnji + 1; while (used[n]) n++;
+  return { god: god, zadnji: zadnji, sljedeci: n, preskace: n !== zadnji + 1 };
 }
