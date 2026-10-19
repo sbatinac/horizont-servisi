@@ -1029,7 +1029,9 @@ function card(o, kind) {
   if (o._term && !done) body += 'potvrđujemo termin servisa:' + termTxt + '.\n\n';
   const mhref = mail ? `mailto:${encodeURIComponent(mail)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}` : '';
   let keyF;
+  const dioId = kind === 'upiti' ? get(o, 'ID dijela') : '', dio = dioId ? (D.dijelovi || []).find(x => x['ID'] === dioId) : null, dioSt = dio ? dio['Status'] : '';
   if (kind === 'upiti') keyF = [['Poruka', get(o, 'Poruka')]];
+  if (dioId) keyF.unshift(['🛒 Tech Outlet', (get(o, 'Tech Outlet dio') || dioId) + (dio ? ' · trenutno: ' + (dioSt || 'Na prodaji') : ' · dio više nije u popisu')]);
   else keyF = [['Uređaj', [get(o, 'Vrsta uređaja'), get(o, 'Moje računalo je')].filter(Boolean).join(' · ')],
     ['Model', [get(o, 'Proizvođač / serija laptopa', 'Proizvođač / serija desktop računala'), get(o, 'Točan model uređaja')].filter(Boolean).join(' · ')],
     ['Usluga', get(o, 'Koju uslugu trebate?')], ['Željeni datum', get(o, 'Željeni datum preuzimanja / početka servisa')], ['Predaja', get(o, 'Kako želite predati uređaj?')],
@@ -1046,12 +1048,13 @@ function card(o, kind) {
   const tail = arch ? `<button type="button" class="btn ghost" data-do="unarch">↩ Vrati iz arhive</button>`
     : `${st !== 'Odbijen' && !done ? '<button type="button" class="btn ghost" data-do="odbij">✕ Odbij nalog</button>' : ''}<button type="button" class="btn ghost danger" data-do="arch">🗑 Obriši (u arhivu)</button>`;
   const acts = arch ? tail : kind === 'upiti'
-    ? (closed ? `<button type="button" class="btn ghost" data-do="reopen">Vrati u otvorene</button>` : `<button type="button" class="btn ghost" data-do="quickDone">✓ Riješeno</button>`) + tail
+    ? (dio && !closed ? (dioSt === 'Rezervirano' ? `<button type="button" class="btn ghost" data-do="dioSt" data-dio="${esc(dioId)}" data-st="Na prodaji">↩ Vrati dio na prodaju</button>` : (dioSt || 'Na prodaji') === 'Na prodaji' ? `<button type="button" class="btn" data-do="dioSt" data-dio="${esc(dioId)}" data-st="Rezervirano">📌 Rezerviraj dio</button>` : '') : '')
+      + (closed ? `<button type="button" class="btn ghost" data-do="reopen">Vrati u otvorene</button>` : `<button type="button" class="btn ghost" data-do="quickDone">✓ Riješeno</button>`) + tail
     : (closed ? `<button type="button" class="btn ghost" data-do="reopen">${st === 'Odbijen' ? 'Vrati u otvorene' : 'Vrati u rad'}</button>`
       : `<button type="button" class="btn ghost" data-do="termin">${o._term ? 'Promijeni termin' : '📅 Zakaži termin'}</button><button type="button" class="btn ghost" data-do="zavrsi">🧾 Obračun / Riješeno</button>${o._term ? '<button type="button" class="btn ghost" data-do="otkazi">Otkaži termin</button>' : ''}`) + tail;
   return `<article class="card${isNew ? ' new' : ''}${closed ? ' done' : ''}" id="c-${id}" data-id="${id}" data-kind="${kind}" data-row="${o._i}">
     <div class="c-top">
-      <div class="c-name"><h3>${esc(ime)}${isNew ? '<span class="pill">Novo</span>' : ''}${stChip(st)}${uw.length ? '<span class="st jam">Jamstvo</span>' : ''}</h3><span class="c-meta">${esc(nalogNr(o))} · ${esc(o['vrijeme'] || '')}</span>
+      <div class="c-name"><h3>${esc(ime)}${isNew ? '<span class="pill">Novo</span>' : ''}${dioId ? '<span class="pill" style="background:#2A3B1F;color:#9BE37B">🛒 Tech Outlet</span>' : ''}${stChip(st)}${uw.length ? '<span class="st jam">Jamstvo</span>' : ''}</h3><span class="c-meta">${esc(nalogNr(o))} · ${esc(o['vrijeme'] || '')}</span>
         ${o._term ? `<span class="c-term">📅${esc(termTxt)}</span>` : ''}</div>
       <div class="c-contact">
         ${tel && isTel(tel) ? `<a class="tel" href="${telHref(tel)}"><i aria-hidden="true">☎</i>${esc(tel)}</a>` : tel ? `<span>${esc(tel)}</span>` : ''}
@@ -1201,6 +1204,12 @@ document.addEventListener('click', async e => {
   const o = D[kind].find(x => x._i === row); if (!o) return;
   const act = b.dataset.do, msg = c.querySelector('.pmsg');
   const base = { list: kind, red: row, ime: get(o, 'Ime i prezime') };
+  if (act === 'dioSt') {
+    b.disabled = true; const t = b.textContent; b.textContent = 'Spremam…';
+    try { await post({ akcija: 'dio_status', id: b.dataset.dio, status: b.dataset.st }); await load(); }
+    catch (err) { b.disabled = false; b.textContent = t; alertBox(c, err.message); }
+    return;
+  }
   const run = async (body, okTxt) => {
     b.disabled = true; const t = b.textContent; b.textContent = 'Spremam…';
     try { await post(Object.assign({}, base, body)); if (act !== 'work') delete open[id]; await load(); }

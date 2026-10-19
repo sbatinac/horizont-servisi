@@ -277,7 +277,7 @@ function notify_(data, row, upit) {
   };
   const uredaj = g('uredaj') + (g('tip_racunala') ? ' · ' + g('tip_racunala') : '');
   const subject = upit
-    ? 'Novi upit s web stranice: ' + (g('ime') || 'bez imena')
+    ? (g('dio_id') ? '🛒 Zainteresiran za ' + g('dio') + ' – ' + (g('ime') || 'bez imena') : 'Novi upit s web stranice: ' + (g('ime') || 'bez imena'))
     : 'Nova prijava servisa: ' + (g('ime') || 'bez imena') + ' – ' + (uredaj || 'uređaj');
   const lines = Object.keys(data)
     .filter(k => data[k] !== '' && data[k] !== undefined)
@@ -312,7 +312,14 @@ function potvrdaKlijentu_(data, nr, upit) {
   const ime = [g('titula'), g('ime')].filter(String).join(' ');
   const box = 'font-family:Arial,sans-serif;font-size:15px;line-height:1.55;color:#111;max-width:560px';
   let subject, html;
-  if (upit) {
+  if (upit && g('dio_id')) {
+    subject = 'Zaprimili smo Vaš interes: ' + g('dio') + ' – Tech Outlet';
+    html = '<div style="' + box + '"><p>Poštovani/a ' + esc_(ime) + ',</p><p>hvala na interesu za dio iz naše trgovine <b>Silicon Graveyard / Tech Outlet</b>:</p>' +
+      '<p style="background:#FEE503;padding:10px 14px;font-weight:bold;display:inline-block">' + esc_(g('dio')) + '</p>' +
+      '<p>Provjerit ćemo dostupnost i javiti Vam se u najkraćem roku da dogovorimo preuzimanje. Dio Vam rezerviramo kad potvrdimo dogovor.</p>' +
+      (g('poruka') ? '<p style="background:#f4f4f0;padding:10px 14px;border-left:4px solid #FEE503">' + esc_(g('poruka')).replace(/\n/g, '<br>') + '</p>' : '') +
+      '<p>Brže ide preko: <b>' + SERVIS_TEL + '</b> (Viber / WhatsApp)</p><p>Lijep pozdrav,<br>Saša Batinac<br>' + SERVIS_NAZIV + '</p></div>';
+  } else if (upit) {
     subject = 'Zaprimili smo Vaš upit – ' + SERVIS_NAZIV;
     html = '<div style="' + box + '"><p>Poštovani/a ' + esc_(ime) + ',</p><p>hvala na upitu. Zaprimili smo ga i javit ćemo se u najkraćem roku.</p>' +
       '<p style="background:#f4f4f0;padding:10px 14px;border-left:4px solid #FEE503">' + esc_(g('poruka')).replace(/\n/g, '<br>') + '</p>' +

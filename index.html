@@ -389,6 +389,12 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 }
 @media (max-width:380px){.music .mbtn{font-size:0;padding:6px 8px}.music .mbtn .eq{margin:0}.hdr-r .btn{font-size:.88rem}}
 .cap{margin:6px 0 0;font-size:.9rem;font-weight:600;min-height:0}.cap:empty{display:none}.cap.ok{color:#9BE37B}.cap.bad{color:var(--bad,#FF8A7A)}
+.gz-f{display:grid;gap:10px;margin-top:4px;padding:16px;background:var(--bg);border:1px solid var(--line);border-top:3px solid var(--copper);border-radius:10px;position:relative}
+.gz-f label{display:grid;gap:4px;font-weight:600;font-size:.9rem}.gz-f small{color:var(--muted);font-weight:400}
+.gz-f input,.gz-f textarea{background:var(--surface);border:1.5px solid #3A3A35;color:var(--ink);padding:10px 12px;border-radius:7px;font:inherit;min-width:0}
+.gz-f input:focus,.gz-f textarea:focus{outline:none;border-color:var(--copper)}
+.gz-f .btn{justify-self:start}.gz-msg{margin:0;font-weight:600}.gz-msg.bad{color:#FF8A7A}
+.gz-ok{display:grid;gap:6px}.gz-ok b:first-child{color:var(--copper);font-size:1.1rem}
 </style>
 
 <!-- Microsoft Clarity -->
@@ -1278,10 +1284,37 @@ render(false);
       <div class="tx"><span class="lbl">${esc(x.id)} · ${esc(x.kat)}</span><h3>${esc(x.naziv)}</h3><span class="pr">${esc(x.cijena)} €</span>
       <dl>${[['Proizvođač', x.pro], ['Tip', x.tip], ['Specifikacija', x.spec], ['Stanje', x.stanje], ['Jamstvo', x.jamstvo]].filter(r => r[1]).map(r => `<dt>${r[0]}</dt><dd>${esc(r[1])}</dd>`).join('')}</dl>
       ${x.opis ? `<p style="color:var(--muted)">${esc(x.opis)}</p>` : ''}${x.status === 'Rezervirano' ? '<p style="color:#E39B3B;font-weight:600">Trenutno rezervirano – javite se ako želite biti sljedeći.</p>' : ''}
-      <div class="acts"><a class="btn" href="https://wa.me/385913584122?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener">Pitaj na WhatsApp</a><button type="button" class="btn ghost" id="gzAsk">Pošalji upit</button></div>
+      <div class="acts"><a class="btn" href="https://wa.me/385913584122?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener">Pitaj na WhatsApp</a>${x.status === 'Rezervirano' ? '' : '<button type="button" class="btn ghost" id="gzAsk">Zainteresiran sam</button>'}</div>
+      <form class="gz-f" id="gzF" hidden novalidate>
+        <span class="lbl">Zainteresiran sam za ovaj dio</span>
+        <label>Ime i prezime *<input id="gzIme" autocomplete="name" required></label>
+        <label>Mobitel *<input id="gzTel" type="tel" inputmode="tel" autocomplete="tel" placeholder="091 234 5678" required></label>
+        <label>E-pošta <small>(za potvrdu)</small><input id="gzMail" type="email" autocomplete="email" placeholder="ime@gmail.com"></label>
+        <label>Poruka <small>(neobavezno)</small><textarea id="gzPor" rows="2" placeholder="npr. mogu doći u petak poslijepodne"></textarea></label>
+        <input type="text" id="gzHp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
+        <button type="submit" class="btn" id="gzSend">Pošalji</button><p class="gz-msg" id="gzMsg" role="status"></p>
+      </form>
       <p style="color:var(--muted);font-size:.85rem">Ili nazovite: <b style="color:var(--copper)">091/358 4122</b> (Saša)</p></div>`;
     document.getElementById('mGz').classList.add('open');
-    $('#gzAsk').onclick = () => { closeM('mGz'); const p = document.getElementById('k_poruka'); if (p) { p.value = txt; document.getElementById('kontakt').scrollIntoView({ behavior: 'smooth' }); setTimeout(() => document.getElementById('k_ime').focus(), 500); } };
+    const ask = $('#gzAsk'), F = $('#gzF');
+    if (ask) ask.onclick = () => { F.hidden = false; ask.hidden = true; $('#gzIme').focus(); };
+    F.onsubmit = async ev => {
+      ev.preventDefault(); if ($('#gzHp').value) return;
+      const m = $('#gzMsg'), b = $('#gzSend'), ime = $('#gzIme').value.trim(), tel = $('#gzTel').value.trim(), mail = $('#gzMail').value.trim();
+      m.className = 'gz-msg bad';
+      if (!ime) { m.textContent = 'Upišite ime.'; return $('#gzIme').focus(); }
+      if (tel.replace(/\D/g, '').length < 8) { m.textContent = 'Upišite broj mobitela da Vas možemo nazvati.'; return $('#gzTel').focus(); }
+      if (mail && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)) { m.textContent = 'E-adresa nije ispravna.'; return $('#gzMail').focus(); }
+      b.disabled = true; b.textContent = 'Šaljem…'; m.textContent = '';
+      try {
+        const r = await fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({
+          _vrsta: 'upit', 'vrijeme': new Date().toLocaleString('hr-HR'), 'Ime i prezime [ime]': ime, 'Telefon [telefon]': tel, 'E-pošta [email]': mail,
+          'Tech Outlet dio [dio]': x.id + ' – ' + x.naziv + ' – ' + x.cijena + ' €', 'ID dijela [dio_id]': x.id, 'Poruka [poruka]': $('#gzPor').value.trim() || txt }) });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok || j.ok === false) throw new Error();
+        F.innerHTML = `<div class="gz-ok"><b>✓ Hvala, ${esc(ime.split(' ')[0])}!</b><span>Zaprimili smo Vaš interes za <b>${esc(x.naziv)}</b>. Javit ćemo se uskoro da potvrdimo dostupnost i dogovorimo preuzimanje.${mail ? ' Potvrda je poslana na Vaš e-mail.' : ''}</span></div>`;
+      } catch (err) { b.disabled = false; b.textContent = 'Pošalji ponovno'; m.textContent = 'Slanje nije uspjelo. Pokušajte ponovno ili nas nazovite na 091/358 4122.'; }
+    };
   }
   document.addEventListener('click', e => {
     const t = e.target.closest('#gzCats .tab'); if (t) { cat = t.dataset.k; cats(); grid(); return; }
