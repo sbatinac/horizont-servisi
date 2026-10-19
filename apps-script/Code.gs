@@ -78,7 +78,9 @@ function doGet(e) {
       Utilities.sleep(800);
       return json_({ ok: false, error: 'Pogrešna lozinka.' });
     }
-    return json_({ ok: true, prijave: table_(SHEET_NAME), upiti: table_(SHEET_UPITI), posjete: table_(SHEET_POSJETE), dijelovi: table_(SHEET_DIJELOVI), predlosci: JSON.parse(PropertiesService.getScriptProperties().getProperty('predlosci') || '[]'), tablica: SpreadsheetApp.getActiveSpreadsheet().getUrl(), jutro: jutroAktivno_(), kapacitet: kapPravila_(), dani: kapDani_(kapPravila_(), kapZauzeto_(), 400) });
+    try {
+      return json_({ ok: true, prijave: table_(SHEET_NAME), upiti: table_(SHEET_UPITI), posjete: table_(SHEET_POSJETE), dijelovi: table_(SHEET_DIJELOVI), predlosci: JSON.parse(PropertiesService.getScriptProperties().getProperty('predlosci') || '[]'), tablica: SpreadsheetApp.getActiveSpreadsheet().getUrl(), jutro: jutroAktivno_(), kapacitet: kapPravila_(), dani: kapDani_(kapPravila_(), kapZauzeto_(), 400) });
+    } catch (err) { return json_({ ok: false, error: 'Greška u skripti: ' + err.message + ' – u Apps Scriptu pokreni funkciju odobriDozvole i odobri pristup.' }); }
   }
   return json_({ ok: true, servis: 'Horizont LHB – prijave' });
 }
@@ -358,7 +360,7 @@ function statusLookup_(nr, tel) {
 }
 
 // ===== JUTARNJI SAŽETAK (svaki dan u 7:30) =====
-function jutroAktivno_() { return ScriptApp.getProjectTriggers().some(t => t.getHandlerFunction() === 'jutarnjiSazetak'); }
+function jutroAktivno_() { try { return ScriptApp.getProjectTriggers().some(t => t.getHandlerFunction() === 'jutarnjiSazetak'); } catch (e) { return false; } }
 function postaviJutarnjiMail_(on) {
   ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === 'jutarnjiSazetak').forEach(t => ScriptApp.deleteTrigger(t));
   if (on) ScriptApp.newTrigger('jutarnjiSazetak').timeBased().everyDays(1).atHour(7).nearMinute(30).inTimezone(TZ).create();
@@ -536,4 +538,15 @@ function kapProvjera_(d) {
   if (!x || x.max === null || x.zauz < x.max) return '';
   const hr = d.replace(/(\d{4})-(\d{2})-(\d{2})/, (m, y, mo, da) => +da + '. ' + +mo + '. ' + y + '.');
   return x.max === 0 ? 'Na dan ' + hr + ' ne radimo' + (x.nap ? ' (' + x.nap + ')' : '') + '. Odaberite drugi datum.' : 'Dan ' + hr + ' je upravo popunjen. Odaberite drugi datum.';
+}
+
+// Pokreni jednom ručno u Apps Scriptu (odaberi odobriDozvole gore pa ▶ Pokreni) da Google zatraži sve dozvole.
+function odobriDozvole() {
+  SpreadsheetApp.getActiveSpreadsheet().getName();
+  DriveApp.getRootFolder().getName();
+  CalendarApp.getDefaultCalendar().getName();
+  ScriptApp.getProjectTriggers();
+  MailApp.getRemainingDailyQuota();
+  PropertiesService.getScriptProperties().getKeys();
+  Logger.log('Sve dozvole su odobrene.');
 }

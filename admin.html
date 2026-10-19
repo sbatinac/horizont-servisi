@@ -395,7 +395,8 @@ function rowsOf(t) {
 
 async function load() {
   const r = await fetch(ENDPOINT + '?a=admin&k=' + encodeURIComponent(key), { cache: 'no-store' });
-  const j = await r.json();
+  const txt = await r.text(); let j;
+  try { j = JSON.parse(txt); } catch (e) { const m = txt.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').match(/(TypeError|ReferenceError|Exception|Error|Pogreška|Greška)[^.]{0,160}/i); throw new Error('Skripta je vratila grešku' + (m ? ': ' + m[0] : '') + '. U Apps Scriptu pokreni funkciju odobriDozvole i ponovno objavi novu verziju.'); }
   if (!j.ok) throw new Error(j.error || 'Greška');
   D = { prijave: rowsOf(j.prijave), upiti: rowsOf(j.upiti), posjete: (j.posjete && j.posjete.rows) || [], tablica: j.tablica, dijelovi: dijeloviOf(j.dijelovi) };
   if (!load._fixed) { load._fixed = true; setTimeout(() => fixStale().catch(() => {}), 0); }
@@ -1331,7 +1332,7 @@ $('#loginForm').addEventListener('submit', async e => {
   e.preventDefault(); key = $('#pw').value; const b = $('#loginBtn');
   b.disabled = true; b.textContent = 'Provjeravam…'; $('#loginMsg').textContent = '';
   try { await load(); try { sessionStorage.setItem('hz_admin', key); } catch (e) {} showApp(); }
-  catch (err) { showLogin(String(err.message).includes('lozinka') ? 'Pogrešna lozinka.' : 'Podaci se ne mogu učitati. Provjeri vezu i pokušaj ponovno.'); }
+  catch (err) { showLogin(String(err.message).includes('lozinka') ? 'Pogrešna lozinka.' : /Skripta|Greška u skripti/.test(err.message) ? err.message : 'Podaci se ne mogu učitati. Provjeri vezu i pokušaj ponovno.'); }
   b.disabled = false; b.textContent = 'Uđi';
 });
 $('#logout').onclick = () => { try { sessionStorage.removeItem('hz_admin'); } catch (e) {} key = ''; D = null; $('#pw').value = ''; showLogin(); };
