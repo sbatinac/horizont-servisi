@@ -243,6 +243,15 @@ main{padding-block:24px 60px;display:grid;gap:28px}
 .kp.zat{color:#FF8A7A;background:rgba(255,138,122,.1);font-family:var(--body)}
 .cal-d.zat{background:repeating-linear-gradient(135deg,#141413 0 6px,#181817 6px 12px)}
 @media (max-width:720px){.kap-w{grid-template-columns:repeat(4,1fr)}.kap-r{grid-template-columns:1fr auto;}.kap-r .foot{grid-column:1/-1}.kp.zat{font-size:0;padding:0;width:8px;height:8px;border-radius:50%;background:#FF8A7A}}
+.alarm{position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:200;width:min(560px,calc(100% - 24px));animation:alIn .3s ease}
+.alarm-in{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--y);color:#111100;border-radius:12px;padding:14px 16px;box-shadow:0 10px 40px rgba(0,0,0,.6),0 0 0 4px rgba(254,229,3,.35);animation:alPuls 1.2s ease-in-out infinite}
+.alarm-in>div{flex:1;min-width:160px;display:grid}.alarm-in b{font:800 1.15rem var(--display)}.alarm-in span{font-size:.85rem}
+.alarm-ic{font-size:1.8rem;animation:alZvono .6s ease-in-out infinite alternate}
+.alarm .btn{background:#111100;color:var(--y);border-color:#111100}.alarm .btn.ghost{background:transparent;color:#111100;border-color:#111100}
+@keyframes alIn{from{opacity:0;transform:translate(-50%,-20px)}}
+@keyframes alPuls{50%{box-shadow:0 10px 40px rgba(0,0,0,.6),0 0 0 12px rgba(254,229,3,0)}}
+@keyframes alZvono{from{transform:rotate(-14deg)}to{transform:rotate(14deg)}}
+#alarmBtn.on{border-color:var(--y);color:var(--y)}
 </style>
 </head>
 <body>
@@ -253,6 +262,7 @@ main{padding-block:24px 60px;display:grid;gap:28px}
     <a class="btn ghost" id="sheetLink" target="_blank" rel="noopener">Otvori tablicu</a>
     <a class="btn ghost" href="./" target="_blank" rel="noopener">Web stranica</a>
     <button type="button" class="btn ghost" id="jutro" title="Svaki dan u 7:30 stiže ti mail s pregledom dana">☀ Jutarnji mail</button>
+    <button type="button" class="btn ghost" id="alarmBtn" title="Zvučni alarm kad stigne novi nalog ili upit (dok je admin otvoren)">🔔 Alarm</button>
     <button type="button" class="btn ghost" id="logout">Odjava</button>
   </div>
 </div></header>
@@ -1331,6 +1341,63 @@ $('#calToday').onclick = () => { calM = new Date(); calM.setDate(1); renderCal()
 
 if (key) load().then(showApp).catch(() => showLogin()); else showLogin();
 setInterval(() => { if (D && !document.hidden && !Object.values(open).some(Boolean) && !Object.keys(confirmAsk).length) load().catch(() => {}); }, 120000);
+window.HZ = { get key() { return key; }, get D() { return D; }, load: () => load() };
+})();
+</script>
+<div class="alarm" id="alarm" hidden role="alert">
+  <div class="alarm-in"><span class="alarm-ic" aria-hidden="true">🔔</span><div><b id="alarmT">Stigao je novi nalog!</b><span id="alarmS"></span></div>
+  <button type="button" class="btn" id="alarmShow">Prikaži</button><button type="button" class="btn ghost" id="alarmMute">Utišaj</button></div>
+</div>
+<script>
+/* ===== ALARM ZA NOVE NALOGE I UPITE ===== */
+(() => {
+  const SND = 'alarm.mp3', POLL = 30000, PONAVLJANJA = 3;
+  let on = true; try { on = localStorage.getItem('hz_alarm') !== '0'; } catch (e) {}
+  let base = null, audio = null, plays = 0, beepT = null, titleT = null, unlocked = false;
+  const T0 = document.title, btn = document.getElementById('alarmBtn'), box = document.getElementById('alarm');
+  const paint = () => { btn.textContent = on ? '🔔 Alarm: uključen' : '🔕 Alarm: isključen'; btn.classList.toggle('on', on); };
+  paint();
+  function getAudio() { if (!audio) { audio = new Audio(SND); audio.preload = 'auto'; audio.addEventListener('ended', () => { if (++plays < PONAVLJANJA && !box.hidden) { audio.currentTime = 0; audio.play().catch(() => {}); } }); audio.addEventListener('error', () => { audio._bad = true; }); } return audio; }
+  // Preglednik pušta zvuk tek nakon prvog klika na stranici; ovo ga "otključa".
+  const unlock = () => { if (unlocked) return; unlocked = true; const a = getAudio(); a.muted = true; a.play().then(() => { a.pause(); a.currentTime = 0; a.muted = false; }).catch(() => { a.muted = false; unlocked = false; }); };
+  document.addEventListener('pointerdown', unlock); document.addEventListener('keydown', unlock);
+  function beep() { // zamjenski zvuk ako alarm.mp3 ne postoji
+    try { const C = new (window.AudioContext || window.webkitAudioContext)(); let t = C.currentTime;
+      for (let r = 0; r < 3; r++) [880, 1175, 880].forEach((f, i) => { const o = C.createOscillator(), g = C.createGain(); o.type = 'square'; o.frequency.value = f; g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.25, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + .22); o.connect(g).connect(C.destination); o.start(t); o.stop(t + .25); t += .27; t += i === 2 ? .35 : 0; });
+    } catch (e) {}
+  }
+  function svirati() {
+    plays = 0; const a = getAudio();
+    if (a._bad) return beep();
+    a.currentTime = 0; a.play().catch(() => { beep(); document.getElementById('alarmS').textContent = ' Klikni bilo gdje na stranici da se ubuduće čuje i zvuk.'; });
+  }
+  function stani() { if (audio) { audio.pause(); audio.currentTime = 0; } clearInterval(titleT); titleT = null; document.title = T0; }
+  function alarm(np, nu) {
+    const t = np && nu ? `Stiglo: ${np} ${np === 1 ? 'novi nalog' : 'nova naloga'} i ${nu} ${nu === 1 ? 'upit' : 'upita'}` : np ? (np === 1 ? 'Stigao je novi nalog!' : `Stiglo je ${np} novih naloga!`) : (nu === 1 ? 'Stigao je novi upit!' : `Stiglo je ${nu} novih upita!`);
+    document.getElementById('alarmT').textContent = t; document.getElementById('alarmS').textContent = ' ' + new Date().toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' });
+    box.hidden = false; box.dataset.tab = np ? 'prijave' : 'upiti';
+    svirati();
+    clearInterval(titleT); let f = false; titleT = setInterval(() => { document.title = (f = !f) ? '🔔 ' + t : T0; }, 1000);
+    try { if ('Notification' in window && Notification.permission === 'granted') { const n = new Notification('Horizont – ' + t, { body: 'Otvori admin za detalje.', icon: 'favicon.png', tag: 'hz-novo', renotify: true }); n.onclick = () => { window.focus(); n.close(); }; } } catch (e) {}
+  }
+  async function provjeri() {
+    const key = HZ.key; if (!key || !HZ.D || ENDPOINT.startsWith('UPISI')) return;
+    try {
+      const j = await (await fetch(ENDPOINT + '?a=novo&k=' + encodeURIComponent(key), { cache: 'no-store' })).json();
+      if (!j.ok) return;
+      if (base && on) { const np = Math.max(0, j.p - base.p), nu = Math.max(0, j.u - base.u); if (np || nu) { alarm(np, nu); HZ.load().catch(() => {}); } }
+      base = { p: j.p, u: j.u };
+    } catch (e) {}
+  }
+  setInterval(provjeri, POLL); setTimeout(provjeri, 3000);
+  btn.onclick = () => {
+    on = !on; try { localStorage.setItem('hz_alarm', on ? '1' : '0'); } catch (e) {} paint();
+    if (on) { try { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } catch (e) {} svirati(); setTimeout(stani, 2500); }
+    else stani();
+  };
+  document.getElementById('alarmMute').onclick = () => { stani(); box.hidden = true; };
+  document.getElementById('alarmShow').onclick = () => { stani(); box.hidden = true; const t = document.querySelector(`.tab[data-t="${box.dataset.tab}"]`); if (t) t.click(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  window.hzAlarmTest = () => alarm(1, 0);
 })();
 </script>
 </body>

@@ -68,6 +68,11 @@ function doGet(e) {
     try { const b = DriveApp.getFileById(p.id).getBlob(); return json_({ ok: true, mime: b.getContentType(), data: Utilities.base64Encode(b.getBytes()) }); }
     catch (err) { return json_({ ok: false, error: 'Slika nije dostupna.' }); }
   }
+  if (p.a === 'novo') {
+    if (!ADMIN_KEY || ADMIN_KEY === 'UPISI_LOZINKU' || p.k !== ADMIN_KEY) return json_({ ok: false, error: 'Pogrešna lozinka.' });
+    const ss = SpreadsheetApp.getActiveSpreadsheet(), n = name => { const sh = ss.getSheetByName(name); return sh ? sh.getLastRow() : 0; };
+    return json_({ ok: true, p: n(SHEET_NAME), u: n(SHEET_UPITI) });
+  }
   if (p.a === 'admin') {
     if (!ADMIN_KEY || ADMIN_KEY === 'UPISI_LOZINKU' || p.k !== ADMIN_KEY) {
       Utilities.sleep(800);
