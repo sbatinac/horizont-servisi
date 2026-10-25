@@ -429,7 +429,7 @@ async function load() {
   D = { prijave: rowsOf(j.prijave), upiti: rowsOf(j.upiti), posjete: (j.posjete && j.posjete.rows) || [], tablica: j.tablica, dijelovi: dijeloviOf(j.dijelovi) };
   if (!load._fixed) { load._fixed = true; setTimeout(() => fixStale().catch(() => {}), 0); }
   $('#sheetLink').href = D.tablica || '#';
-  D.brojac = j.brojac || null; POSTAVKE = Object.assign({ pdv: false, pdf: false, napomena: PDV_NAP }, j.postavke || {}); PDV = POSTAVKE.pdv ? PDV_STOPA : 0; D.alarm = j.alarm || null; D.kap = j.kapacitet || null; D.dani = j.dani || {}; if (!KAPED_DIRTY) KAPED = D.kap ? JSON.parse(JSON.stringify(D.kap)) : null; VLASTITI = Array.isArray(j.predlosci) ? j.predlosci : []; D.jutro = !!j.jutro; $('#jutro').textContent = '☀ Jutarnji mail: ' + (D.jutro ? 'uključen' : 'isključen'); $('#jutro').classList.toggle('on', D.jutro);
+  D.brojac = j.brojac || null; D.telegram = j.telegram || null; POSTAVKE = Object.assign({ pdv: false, pdf: false, napomena: PDV_NAP }, j.postavke || {}); PDV = POSTAVKE.pdv ? PDV_STOPA : 0; D.alarm = j.alarm || null; D.kap = j.kapacitet || null; D.dani = j.dani || {}; if (!KAPED_DIRTY) KAPED = D.kap ? JSON.parse(JSON.stringify(D.kap)) : null; VLASTITI = Array.isArray(j.predlosci) ? j.predlosci : []; D.jutro = !!j.jutro; $('#jutro').textContent = '☀ Jutarnji mail: ' + (D.jutro ? 'uključen' : 'isključen'); $('#jutro').classList.toggle('on', D.jutro);
   render();
   $('#foot').textContent = 'Zadnje osvježeno: ' + new Date().toLocaleString('hr-HR');
 }
@@ -1476,7 +1476,12 @@ window.HZ = { get key() { return key; }, get D() { return D; }, load: () => load
     <div class="frow"><button type="button" class="btn ghost" id="alDef">↺ Vrati zadanu melodiju</button></div>
     <div class="frow"><button type="button" class="btn" id="alTest">▶ Probaj alarm</button><button type="button" class="btn ghost" id="alStop">■ Stani</button><button type="button" class="btn ghost" id="alClose">Zatvori</button></div>
     <p class="pmsg" id="alMsg" role="status"></p>
-    <span class="lbl">Obavijest na mobitel (radi i kad je admin zatvoren)</span>
+    <span class="lbl">Telegram obavijesti (rade i kad je admin zatvoren)</span>
+    <p class="foot" style="margin:0" id="tgSt">Nije postavljeno.</p>
+    <div id="tgSet"><label>Token bota (iz @BotFather)<input id="tgTok" placeholder="123456789:AAH…" autocomplete="off"></label>
+      <div class="frow" style="margin-top:8px"><button type="button" class="btn" id="tgSave">Spremi token</button></div></div>
+    <div class="frow" id="tgAct" hidden><button type="button" class="btn" id="tgLink">🔗 Poveži</button><button type="button" class="btn ghost" id="tgTest">📨 Probna poruka</button><button type="button" class="btn ghost" id="tgOff">Isključi Telegram</button></div>
+    <span class="lbl">Ostale obavijesti na mobitel</span>
     <div class="frow"><button type="button" class="btn ghost" id="alNt">📲 Probna obavijest na mobitel (ntfy)</button><button type="button" class="btn ghost" id="alWa">WhatsApp proba</button></div>
     <p class="foot" style="margin:0">Alarm radi dok je admin otvoren (može i u drugoj kartici). Mail i WhatsApp za svaki novi nalog stižu uvijek.</p>
   </div>
@@ -1544,7 +1549,7 @@ window.HZ = { get key() { return key; }, get D() { return D; }, load: () => load
   // postavke
   const M = $a('alMod'), msg = (t, c) => { $a('alMsg').className = 'pmsg' + (c ? ' ' + c : ''); $a('alMsg').textContent = t; };
   function slika() { $a('alOn').checked = on; $a('alRep').value = String(rep); $a('alVol').value = vol; $a('alSong').textContent = '🎵 ' + pjesmaIme; $a('alDef').hidden = !pjesmaId; }
-  btn.onclick = () => { slika(); msg(''); M.hidden = false; try { if (on && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } catch (e) {} };
+  btn.onclick = () => { slika(); tgPaint(); msg(''); M.hidden = false; try { if (on && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } catch (e) {} };
   $a('alClose').onclick = () => { M.hidden = true; };
   M.addEventListener('click', e => { if (e.target === M) M.hidden = true; });
   $a('alOn').onchange = e => { on = e.target.checked; lset('hz_alarm', on ? '1' : '0'); paint(); if (!on) stani(); };
@@ -1580,6 +1585,16 @@ window.HZ = { get key() { return key; }, get D() { return D; }, load: () => load
       pjesmaUrl = ZADANA; pjesmaIme = 'Zadana melodija (Three-Note Alert)'; pjesmaId = ''; slika(); msg('Vraćena je zadana melodija.', 'ok');
     } catch (err) { msg(err.message || 'Nije uspjelo.', 'bad'); }
   };
+  const tgPaint = () => { const t = (HZ.D && HZ.D.telegram) || { bot: '', povezan: false };
+    $a('tgSt').innerHTML = !t.bot ? 'Nije postavljeno. Napravi bota u Telegramu (@BotFather → /newbot) i zalijepi token.' : t.povezan ? '✅ Povezano s botom <b>@' + t.bot + '</b>. Obavijesti stižu za svaki novi nalog i upit.' : 'Bot <b>@' + t.bot + '</b> je spremljen. U Telegramu ga otvori, klikni <b>START</b>, pa ovdje klikni <b>Poveži</b>.';
+    $a('tgSet').hidden = !!t.bot; $a('tgAct').hidden = !t.bot; $a('tgTest').hidden = !t.povezan; };
+  const tgPost = async op => { const r = await fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ _vrsta: 'admin', k: HZ.key, akcija: 'tg' }, op)) });
+    const j = await r.json(); if (!j.ok) throw new Error(j.error || 'Nije uspjelo.'); if (j.telegram && HZ.D) HZ.D.telegram = j.telegram; tgPaint(); return j; };
+  $a('tgSave').onclick = async () => { msg('Provjeravam token…'); try { await tgPost({ op: 'token', token: $a('tgTok').value }); $a('tgTok').value = ''; msg('Token spremljen. Sad u Telegramu klikni START kod bota, pa Poveži.', 'ok'); } catch (e) { msg(e.message, 'bad'); } };
+  $a('tgLink').onclick = async () => { msg('Povezujem…'); try { await tgPost({ op: 'povezi' }); msg('Povezano! Provjeri Telegram.', 'ok'); } catch (e) { msg(e.message, 'bad'); } };
+  $a('tgTest').onclick = async () => { msg('Šaljem…'); try { await tgPost({ op: 'test' }); msg('Poslano! Provjeri Telegram.', 'ok'); } catch (e) { msg(e.message, 'bad'); } };
+  $a('tgOff').onclick = async () => { if (!confirmOff()) return; try { await tgPost({ op: 'iskljuci' }); msg('Telegram je isključen.', 'ok'); } catch (e) { msg(e.message, 'bad'); } };
+  let offT = 0; const confirmOff = () => { if (Date.now() - offT < 4000) return true; offT = Date.now(); $a('tgOff').textContent = 'Sigurno? Klikni opet'; setTimeout(() => { $a('tgOff').textContent = 'Isključi Telegram'; }, 4000); return false; };
   $a('alNt').onclick = async () => {
     msg('Šaljem probnu obavijest…');
     try { const r = await fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ _vrsta: 'admin', k: HZ.key, akcija: 'ntfy_test' }) });

@@ -53,6 +53,7 @@ function doPost(e) {
     notify_(data, row, upit);
     try { waNovo_(data, nr, upit); } catch (e) { console.warn(e); }
     try { ntfyNovo_(data, nr, upit); } catch (e) { console.warn(e); }
+    try { tgNovo_(data, nr, upit); } catch (e) { console.warn(e); }
     try { potvrdaKlijentu_(data, nr, upit); } catch (e) { console.warn(e); }
     return json_({ ok: true, nr: nr });
   } catch (err) {
@@ -85,7 +86,7 @@ function doGet(e) {
       return json_({ ok: false, error: 'Pogrešna lozinka.' });
     }
     try {
-      return json_({ ok: true, prijave: table_(SHEET_NAME), upiti: table_(SHEET_UPITI), posjete: table_(SHEET_POSJETE), dijelovi: table_(SHEET_DIJELOVI), predlosci: JSON.parse(PropertiesService.getScriptProperties().getProperty('predlosci') || '[]'), tablica: SpreadsheetApp.getActiveSpreadsheet().getUrl(), jutro: jutroAktivno_(), brojac: brojacInfo_(), postavke: JSON.parse(PropertiesService.getScriptProperties().getProperty('postavke') || 'null'), alarm: JSON.parse(PropertiesService.getScriptProperties().getProperty('alarm_pjesma') || 'null'), kapacitet: kapPravila_(), dani: kapDani_(kapPravila_(), kapZauzeto_(), 400) });
+      return json_({ ok: true, prijave: table_(SHEET_NAME), upiti: table_(SHEET_UPITI), posjete: table_(SHEET_POSJETE), dijelovi: table_(SHEET_DIJELOVI), predlosci: JSON.parse(PropertiesService.getScriptProperties().getProperty('predlosci') || '[]'), tablica: SpreadsheetApp.getActiveSpreadsheet().getUrl(), jutro: jutroAktivno_(), brojac: brojacInfo_(), telegram: tgInfo_(), postavke: JSON.parse(PropertiesService.getScriptProperties().getProperty('postavke') || 'null'), alarm: JSON.parse(PropertiesService.getScriptProperties().getProperty('alarm_pjesma') || 'null'), kapacitet: kapPravila_(), dani: kapDani_(kapPravila_(), kapZauzeto_(), 400) });
     } catch (err) { return json_({ ok: false, error: 'Greška u skripti: ' + err.message + ' – u Apps Scriptu pokreni funkciju odobriDozvole i odobri pristup.' }); }
   }
   return json_({ ok: true, servis: 'Horizont LHB – prijave' });
@@ -101,6 +102,7 @@ function admin_(d) {
   if (d.akcija === 'jutro_test') { jutarnjiSazetak(); return { ok: true }; }
   if (String(d.akcija).indexOf('dio_') === 0) return dijelovi_(d);
   if (d.akcija === 'kapacitet') return kapSpremi_(d.pravila || {});
+  if (d.akcija === 'tg') return tgAdmin_(d);
   if (d.akcija === 'postavke') {
     const P = d.postavke || {}, out = { pdv: !!P.pdv, pdf: P.pdf === true, napomena: String(P.napomena || '').slice(0, 400) };
     PropertiesService.getScriptProperties().setProperty('postavke', JSON.stringify(out));
@@ -667,4 +669,45 @@ function ntfyNovo_(data, nr, upit) {
   // Bez telefona i opisa kvara: obavijest prolazi kroz vanjski servis, detalji su u adminu.
   if (upit) ntfy_(g('dio_id') ? '🛒 Zainteresiran za ' + g('dio') : '💬 Novi upit', (g('ime').split(' ')[0] || 'Klijent') + ' · otvori admin za detalje', ADMIN_URL);
   else ntfy_('🔔 Imaš nalog! ' + nr, [(g('ime').split(' ')[0] || 'Klijent'), [g('uredaj'), g('tip_racunala')].filter(String).join(' · '), g('datum') ? 'Željeni datum: ' + g('datum') : ''].filter(String).join(' · ') + '\nRaditi početi trebaš!', ADMIN_URL);
+}
+
+// ===== TELEGRAM OBAVIJESTI (token i chat se spremaju iz admina, ne u kodu) =====
+function tgProps_() { return PropertiesService.getScriptProperties(); }
+function tgApi_(metoda, payload) {
+  const t = tgProps_().getProperty('tg_token'); if (!t) throw new Error('Telegram bot nije postavljen.');
+  const r = UrlFetchApp.fetch('https://api.telegram.org/bot' + t + '/' + metoda, { method: 'post', contentType: 'application/json', payload: JSON.stringify(payload || {}), muteHttpExceptions: true });
+  const j = JSON.parse(r.getContentText() || '{}'); if (!j.ok) throw new Error('Telegram: ' + (j.description || r.getResponseCode())); return j.result;
+}
+function tgInfo_() { const p = tgProps_(); return { bot: p.getProperty('tg_bot') || '', povezan: !!p.getProperty('tg_chat') }; }
+function tg_(txt) { const chat = tgProps_().getProperty('tg_chat'); if (!chat) return; tgApi_('sendMessage', { chat_id: chat, text: String(txt).slice(0, 3800), disable_web_page_preview: true }); }
+function tgAdmin_(d) {
+  const p = tgProps_();
+  try {
+    if (d.op === 'token') {
+      const tok = String(d.token || '').trim(); if (!/^\d+:[\w-]{20,}$/.test(tok)) return { ok: false, error: 'Token ne izgleda ispravno (oblik 123456789:ABC…).' };
+      p.setProperty('tg_token', tok); p.deleteProperty('tg_chat');
+      try { const me = tgApi_('getMe'); p.setProperty('tg_bot', me.username || ''); } catch (e) { p.deleteProperty('tg_token'); return { ok: false, error: 'Telegram ne prihvaća token. Provjeri ga u BotFatheru.' }; }
+      return { ok: true, telegram: tgInfo_() };
+    }
+    if (d.op === 'povezi') {
+      const up = tgApi_('getUpdates', { limit: 50 }) || [];
+      const m = up.map(u => u.message || u.edited_message || u.my_chat_member).filter(x => x && x.chat).pop();
+      if (!m) return { ok: false, error: 'Bot još nije dobio poruku. U Telegramu otvori @' + (p.getProperty('tg_bot') || 'bot') + ', klikni START (ili pošalji /start) pa opet klikni Poveži.' };
+      p.setProperty('tg_chat', String(m.chat.id));
+      tg_('✅ Povezano! Ovdje ćeš dobivati obavijesti o novim nalozima i upitima s Horizont web stranice.');
+      return { ok: true, telegram: tgInfo_() };
+    }
+    if (d.op === 'test') { if (!p.getProperty('tg_chat')) return { ok: false, error: 'Telegram još nije povezan.' }; tg_('🔔 Imaš nalog! (proba)\nRaditi početi trebaš! 😄\n' + ADMIN_URL); return { ok: true }; }
+    if (d.op === 'iskljuci') { ['tg_token', 'tg_chat', 'tg_bot'].forEach(k => p.deleteProperty(k)); return { ok: true, telegram: tgInfo_() }; }
+  } catch (e) { return { ok: false, error: e.message }; }
+  return { ok: false, error: 'Nepoznata akcija.' };
+}
+function tgNovo_(data, nr, upit) {
+  if (!tgProps_().getProperty('tg_chat')) return;
+  const g = k => { const key = Object.keys(data).find(x => x.indexOf('[' + k + ']') !== -1); return key ? String(data[key] || '') : ''; };
+  const tel = g('mobitel') || g('telefon');
+  const L = upit
+    ? [g('dio_id') ? '🛒 Zainteresiran za ' + g('dio') : '💬 Novi upit s web stranice', g('ime') + (tel ? ' · ' + tel : ''), g('email'), g('poruka').slice(0, 500)]
+    : ['🔔 Imaš nalog! Raditi početi trebaš!', nr, g('ime') + (tel ? ' · ' + tel : ''), [g('uredaj'), g('tip_racunala')].filter(String).join(' · '), g('datum') ? 'Željeni datum: ' + g('datum') : '', (g('opis_kvara') || '').slice(0, 400), ADMIN_URL];
+  tg_(L.filter(String).join('\n'));
 }
