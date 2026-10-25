@@ -82,7 +82,7 @@ function doGet(e) {
       return json_({ ok: false, error: 'Pogrešna lozinka.' });
     }
     try {
-      return json_({ ok: true, prijave: table_(SHEET_NAME), upiti: table_(SHEET_UPITI), posjete: table_(SHEET_POSJETE), dijelovi: table_(SHEET_DIJELOVI), predlosci: JSON.parse(PropertiesService.getScriptProperties().getProperty('predlosci') || '[]'), tablica: SpreadsheetApp.getActiveSpreadsheet().getUrl(), jutro: jutroAktivno_(), brojac: brojacInfo_(), alarm: JSON.parse(PropertiesService.getScriptProperties().getProperty('alarm_pjesma') || 'null'), kapacitet: kapPravila_(), dani: kapDani_(kapPravila_(), kapZauzeto_(), 400) });
+      return json_({ ok: true, prijave: table_(SHEET_NAME), upiti: table_(SHEET_UPITI), posjete: table_(SHEET_POSJETE), dijelovi: table_(SHEET_DIJELOVI), predlosci: JSON.parse(PropertiesService.getScriptProperties().getProperty('predlosci') || '[]'), tablica: SpreadsheetApp.getActiveSpreadsheet().getUrl(), jutro: jutroAktivno_(), brojac: brojacInfo_(), postavke: JSON.parse(PropertiesService.getScriptProperties().getProperty('postavke') || 'null'), alarm: JSON.parse(PropertiesService.getScriptProperties().getProperty('alarm_pjesma') || 'null'), kapacitet: kapPravila_(), dani: kapDani_(kapPravila_(), kapZauzeto_(), 400) });
     } catch (err) { return json_({ ok: false, error: 'Greška u skripti: ' + err.message + ' – u Apps Scriptu pokreni funkciju odobriDozvole i odobri pristup.' }); }
   }
   return json_({ ok: true, servis: 'Horizont LHB – prijave' });
@@ -98,6 +98,11 @@ function admin_(d) {
   if (d.akcija === 'jutro_test') { jutarnjiSazetak(); return { ok: true }; }
   if (String(d.akcija).indexOf('dio_') === 0) return dijelovi_(d);
   if (d.akcija === 'kapacitet') return kapSpremi_(d.pravila || {});
+  if (d.akcija === 'postavke') {
+    const P = d.postavke || {}, out = { pdv: !!P.pdv, pdf: P.pdf !== false, napomena: String(P.napomena || '').slice(0, 400) };
+    PropertiesService.getScriptProperties().setProperty('postavke', JSON.stringify(out));
+    return { ok: true, postavke: out };
+  }
   if (d.akcija === 'wa_test') { if (!WA_TEL || !WA_APIKEY) return { ok: false, error: 'U Code.gs upiši WA_TEL i WA_APIKEY pa objavi novu verziju.' }; const r = wa_('✅ Horizont: WhatsApp obavijesti rade! Imaš nalog… raditi početi trebaš. 😄'); return r === true ? { ok: true } : { ok: false, error: 'CallMeBot: ' + r }; }
   if (d.akcija === 'alarm_pjesma') {
     const props = PropertiesService.getScriptProperties();

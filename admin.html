@@ -273,6 +273,9 @@ main{padding-block:24px 60px;display:grid;gap:28px}
 .btn.btn-red:hover{background:#B71F1F;border-color:#B71F1F;color:#fff;box-shadow:0 0 0 4px rgba(214,40,40,.25)}
 .btn.btn-red-o{background:transparent;border:1.5px solid #D62828;color:#FF6B6B}
 .btn.btn-red-o:hover{background:#D62828;color:#fff}
+.nopdv .col-pdv{display:none!important}
+.bmod-in textarea{background:var(--bg);border:1.5px solid #3A3A35;color:var(--ink);padding:10px 12px;border-radius:7px;font:inherit;resize:vertical}
+.bmod-in{max-height:calc(100vh - 32px);overflow:auto}
 </style>
 </head>
 <body>
@@ -283,7 +286,7 @@ main{padding-block:24px 60px;display:grid;gap:28px}
     <a class="btn ghost" id="sheetLink" target="_blank" rel="noopener">Otvori tablicu</a>
     <a class="btn ghost" href="./" target="_blank" rel="noopener">Web stranica</a>
     <button type="button" class="btn ghost" id="jutro" title="Svaki dan u 7:30 stiže ti mail s pregledom dana">☀ Jutarnji mail</button>
-    <button type="button" class="btn ghost" id="brBtn" title="Brojevi naloga">⚙ Brojevi naloga</button>
+    <button type="button" class="btn ghost" id="brBtn" title="Postavke: PDV, PDF, brojevi naloga">⚙ Postavke</button>
     <button type="button" class="btn ghost" id="alarmBtn" title="Zvučni alarm kad stigne novi nalog ili upit (dok je admin otvoren)">🔔 Alarm</button>
     <button type="button" class="btn ghost" id="logout">Odjava</button>
   </div>
@@ -378,7 +381,10 @@ const CITATI = [
 (() => { let i = Math.floor(Math.random() * CITATI.length); try { const last = +sessionStorage.getItem('hz_q'); if (i === last) i = (i + 1) % CITATI.length; sessionStorage.setItem('hz_q', i); } catch (e) {}
   const t = document.getElementById('qT'), a = document.getElementById('qA'); if (t) { t.textContent = '„' + CITATI[i][0] + '”'; a.textContent = '— ' + CITATI[i][1]; } })();
 const CIJENA_SATA = 55;
-const PDV = 0.25; // 25 % PDV
+const PDV_STOPA = 0.25; // 25 % PDV (kad je uključen u postavkama)
+const PDV_NAP = 'Obveznik nije u sustavu PDV-a. PDV nije obračunat temeljem čl. 90. st. 2. Zakona o porezu na dodanu vrijednost.';
+let POSTAVKE = { pdv: false, pdf: true, napomena: PDV_NAP };
+let PDV = 0; // trenutna stopa: 0 dok PDV nije uključen
 // Link za Google recenziju (Google profil tvrtke → Zatraži recenzije → kopiraj link). Prazno = gumb se ne prikazuje.
 const GOOGLE_RECENZIJA = '';
 const SERVIS_TEL = '091/358 4122';
@@ -423,7 +429,7 @@ async function load() {
   D = { prijave: rowsOf(j.prijave), upiti: rowsOf(j.upiti), posjete: (j.posjete && j.posjete.rows) || [], tablica: j.tablica, dijelovi: dijeloviOf(j.dijelovi) };
   if (!load._fixed) { load._fixed = true; setTimeout(() => fixStale().catch(() => {}), 0); }
   $('#sheetLink').href = D.tablica || '#';
-  D.brojac = j.brojac || null; D.alarm = j.alarm || null; D.kap = j.kapacitet || null; D.dani = j.dani || {}; if (!KAPED_DIRTY) KAPED = D.kap ? JSON.parse(JSON.stringify(D.kap)) : null; VLASTITI = Array.isArray(j.predlosci) ? j.predlosci : []; D.jutro = !!j.jutro; $('#jutro').textContent = '☀ Jutarnji mail: ' + (D.jutro ? 'uključen' : 'isključen'); $('#jutro').classList.toggle('on', D.jutro);
+  D.brojac = j.brojac || null; POSTAVKE = Object.assign({ pdv: false, pdf: true, napomena: PDV_NAP }, j.postavke || {}); PDV = POSTAVKE.pdv ? PDV_STOPA : 0; D.alarm = j.alarm || null; D.kap = j.kapacitet || null; D.dani = j.dani || {}; if (!KAPED_DIRTY) KAPED = D.kap ? JSON.parse(JSON.stringify(D.kap)) : null; VLASTITI = Array.isArray(j.predlosci) ? j.predlosci : []; D.jutro = !!j.jutro; $('#jutro').textContent = '☀ Jutarnji mail: ' + (D.jutro ? 'uključen' : 'isključen'); $('#jutro').classList.toggle('on', D.jutro);
   render();
   $('#foot').textContent = 'Zadnje osvježeno: ' + new Date().toLocaleString('hr-HR');
 }
@@ -451,7 +457,7 @@ function kpis() {
   const K = [['Posjete danas', today, w + ' u 7 dana · ' + total + ' ukupno', true], ['Otvoreni nalozi', otv, newP + ' novih u 7 dana', otv > 0],
     ['U radu sada', P.filter(o => running(o)).length, zak7 + ' termina u 7 dana'], ['Upiti', D.upiti.filter(o => !isClosed(o)).length, 'otvorenih, od ' + D.upiti.length],
     ['Riješeno ovaj mjesec', mjes.length, 'naloga'], ['Sati ovaj mjesec', String(sati).replace('.', ','), 'h rada'],
-    ['Naplaćeno ovaj mjesec', eur(zarada), 's PDV-om', zarada > 0], ['Nalozi ukupno', P.length, 'od početka']];
+    ['Naplaćeno ovaj mjesec', eur(zarada), PDV ? 's PDV-om' : 'ukupno', zarada > 0], ['Nalozi ukupno', P.length, 'od početka']];
   $('#kpis').innerHTML = K.map(k => `<div class="kpi${k[3] ? ' hi' : ''}"><span class="lbl">${k[0]}</span><b>${k[1]}</b><span>${k[2]}</span></div>`).join('');
   const days = [...Array(14)].map((_, i) => ymd(new Date(now - (13 - i) * DAY)));
   const vals = days.map(d => v[d] || 0), max = Math.max(4, ...vals);
@@ -521,13 +527,13 @@ function panelHTML(o, kind, p) {
       <td><input class="pr inab" type="number" min="0" step="0.01" value="${esc(it.nab || '')}" placeholder="${nv ? 'nabavna *' : '—'}"${nv ? '' : ' disabled'}></td>
       <td><input class="q iq" type="number" min="0" step="1" value="${esc(it.q)}"></td>
       <td><input class="pr ic" type="number" min="0" step="0.01" value="${esc(it.c)}" placeholder="${v === 'rabljeni' ? 'po dogovoru' : '0,00'}"></td>
-      <td><select class="im">${opt(it.m)}</select></td><td class="tot"></td><td><button type="button" class="x" data-do="delItem" aria-label="Ukloni stavku">✕</button></td></tr>`; };
-    return `<div class="c-panel" data-p="zavrsi"><h4>Obračun i zaključenje naloga</h4>
-      <div class="itemsbox"><table class="items"><thead><tr><th>Stavka</th><th>Vrsta</th><th>Dobavljač</th><th>Nabavna / kom</th><th>Kol.</th><th>Prodajna / kom</th><th>Cijena je</th><th style="text-align:right">Ukupno s PDV</th><th></th></tr></thead><tbody>
-      <tr class="rad"><td colspan="4">Rad servisera (${CIJENA_SATA} € / h)${sessions(o).length ? `<br><small style="color:var(--muted)">evidentirano ${hms(workedMs(sessions(o)))}, zaokruženo na 15 min</small>` : ''}</td><td><input class="q ph" type="number" min="0" step="0.25" value="${esc(o['Sati rada'] || (sessions(o).length ? hrsQ(workedMs(sessions(o))) : ''))}" placeholder="sati"></td><td class="tot">${CIJENA_SATA},00 €</td><td><select class="rm">${opt(radM)}</select></td><td class="tot"></td><td></td></tr>
+      <td class="col-pdv"><select class="im">${opt(it.m)}</select></td><td class="tot"></td><td><button type="button" class="x" data-do="delItem" aria-label="Ukloni stavku">✕</button></td></tr>`; };
+    return `<div class="c-panel${PDV ? '' : ' nopdv'}" data-p="zavrsi"><h4>Obračun i zaključenje naloga</h4>${PDV ? '' : `<p class="foot" style="margin:0">Bez PDV-a (Horizont nije u sustavu PDV-a). Promjena u ⚙ Postavke.</p>`}
+      <div class="itemsbox"><table class="items"><thead><tr><th>Stavka</th><th>Vrsta</th><th>Dobavljač</th><th>Nabavna / kom</th><th>Kol.</th><th>Prodajna / kom</th><th class="col-pdv">Cijena je</th><th style="text-align:right">${PDV ? 'Ukupno s PDV' : 'Ukupno'}</th><th></th></tr></thead><tbody>
+      <tr class="rad"><td colspan="4">Rad servisera (${CIJENA_SATA} € / h)${sessions(o).length ? `<br><small style="color:var(--muted)">evidentirano ${hms(workedMs(sessions(o)))}, zaokruženo na 15 min</small>` : ''}</td><td><input class="q ph" type="number" min="0" step="0.25" value="${esc(String(o['Sati rada'] || (sessions(o).length ? hrsQ(workedMs(sessions(o))) : '')).replace(',', '.'))}" placeholder="sati"></td><td class="tot">${CIJENA_SATA},00 €</td><td class="col-pdv"><select class="rm">${opt(radM)}</select></td><td class="tot"></td><td></td></tr>
       ${items.map(row).join('')}</tbody></table></div>
       <div class="frow"><button type="button" class="btn ghost" data-do="addItem">+ Dodaj stavku</button></div>
-      <div class="totals"><span>Osnovica (bez PDV-a)</span><span class="t-net">0,00 €</span><span>PDV ${PDV * 100} %</span><span class="t-vat">0,00 €</span><span>Ukupno za naplatu</span><span class="t-gross grand">0,00 €</span><span>Nabava novih dijelova (interno)</span><span class="t-nab">0,00 €</span></div>
+      <div class="totals"><span class="col-pdv">Osnovica (bez PDV-a)</span><span class="t-net col-pdv">0,00 €</span><span class="col-pdv">PDV ${PDV_STOPA * 100} %</span><span class="t-vat col-pdv">0,00 €</span><span>Ukupno za naplatu</span><span class="t-gross grand">0,00 €</span><span>Nabava novih dijelova (interno)</span><span class="t-nab">0,00 €</span></div>
       <div class="frow"><label>Jamstvo na radove i dijelove<select class="pj">${[0, 3, 6, 12, 24].map(m => `<option value="${m}"${String(m) === String(o['Jamstvo (mj)'] || 6) ? ' selected' : ''}>${m ? m + ' mj.' : 'bez jamstva'}</option>`).join('')}</select></label></div>
       <label>Bilješka (što je napravljeno)<textarea class="pb" placeholder="npr. očišćen hladnjak, nova termalna pasta, Windows 11">${esc(o['Bilješka'] || '')}</textarea></label>
       <div class="frow"><button type="button" class="btn btn-red" data-do="saveZavrsi">✓ Zaključi nalog</button><button type="button" class="btn ghost" data-do="saveStavke">Spremi bez zaključivanja</button><button type="button" class="btn ghost" data-do="close">Odustani</button></div>
@@ -536,7 +542,7 @@ function panelHTML(o, kind, p) {
   return '';
 }
 
-function lineAmt(qty, price, mode) { const l = num(qty) * num(price); return mode === 's' ? { net: l / (1 + PDV), gross: l } : { net: l, gross: l * (1 + PDV) }; }
+function lineAmt(qty, price, mode, rate = PDV) { const l = num(qty) * num(price); return mode === 's' ? { net: l / (1 + rate), gross: l } : { net: l, gross: l * (1 + rate) }; }
 function collect(panel) {
   const sati = panel.querySelector('.ph').value.replace(',', '.'), rm = panel.querySelector('.rm').value;
   const items = [...panel.querySelectorAll('tr.it')].map(tr => { const v = tr.querySelector('.iv').value; return { n: tr.querySelector('.in').value.trim(), v, d: v === 'novi' ? tr.querySelector('.isup').value.trim() : '', nab: v === 'novi' ? tr.querySelector('.inab').value : '', q: tr.querySelector('.iq').value, c: tr.querySelector('.ic').value, m: tr.querySelector('.im').value }; })
@@ -692,9 +698,10 @@ function buildNalog(o, photos, pdf) {
   let items = []; try { items = JSON.parse(o['Stavke'] || '[]'); } catch (e) {}
   const VV = { novi: 'novi dio', rabljeni: 'rabljeni dio', mat: 'materijal' };
   const radM = o['Rad PDV'] || 's', sati = num(o['Sati rada']);
+  const sPdv = num(o['PDV (€)']) > 0, R = sPdv ? PDV_STOPA : 0; // nalog s PDV-om ispisuje se s PDV-om, ostali bez
   const lines = [];
-  if (sati) { const a = lineAmt(sati, CIJENA_SATA, radM); lines.push(['Rad servisera', String(sati).replace('.', ',') + ' h', eur(radM === 's' ? CIJENA_SATA / (1 + PDV) : CIJENA_SATA), eur(a.net), eur(a.gross)]); }
-  items.forEach(it => { const q = num(it.q) || 1, a = lineAmt(q, it.c, it.m), unitNet = it.m === 's' ? num(it.c) / (1 + PDV) : num(it.c);
+  if (sati) { const a = lineAmt(sati, CIJENA_SATA, radM, R); lines.push(['Rad servisera', String(sati).replace('.', ',') + ' h', eur(radM === 's' ? CIJENA_SATA / (1 + R) : CIJENA_SATA), eur(a.net), eur(a.gross)]); }
+  items.forEach(it => { const q = num(it.q) || 1, a = lineAmt(q, it.c, it.m, R), unitNet = it.m === 's' ? num(it.c) / (1 + R) : num(it.c);
     lines.push([it.n + (VV[it.v] ? ' (' + VV[it.v] + ')' : ''), q + ' kom', eur(unitNet), eur(a.net), eur(a.gross)]); });
   const net = lines.length ? num(o['Ukupno bez PDV-a (€)']) : 0, vat = num(o['PDV (€)']), gross = num(o['Ukupno s PDV-om (€)']);
   const days = perDay(sessions(o));
@@ -721,6 +728,7 @@ table.it{width:100%;border-collapse:collapse;font-size:9.5pt}.it th{background:#
 .tot .g td{font:800 13pt "Bricolage Grotesque",sans-serif;border-top:2px solid #111;color:#111}
 .sig{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:36px}.sig div{border-top:1px solid #111;padding-top:4px;font-size:9pt;color:#555}
 .foot{margin-top:18px;font-size:8pt;color:#777;border-top:1px solid #ddd;padding-top:6px}
+.pdvn{margin:8px 0 0;font-size:8.5pt;color:#444;text-align:right;font-style:italic}
 .warn{margin-top:22px;border:2px solid #111;background:#FEE503;padding:9px 12px;font-size:9.5pt;break-inside:avoid}
 .ph{margin-top:14px}.ph .box{margin-bottom:10px}.phg img{display:inline-block;width:32%;height:46mm;object-fit:cover;border:1px solid #ddd;margin:0 1% 6px 0;vertical-align:top}
 @media screen{body{max-width:210mm;margin:16px auto;padding:0 14mm}.pbtn{position:fixed;top:12px;right:12px;background:#FEE503;border:0;padding:10px 16px;font:600 11pt sans-serif;cursor:pointer}}
@@ -736,9 +744,13 @@ ${pdf ? '' : '<button class="pbtn" onclick="print()">Ispiši</button>'}
  ${o['Bilješka'] ? `<div class="box full"><h2>Izvršeni radovi</h2><div>${esc(o['Bilješka'])}</div></div>` : ''}
  ${days.length ? `<div class="box full"><h2>Radno vrijeme</h2><table>${days.map(x => row(dayLbl(x.day), new Date(x.from).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }) + '–' + tEnd(x.to) + ' · ' + hm(x.ms))).join('')}</table></div>` : ''}
 </div>
-${lines.length ? `<table class="it"><thead><tr><th>Stavka</th><th>Količina</th><th style="text-align:right">Jed. cijena bez PDV-a</th><th style="text-align:right">Iznos bez PDV-a</th><th style="text-align:right">Iznos s PDV-om</th></tr></thead><tbody>
+${lines.length ? (sPdv ? `<table class="it"><thead><tr><th>Stavka</th><th>Količina</th><th style="text-align:right">Jed. cijena bez PDV-a</th><th style="text-align:right">Iznos bez PDV-a</th><th style="text-align:right">Iznos s PDV-om</th></tr></thead><tbody>
 ${lines.map(l => `<tr><td>${esc(l[0])}</td><td>${l[1]}</td><td class="n">${l[2]}</td><td class="n">${l[3]}</td><td class="n">${l[4]}</td></tr>`).join('')}</tbody></table>
-<table class="tot"><tr><td>Osnovica</td><td>${eur(net)}</td></tr><tr><td>PDV ${PDV * 100} %</td><td>${eur(vat)}</td></tr><tr class="g"><td>Ukupno</td><td>${eur(gross)}</td></tr></table>` : '<p style="color:#777">Obračun još nije napravljen.</p>'}
+<table class="tot"><tr><td>Osnovica</td><td>${eur(net)}</td></tr><tr><td>PDV ${PDV_STOPA * 100} %</td><td>${eur(vat)}</td></tr><tr class="g"><td>Ukupno</td><td>${eur(gross)}</td></tr></table>`
+ : `<table class="it"><thead><tr><th>Stavka</th><th>Količina</th><th style="text-align:right">Jed. cijena</th><th style="text-align:right">Iznos</th></tr></thead><tbody>
+${lines.map(l => `<tr><td>${esc(l[0])}</td><td>${l[1]}</td><td class="n">${l[2]}</td><td class="n">${l[4]}</td></tr>`).join('')}</tbody></table>
+<table class="tot"><tr class="g"><td>Ukupno</td><td>${eur(gross)}</td></tr></table>
+${POSTAVKE.napomena ? `<p class="pdvn">${esc(POSTAVKE.napomena)}</p>` : ''}`) : '<p style="color:#777">Obračun još nije napravljen.</p>'}
 ${photos && (photos.prije.length || photos.poslije.length) ? `<div class="ph">${['prije', 'poslije'].filter(k => photos[k].length).map(k => `<div class="box"><h2>Fotografije ${k} servisa</h2><div class="phg">${photos[k].map(u => `<img src="${u}" alt="">`).join('')}</div></div>`).join('')}</div>` : ''}
 <div class="sig"><div>Potpis naručitelja (preuzeo/la uređaj)</div><div>Potpis servisera</div></div>
 <div class="warn"><b>VAŽNO – zaštitna naljepnica:</b> molimo korisnike da ne skidaju zaštitnu naljepnicu s uređaja. Naljepnica se pri skidanju trajno oštećuje, a u suprotnom korisnik gubi pravo na jamstvo${o['Jamstvo do'] ? ' (jamstvo vrijedi do ' + esc(o['Jamstvo do']) + ')' : ''}.</div>
@@ -1338,7 +1350,7 @@ document.addEventListener('click', async e => {
         await post(Object.assign({}, base, { akcija: 'update', fields: f }));
         Object.assign(o, f); o._term = parseTermin(o['Termin']);
         msg.className = 'pmsg'; msg.textContent = 'Nalog je zaključen. Spremam PDF u mapu naloga…';
-        try { await post(Object.assign({}, base, { akcija: 'pdf', nr: nalogNr(o), html: buildNalog(o, await photosOf(o), true) })); } catch (e2) { console.warn(e2); }
+        if (POSTAVKE.pdf !== false) try { await post(Object.assign({}, base, { akcija: 'pdf', nr: nalogNr(o), html: buildNalog(o, await photosOf(o), true) })); } catch (e2) { console.warn(e2); }
         delete open[id]; await load();
       } catch (err) { b.disabled = false; b.textContent = '✓ Zaključi nalog'; msg.className = 'pmsg bad'; msg.textContent = err.message; }
       return;
@@ -1389,12 +1401,20 @@ $('#calToday').onclick = () => { calM = new Date(); calM.setDate(1); renderCal()
 
 if (key) load().then(showApp).catch(() => showLogin()); else showLogin();
 setInterval(() => { if (D && !document.hidden && !Object.values(open).some(Boolean) && !Object.keys(confirmAsk).length) load().catch(() => {}); }, 120000);
-window.HZ = { get key() { return key; }, get D() { return D; }, load: () => load(), get brojac() { return D && D.brojac; }, setBrojac: b => { if (D) D.brojac = b; } };
+window.HZ = { get key() { return key; }, get D() { return D; }, load: () => load(), get brojac() { return D && D.brojac; }, setBrojac: b => { if (D) D.brojac = b; }, get postavke() { return POSTAVKE; }, setPostavke: p => { POSTAVKE = p; PDV = p.pdv ? PDV_STOPA : 0; render(); } };
 })();
 </script>
 <div class="bmod" id="brMod" hidden role="dialog" aria-modal="true" aria-labelledby="brT">
   <div class="bmod-in">
-    <h3 id="brT">Brojevi naloga</h3>
+    <h3 id="brT">⚙ Postavke</h3>
+    <label class="al-sw"><input type="checkbox" id="stPdv"><span>Obračun PDV-a (25 %)</span></label>
+    <p class="foot" style="margin:-6px 0 0">Isključeno dok Horizont nije u sustavu PDV-a. Obračun i ispis idu bez PDV-a, s napomenom ispod.</p>
+    <label>Napomena na radnom nalogu (kad je PDV isključen)<textarea id="stNap" rows="3"></textarea></label>
+    <label class="al-sw"><input type="checkbox" id="stPdf"><span>Spremi PDF naloga na Drive kod zaključivanja</span></label>
+    <div class="frow"><button type="button" class="btn" id="stSave">Spremi postavke</button></div>
+    <p class="pmsg" id="stMsg" role="status"></p>
+    <hr style="border:0;border-top:1px solid var(--line);margin:4px 0">
+    <span class="lbl">Brojevi naloga</span>
     <p class="foot" id="brInfo"></p>
     <label>Sljedeći nalog će dobiti broj<span class="brrow"><b id="brPre">RN-2026-</b><input type="number" id="brN" min="1" max="9999"></span></label>
     <p class="foot">Za početak od nule upiši <b>1</b>. Ako neki broj već postoji u tablici, sustav ga sam preskoči, pa dva naloga nikad nemaju isti broj (zato prvo trajno obriši probne naloge).</p>
@@ -1409,7 +1429,17 @@ window.HZ = { get key() { return key; }, get D() { return D; }, load: () => load
   const fill = b => { if (!b) { $b('brInfo').textContent = 'Podaci o brojaču stižu s novom verzijom skripte.'; return; }
     $b('brPre').textContent = 'RN-' + b.god + '-'; $b('brN').value = b.sljedeci;
     $b('brInfo').textContent = 'Zadnji izdani broj ove godine: RN-' + b.god + '-' + String(b.zadnji).padStart(4, '0') + '. Sljedeći: RN-' + b.god + '-' + String(b.sljedeci).padStart(4, '0') + (b.preskace ? ' (neki brojevi su zauzeti pa se preskaču)' : '') + '.'; };
-  $b('brBtn').onclick = () => { fill(window.HZ && HZ.brojac); $b('brPw').value = ''; $b('brMsg').textContent = ''; M.hidden = false; $b('brN').focus(); };
+  const fillSt = () => { const P = HZ.postavke; $b('stPdv').checked = !!P.pdv; $b('stPdf').checked = P.pdf !== false; $b('stNap').value = P.napomena || ''; $b('stMsg').textContent = ''; };
+  $b('stSave').onclick = async () => {
+    const m = $b('stMsg'), b = $b('stSave'), P = { pdv: $b('stPdv').checked, pdf: $b('stPdf').checked, napomena: $b('stNap').value.trim() };
+    b.disabled = true; b.textContent = 'Spremam…';
+    try { const r = await fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ _vrsta: 'admin', k: HZ.key, akcija: 'postavke', postavke: P }) });
+      const j = await r.json(); if (!j.ok) throw new Error(j.error || 'Spremanje nije uspjelo.');
+      HZ.setPostavke(j.postavke); m.className = 'pmsg ok'; m.textContent = 'Postavke su spremljene.';
+    } catch (err) { m.className = 'pmsg bad'; m.textContent = err.message; }
+    b.disabled = false; b.textContent = 'Spremi postavke';
+  };
+  $b('brBtn').onclick = () => { fillSt(); fill(window.HZ && HZ.brojac); $b('brPw').value = ''; $b('brMsg').textContent = ''; M.hidden = false; $b('brN').focus(); };
   $b('brClose').onclick = () => { M.hidden = true; };
   M.addEventListener('click', e => { if (e.target === M) M.hidden = true; });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') M.hidden = true; });
