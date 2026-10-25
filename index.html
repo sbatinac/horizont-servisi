@@ -395,17 +395,15 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 .gz-f input:focus,.gz-f textarea:focus{outline:none;border-color:var(--copper)}
 .gz-f .btn{justify-self:start}.gz-msg{margin:0;font-weight:600}.gz-msg.bad{color:#FF8A7A}
 .gz-ok{display:grid;gap:6px}.gz-ok b:first-child{color:var(--copper);font-size:1.1rem}
-.perf-sec{padding-bottom:0;overflow:hidden}
-.perf{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px 44px;align-items:center}
-.perf-tx h2{font:800 clamp(1.8rem,3.6vw,2.6rem)/1.05 var(--display);margin:8px 0 14px;color:var(--copper)}
-.perf-tx p{color:var(--muted);margin:0 0 14px}
+.perf-sec{background:linear-gradient(90deg,rgba(14,14,13,.95) 0%,rgba(14,14,13,.78) 50%,rgba(14,14,13,.5) 100%),var(--perf) center/cover no-repeat,var(--bg);padding-block:clamp(90px,11vw,150px)}
+.perf{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px 48px;align-items:center}
+.perf h2{font:800 clamp(1.8rem,3.6vw,2.6rem)/1.05 var(--display);margin:8px 0 14px;color:var(--copper)}
+.perf-tx p{color:#D0D0C8;margin:0 0 14px}
 .perf-l{list-style:none;padding:0;margin:0;display:grid;gap:10px}
-.perf-l li{display:grid;gap:2px;padding:12px 14px;background:var(--bg);border:1px solid var(--line);border-left:3px solid var(--copper);border-radius:8px}
-.perf-l b{font:700 1rem var(--display);color:var(--ink)}.perf-l span{color:var(--muted);font-size:.92rem}
-.perf-tx .perf-n{color:var(--ink);font-weight:700;text-transform:uppercase;letter-spacing:.02em;font-size:.95rem;margin:0}
-.perf-im{position:relative;line-height:0;margin-top:0;max-width:1180px;margin-inline:auto}
-.perf-im img{display:block;width:100%;height:auto;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 18%,#000 78%,transparent 100%),linear-gradient(to right,transparent 0,#000 12%,#000 88%,transparent 100%);-webkit-mask-composite:source-in;mask-image:linear-gradient(to bottom,transparent 0,#000 18%,#000 78%,transparent 100%),linear-gradient(to right,transparent 0,#000 12%,#000 88%,transparent 100%);mask-composite:intersect}
-@media (max-width:900px){.perf{grid-template-columns:1fr}}
+.perf-l li{display:grid;gap:2px;padding:12px 14px;background:rgba(23,23,22,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.08);border-left:3px solid var(--copper);border-radius:8px}
+.perf-l b{font:700 1rem var(--display);color:var(--ink)}.perf-l span{color:#BDBDB4;font-size:.92rem}
+.perf .perf-n{color:var(--ink);font-weight:700;text-transform:uppercase;letter-spacing:.02em;font-size:.95rem;margin:0}
+@media (max-width:900px){.perf{grid-template-columns:1fr}.perf-sec{background:linear-gradient(rgba(14,14,13,.85),rgba(14,14,13,.72)),var(--perf) 60% center/cover no-repeat,var(--bg)}}
 .music.float{position:fixed;left:16px;bottom:16px;z-index:60;box-shadow:0 8px 30px rgba(0,0,0,.55);border-color:rgba(254,229,3,.35);animation:mIn .3s ease}
 @keyframes mIn{from{opacity:0;transform:translateY(12px)}}
 </style>
@@ -545,23 +543,19 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
   </div>
 </div></section>
 
-<section id="test" class="alt perf-sec"><div class="wrap">
-  <div class="perf">
-    <div class="perf-tx">
-      <span class="lbl">Prije predaje</span>
-      <h2>Testirano pod punim opterećenjem</h2>
-      <p>Svako računalo prije povrata prolazi stres test i benchmark. Ne nagađamo, nego mjerimo.</p>
-      <p class="perf-n">Uređaj vraćamo tek kad prođe test.</p>
-    </div>
-    <ul class="perf-l">
-      <li><b>Temperature</b><span>procesor i grafička pod punim opterećenjem</span></li>
-      <li><b>Stabilnost</b><span>bez rušenja, gašenja i grešaka</span></li>
-      <li><b>Performanse</b><span>FPS i rezultat prije i poslije zahvata</span></li>
-    </ul>
+<section id="test" class="perf-sec" style="--perf:url('test-performanse.webp')"><div class="wrap perf">
+  <div class="perf-tx">
+    <span class="lbl">Prije predaje</span>
+    <h2>Testirano pod punim opterećenjem</h2>
+    <p>Svako računalo prije povrata prolazi stres test i benchmark. Ne nagađamo, nego mjerimo.</p>
+    <p class="perf-n">Uređaj vraćamo tek kad prođe test.</p>
   </div>
-</div>
-<div class="perf-im"><img src="test-performanse.webp" alt="Benchmark na monitoru: rezultat testa, temperature i FPS, pored otvorenog gaming računala s vodenim hlađenjem" width="1536" height="1024" loading="lazy"></div>
-</section>
+  <ul class="perf-l">
+    <li><b>Temperature</b><span>procesor i grafička pod punim opterećenjem</span></li>
+    <li><b>Stabilnost</b><span>bez rušenja, gašenja i grešaka</span></li>
+    <li><b>Performanse</b><span>FPS i rezultat prije i poslije zahvata</span></li>
+  </ul>
+</div></section>
 
 <section id="provjera" class="prov-sec"><div class="wrap">
   <div class="prov">
