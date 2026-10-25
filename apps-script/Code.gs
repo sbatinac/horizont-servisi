@@ -99,7 +99,7 @@ function admin_(d) {
   if (String(d.akcija).indexOf('dio_') === 0) return dijelovi_(d);
   if (d.akcija === 'kapacitet') return kapSpremi_(d.pravila || {});
   if (d.akcija === 'postavke') {
-    const P = d.postavke || {}, out = { pdv: !!P.pdv, pdf: P.pdf !== false, napomena: String(P.napomena || '').slice(0, 400) };
+    const P = d.postavke || {}, out = { pdv: !!P.pdv, pdf: P.pdf === true, napomena: String(P.napomena || '').slice(0, 400) };
     PropertiesService.getScriptProperties().setProperty('postavke', JSON.stringify(out));
     return { ok: true, postavke: out };
   }

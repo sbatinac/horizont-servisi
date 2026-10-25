@@ -383,7 +383,7 @@ const CITATI = [
 const CIJENA_SATA = 55;
 const PDV_STOPA = 0.25; // 25 % PDV (kad je uključen u postavkama)
 const PDV_NAP = 'Obveznik nije u sustavu PDV-a. PDV nije obračunat temeljem čl. 90. st. 2. Zakona o porezu na dodanu vrijednost.';
-let POSTAVKE = { pdv: false, pdf: true, napomena: PDV_NAP };
+let POSTAVKE = { pdv: false, pdf: false, napomena: PDV_NAP };
 let PDV = 0; // trenutna stopa: 0 dok PDV nije uključen
 // Link za Google recenziju (Google profil tvrtke → Zatraži recenzije → kopiraj link). Prazno = gumb se ne prikazuje.
 const GOOGLE_RECENZIJA = '';
@@ -429,7 +429,7 @@ async function load() {
   D = { prijave: rowsOf(j.prijave), upiti: rowsOf(j.upiti), posjete: (j.posjete && j.posjete.rows) || [], tablica: j.tablica, dijelovi: dijeloviOf(j.dijelovi) };
   if (!load._fixed) { load._fixed = true; setTimeout(() => fixStale().catch(() => {}), 0); }
   $('#sheetLink').href = D.tablica || '#';
-  D.brojac = j.brojac || null; POSTAVKE = Object.assign({ pdv: false, pdf: true, napomena: PDV_NAP }, j.postavke || {}); PDV = POSTAVKE.pdv ? PDV_STOPA : 0; D.alarm = j.alarm || null; D.kap = j.kapacitet || null; D.dani = j.dani || {}; if (!KAPED_DIRTY) KAPED = D.kap ? JSON.parse(JSON.stringify(D.kap)) : null; VLASTITI = Array.isArray(j.predlosci) ? j.predlosci : []; D.jutro = !!j.jutro; $('#jutro').textContent = '☀ Jutarnji mail: ' + (D.jutro ? 'uključen' : 'isključen'); $('#jutro').classList.toggle('on', D.jutro);
+  D.brojac = j.brojac || null; POSTAVKE = Object.assign({ pdv: false, pdf: false, napomena: PDV_NAP }, j.postavke || {}); PDV = POSTAVKE.pdv ? PDV_STOPA : 0; D.alarm = j.alarm || null; D.kap = j.kapacitet || null; D.dani = j.dani || {}; if (!KAPED_DIRTY) KAPED = D.kap ? JSON.parse(JSON.stringify(D.kap)) : null; VLASTITI = Array.isArray(j.predlosci) ? j.predlosci : []; D.jutro = !!j.jutro; $('#jutro').textContent = '☀ Jutarnji mail: ' + (D.jutro ? 'uključen' : 'isključen'); $('#jutro').classList.toggle('on', D.jutro);
   render();
   $('#foot').textContent = 'Zadnje osvježeno: ' + new Date().toLocaleString('hr-HR');
 }
@@ -1350,7 +1350,7 @@ document.addEventListener('click', async e => {
         await post(Object.assign({}, base, { akcija: 'update', fields: f }));
         Object.assign(o, f); o._term = parseTermin(o['Termin']);
         msg.className = 'pmsg'; msg.textContent = 'Nalog je zaključen. Spremam PDF u mapu naloga…';
-        if (POSTAVKE.pdf !== false) try { await post(Object.assign({}, base, { akcija: 'pdf', nr: nalogNr(o), html: buildNalog(o, await photosOf(o), true) })); } catch (e2) { console.warn(e2); }
+        if (POSTAVKE.pdf === true) try { await post(Object.assign({}, base, { akcija: 'pdf', nr: nalogNr(o), html: buildNalog(o, await photosOf(o), true) })); } catch (e2) { console.warn(e2); }
         delete open[id]; await load();
       } catch (err) { b.disabled = false; b.textContent = '✓ Zaključi nalog'; msg.className = 'pmsg bad'; msg.textContent = err.message; }
       return;
@@ -1429,7 +1429,7 @@ window.HZ = { get key() { return key; }, get D() { return D; }, load: () => load
   const fill = b => { if (!b) { $b('brInfo').textContent = 'Podaci o brojaču stižu s novom verzijom skripte.'; return; }
     $b('brPre').textContent = 'RN-' + b.god + '-'; $b('brN').value = b.sljedeci;
     $b('brInfo').textContent = 'Zadnji izdani broj ove godine: RN-' + b.god + '-' + String(b.zadnji).padStart(4, '0') + '. Sljedeći: RN-' + b.god + '-' + String(b.sljedeci).padStart(4, '0') + (b.preskace ? ' (neki brojevi su zauzeti pa se preskaču)' : '') + '.'; };
-  const fillSt = () => { const P = HZ.postavke; $b('stPdv').checked = !!P.pdv; $b('stPdf').checked = P.pdf !== false; $b('stNap').value = P.napomena || ''; $b('stMsg').textContent = ''; };
+  const fillSt = () => { const P = HZ.postavke; $b('stPdv').checked = !!P.pdv; $b('stPdf').checked = P.pdf === true; $b('stNap').value = P.napomena || ''; $b('stMsg').textContent = ''; };
   $b('stSave').onclick = async () => {
     const m = $b('stMsg'), b = $b('stSave'), P = { pdv: $b('stPdv').checked, pdf: $b('stPdf').checked, napomena: $b('stNap').value.trim() };
     b.disabled = true; b.textContent = 'Spremam…';
