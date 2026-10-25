@@ -32,6 +32,8 @@ const WA_TEL = '';     // npr. '+385913584122'
 const WA_APIKEY = '';  // ključ koji ti pošalje CallMeBot
 // Push obavijest na mobitel preko besplatne aplikacije ntfy (bez registracije). U aplikaciji se pretplatiš na ovu temu.
 const NTFY_TEMA = '';  // prazno = isključeno
+// Telegram: token bota iz @BotFather (može i iz admina, onda ostavi prazno). Botu u Telegramu klikni START.
+const TG_TOKEN = '';
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
@@ -688,12 +690,20 @@ function ntfyNovo_(data, nr, upit) {
 // ===== TELEGRAM OBAVIJESTI (token i chat se spremaju iz admina, ne u kodu) =====
 function tgProps_() { return PropertiesService.getScriptProperties(); }
 function tgApi_(metoda, payload) {
-  const t = tgProps_().getProperty('tg_token'); if (!t) throw new Error('Telegram bot nije postavljen.');
+  const t = tgProps_().getProperty('tg_token') || TG_TOKEN; if (!t) throw new Error('Telegram bot nije postavljen.');
   const r = UrlFetchApp.fetch('https://api.telegram.org/bot' + t + '/' + metoda, { method: 'post', contentType: 'application/json', payload: JSON.stringify(payload || {}), muteHttpExceptions: true });
   const j = JSON.parse(r.getContentText() || '{}'); if (!j.ok) throw new Error('Telegram: ' + (j.description || r.getResponseCode())); return j.result;
 }
-function tgInfo_() { const p = tgProps_(); return { bot: p.getProperty('tg_bot') || '', povezan: !!p.getProperty('tg_chat') }; }
-function tg_(txt) { const chat = tgProps_().getProperty('tg_chat'); if (!chat) return; tgApi_('sendMessage', { chat_id: chat, text: String(txt).slice(0, 3800), disable_web_page_preview: true }); }
+function tgInfo_() { const p = tgProps_(); if (!p.getProperty('tg_bot') && TG_TOKEN && !p.getProperty('tg_token')) { try { p.setProperty('tg_bot', tgApi_('getMe').username || ''); } catch (e) {} } tgChatAuto_(); return { bot: p.getProperty('tg_bot') || '', povezan: !!p.getProperty('tg_chat') }; }
+// Ako chat još nije spremljen, a korisnik je botu kliknuo START, sam ga pronađi.
+function tgChatAuto_() {
+  const p = tgProps_(); if (p.getProperty('tg_chat') || !(p.getProperty('tg_token') || TG_TOKEN)) return p.getProperty('tg_chat');
+  try { const m = (tgApi_('getUpdates', { limit: 50 }) || []).map(u => u.message || u.edited_message || u.my_chat_member).filter(x => x && x.chat).pop();
+    if (m) { p.setProperty('tg_chat', String(m.chat.id)); tgApi_('sendMessage', { chat_id: m.chat.id, text: '✅ Povezano! Ovdje ćeš dobivati obavijesti o novim nalozima i upitima s Horizont web stranice.' }); }
+  } catch (e) {}
+  return p.getProperty('tg_chat');
+}
+function tg_(txt) { const chat = tgProps_().getProperty('tg_chat') || tgChatAuto_(); if (!chat) return; tgApi_('sendMessage', { chat_id: chat, text: String(txt).slice(0, 3800), disable_web_page_preview: true }); }
 function tgAdmin_(d) {
   const p = tgProps_();
   try {
@@ -711,13 +721,13 @@ function tgAdmin_(d) {
       tg_('✅ Povezano! Ovdje ćeš dobivati obavijesti o novim nalozima i upitima s Horizont web stranice.');
       return { ok: true, telegram: tgInfo_() };
     }
-    if (d.op === 'test') { if (!p.getProperty('tg_chat')) return { ok: false, error: 'Telegram još nije povezan.' }; tg_('🔔 Imaš nalog! (proba)\nRaditi početi trebaš! 😄\n' + ADMIN_URL); return { ok: true }; }
-    if (d.op === 'iskljuci') { ['tg_token', 'tg_chat', 'tg_bot'].forEach(k => p.deleteProperty(k)); return { ok: true, telegram: tgInfo_() }; }
+    if (d.op === 'test') { if (!p.getProperty('tg_chat') && !tgChatAuto_()) return { ok: false, error: 'Telegram još nije povezan.' }; tg_('🔔 Imaš nalog! (proba)\nRaditi početi trebaš! 😄\n' + ADMIN_URL); return { ok: true }; }
+    if (d.op === 'iskljuci') { ['tg_token', 'tg_chat', 'tg_bot'].forEach(k => p.deleteProperty(k)); return { ok: true, telegram: { bot: '', povezan: false } }; }
   } catch (e) { return { ok: false, error: e.message }; }
   return { ok: false, error: 'Nepoznata akcija.' };
 }
 function tgNovo_(data, nr, upit) {
-  if (!tgProps_().getProperty('tg_chat')) return;
+  if (!tgProps_().getProperty('tg_chat') && !tgChatAuto_()) return;
   const g = k => { const key = Object.keys(data).find(x => x.indexOf('[' + k + ']') !== -1); return key ? String(data[key] || '') : ''; };
   const tel = g('mobitel') || g('telefon');
   const L = upit
@@ -725,3 +735,6 @@ function tgNovo_(data, nr, upit) {
     : ['🔔 Imaš nalog! Raditi početi trebaš!', nr, g('ime') + (tel ? ' · ' + tel : ''), [g('uredaj'), g('tip_racunala')].filter(String).join(' · '), g('datum') ? 'Željeni datum: ' + g('datum') : '', (g('opis_kvara') || '').slice(0, 400), ADMIN_URL];
   tg_(L.filter(String).join('\n'));
 }
+
+// Pokreni ručno nakon što botu klikneš START: poveže chat i pošalje probnu poruku.
+function testTelegram() { tgChatAuto_(); tg_('🔔 Imaš nalog! (proba)\nRaditi početi trebaš! 😄'); Logger.log(tgInfo_()); }
