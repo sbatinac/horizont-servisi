@@ -1422,7 +1422,7 @@ window.HZ = { get key() { return key; }, get D() { return D; }, load: () => load
 <script>
 /* ===== ALARM ZA NOVE NALOGE I UPITE ===== */
 (() => {
-  const SND = 'alarm.mp3', POLL = 30000, PONAVLJANJA = 3;
+  const SND = 'alarm.mp3?v=1', POLL = 30000, PONAVLJANJA = 2;
   let on = true; try { on = localStorage.getItem('hz_alarm') !== '0'; } catch (e) {}
   let base = null, audio = null, plays = 0, beepT = null, titleT = null, unlocked = false;
   const T0 = document.title, btn = document.getElementById('alarmBtn'), box = document.getElementById('alarm');
