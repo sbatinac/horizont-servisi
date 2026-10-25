@@ -737,4 +737,14 @@ function tgNovo_(data, nr, upit) {
 }
 
 // Pokreni ručno nakon što botu klikneš START: poveže chat i pošalje probnu poruku.
-function testTelegram() { tgChatAuto_(); tg_('🔔 Imaš nalog! (proba)\nRaditi početi trebaš! 😄'); Logger.log(tgInfo_()); }
+function testTelegram() {
+  const t = tgProps_().getProperty('tg_token') || TG_TOKEN;
+  if (!t) { Logger.log('❌ TG_TOKEN je prazan. U retku "const TG_TOKEN" upiši token iz BotFathera.'); return; }
+  const me = tgApi_('getMe'); Logger.log('Bot: @' + me.username); tgProps_().setProperty('tg_bot', me.username || '');
+  const up = tgApi_('getUpdates', { limit: 50 }) || []; Logger.log('Poruka botu: ' + up.length);
+  const m = up.map(u => u.message || u.edited_message || u.my_chat_member).filter(x => x && x.chat).pop();
+  if (!m && !tgProps_().getProperty('tg_chat')) { Logger.log('❌ Bot nije dobio poruku. U Telegramu otvori bota i klikni START, pa pokreni ponovno.'); return; }
+  if (m) tgProps_().setProperty('tg_chat', String(m.chat.id));
+  tg_('✅ Povezano! 🔔 Imaš nalog! (proba)\nRaditi početi trebaš! 😄');
+  Logger.log('✅ Poslano. ' + JSON.stringify(tgInfo_()));
+}
