@@ -269,6 +269,10 @@ main{padding-block:24px 60px;display:grid;gap:28px}
 .al-drop span{color:var(--muted);font-size:.85rem}.al-drop b{color:var(--y)}
 .al-drop:hover,.al-drop.over,.al-drop:focus-visible{border-color:var(--y);background:rgba(254,229,3,.06);outline:none}
 .bmod-in .frow{flex-wrap:wrap}
+.btn.btn-red{background:#D62828;border-color:#D62828;color:#fff;box-shadow:0 0 0 0 rgba(214,40,40,.5)}
+.btn.btn-red:hover{background:#B71F1F;border-color:#B71F1F;color:#fff;box-shadow:0 0 0 4px rgba(214,40,40,.25)}
+.btn.btn-red-o{background:transparent;border:1.5px solid #D62828;color:#FF6B6B}
+.btn.btn-red-o:hover{background:#D62828;color:#fff}
 </style>
 </head>
 <body>
@@ -526,7 +530,7 @@ function panelHTML(o, kind, p) {
       <div class="totals"><span>Osnovica (bez PDV-a)</span><span class="t-net">0,00 €</span><span>PDV ${PDV * 100} %</span><span class="t-vat">0,00 €</span><span>Ukupno za naplatu</span><span class="t-gross grand">0,00 €</span><span>Nabava novih dijelova (interno)</span><span class="t-nab">0,00 €</span></div>
       <div class="frow"><label>Jamstvo na radove i dijelove<select class="pj">${[0, 3, 6, 12, 24].map(m => `<option value="${m}"${String(m) === String(o['Jamstvo (mj)'] || 6) ? ' selected' : ''}>${m ? m + ' mj.' : 'bez jamstva'}</option>`).join('')}</select></label></div>
       <label>Bilješka (što je napravljeno)<textarea class="pb" placeholder="npr. očišćen hladnjak, nova termalna pasta, Windows 11">${esc(o['Bilješka'] || '')}</textarea></label>
-      <div class="frow"><button type="button" class="btn" data-do="saveZavrsi">✓ Zaključi nalog</button><button type="button" class="btn ghost" data-do="saveStavke">Spremi bez zaključivanja</button><button type="button" class="btn ghost" data-do="close">Odustani</button></div>
+      <div class="frow"><button type="button" class="btn btn-red" data-do="saveZavrsi">✓ Zaključi nalog</button><button type="button" class="btn ghost" data-do="saveStavke">Spremi bez zaključivanja</button><button type="button" class="btn ghost" data-do="close">Odustani</button></div>
       <p class="pmsg" role="status"></p><template class="tpl">${row({ n: '', v: 'novi', q: 1, c: '', m: 'bez' })}</template></div>`;
   }
   return '';
@@ -661,12 +665,12 @@ function workBar(o, id) {
   if (st === 'Riješeno') return a.length ? `<div class="work"><span class="dot"></span><span class="timer">${hms(ms)}</span><span class="wl">ukupno radno vrijeme · ${perDay(a).length} ${perDay(a).length === 1 ? 'dan' : 'dana'}</span></div>${daysHTML(a)}${cyclesHTML(a)}` : '';
   const cls = run ? 'run' : a.length ? 'pause' : '';
   const lbl = st === 'Za obračun' && !run ? 'Rad završen, čeka obračun' : run ? 'U radu od ' + new Date(run.s).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }) : a.length ? 'Pauzirano · odrađeno ukupno' : 'Rad još nije započet';
-  const btns = run ? `<button type="button" class="btn ghost" data-do="ask" data-w="pause">⏸ Zaustavi</button><button type="button" class="btn" data-do="ask" data-w="stop">■ Završi rad</button>`
-    : a.length ? `<button type="button" class="btn" data-do="ask" data-w="resume">▶ Nastavi</button><button type="button" class="btn ghost" data-do="ask" data-w="stop">■ Završi rad</button>`
+  const btns = run ? `<button type="button" class="btn ghost" data-do="ask" data-w="pause">⏸ Zaustavi</button><button type="button" class="btn btn-red" data-do="ask" data-w="stop">■ Završi rad</button>`
+    : a.length ? `<button type="button" class="btn" data-do="ask" data-w="resume">▶ Nastavi</button><button type="button" class="btn btn-red" data-do="ask" data-w="stop">■ Završi rad</button>`
     : `<button type="button" class="btn" data-do="ask" data-w="start">▶ Započni rad</button>`;
   const ask = confirmAsk[id];
   return `<div class="work ${cls}"><span class="dot" aria-hidden="true"></span><span class="timer"${run ? ` data-run="${Date.parse(run.s)}" data-base="${ms - (Date.now() - Date.parse(run.s))}"` : ''}>${hms(ms)}</span><span class="wl">${lbl}</span>${btns}</div>${daysHTML(a)}${cyclesHTML(a)}
-    ${ask ? `<div class="confirm" role="alertdialog"><b>${CONF[ask][0]}</b><button type="button" class="btn" data-do="work" data-w="${ask}">Potvrdi: ${CONF[ask][1]}</button><button type="button" class="btn ghost" data-do="noask">Odustani</button></div>` : ''}`;
+    ${ask ? `<div class="confirm" role="alertdialog"><b>${CONF[ask][0]}</b><button type="button" class="btn${ask === 'stop' ? ' btn-red' : ''}" data-do="work" data-w="${ask}">Potvrdi: ${CONF[ask][1]}</button><button type="button" class="btn ghost" data-do="noask">Odustani</button></div>` : ''}`;
 }
 setInterval(() => {
   document.querySelectorAll('.timer[data-run]').forEach(t => t.textContent = hms(+t.dataset.base + Date.now() - +t.dataset.run));
@@ -1078,7 +1082,7 @@ function card(o, kind) {
     ? (dio && !closed ? (dioSt === 'Rezervirano' ? `<button type="button" class="btn ghost" data-do="dioSt" data-dio="${esc(dioId)}" data-st="Na prodaji">↩ Vrati dio na prodaju</button>` : (dioSt || 'Na prodaji') === 'Na prodaji' ? `<button type="button" class="btn" data-do="dioSt" data-dio="${esc(dioId)}" data-st="Rezervirano">📌 Rezerviraj dio</button>` : '') : '')
       + (closed ? `<button type="button" class="btn ghost" data-do="reopen">Vrati u otvorene</button>` : `<button type="button" class="btn ghost" data-do="quickDone">✓ Riješeno</button>`) + tail
     : (closed ? `<button type="button" class="btn ghost" data-do="reopen">${st === 'Odbijen' ? 'Vrati u otvorene' : 'Vrati u rad'}</button>`
-      : `<button type="button" class="btn ghost" data-do="termin">${o._term ? 'Promijeni termin' : '📅 Zakaži termin'}</button><button type="button" class="btn ghost" data-do="zavrsi">🧾 Obračun / Riješeno</button>${o._term ? '<button type="button" class="btn ghost" data-do="otkazi">Otkaži termin</button>' : ''}`) + tail;
+      : `<button type="button" class="btn ghost" data-do="termin">${o._term ? 'Promijeni termin' : '📅 Zakaži termin'}</button><button type="button" class="btn btn-red-o" data-do="zavrsi">🧾 Obračun / Riješeno</button>${o._term ? '<button type="button" class="btn ghost" data-do="otkazi">Otkaži termin</button>' : ''}`) + tail;
   return `<article class="card${isNew ? ' new' : ''}${closed ? ' done' : ''}" id="c-${id}" data-id="${id}" data-kind="${kind}" data-row="${o._i}">
     <div class="c-top">
       <div class="c-name"><h3>${esc(ime)}${isNew ? '<span class="pill">Novo</span>' : ''}${dioId ? '<span class="pill" style="background:#2A3B1F;color:#9BE37B">🛒 Tech Outlet</span>' : ''}${stChip(st)}${uw.length ? '<span class="st jam">Jamstvo</span>' : ''}</h3><span class="c-meta">${esc(nalogNr(o))} · ${esc(o['vrijeme'] || '')}</span>
