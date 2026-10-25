@@ -395,6 +395,18 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 .gz-f input:focus,.gz-f textarea:focus{outline:none;border-color:var(--copper)}
 .gz-f .btn{justify-self:start}.gz-msg{margin:0;font-weight:600}.gz-msg.bad{color:#FF8A7A}
 .gz-ok{display:grid;gap:6px}.gz-ok b:first-child{color:var(--copper);font-size:1.1rem}
+.perf{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:44px;align-items:center}
+.perf-tx h2{font:800 clamp(1.8rem,3.6vw,2.6rem)/1.05 var(--display);margin:8px 0 14px;color:var(--copper)}
+.perf-tx p{color:var(--muted);margin:0 0 18px}
+.perf-l{list-style:none;padding:0;margin:0 0 18px;display:grid;gap:10px}
+.perf-l li{display:grid;gap:2px;padding:12px 14px;background:var(--bg);border:1px solid var(--line);border-left:3px solid var(--copper);border-radius:8px}
+.perf-l b{font:700 1rem var(--display);color:var(--ink)}.perf-l span{color:var(--muted);font-size:.92rem}
+.perf-tx .perf-n{color:var(--ink);font-weight:700;text-transform:uppercase;letter-spacing:.02em;font-size:.95rem;margin:0}
+.perf-im{margin:0;border-radius:14px;overflow:hidden;border:1px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 0 1px rgba(254,229,3,.08)}
+.perf-im img{display:block;width:100%;height:auto;transition:transform .6s ease}
+.perf-im:hover img{transform:scale(1.03)}
+@media (max-width:900px){.perf{grid-template-columns:1fr;gap:26px}.perf-im{order:-1}}
+@media (prefers-reduced-motion:reduce){.perf-im img{transition:none}}
 </style>
 
 <!-- Microsoft Clarity -->
@@ -530,6 +542,21 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
     <div class="step"><h3>Servis</h3><p>Cijenu i zahvate potvrđujemo s Vama prije rada.</p></div>
     <div class="step"><h3>Povrat</h3><p>Uređaj se vraća s računom i garancijom.</p></div>
   </div>
+</div></section>
+
+<section id="test" class="alt perf-sec"><div class="wrap perf">
+  <div class="perf-tx">
+    <span class="lbl">Prije predaje</span>
+    <h2>Testirano pod punim opterećenjem</h2>
+    <p>Svako računalo prije povrata prolazi stres test i benchmark. Ne nagađamo, nego mjerimo.</p>
+    <ul class="perf-l">
+      <li><b>Temperature</b><span>procesor i grafička pod punim opterećenjem</span></li>
+      <li><b>Stabilnost</b><span>bez rušenja, gašenja i grešaka</span></li>
+      <li><b>Performanse</b><span>FPS i rezultat prije i poslije zahvata</span></li>
+    </ul>
+    <p class="perf-n">Uređaj vraćamo tek kad prođe test.</p>
+  </div>
+  <figure class="perf-im"><img src="test-performanse.webp" alt="Benchmark na monitoru: rezultat testa, temperature i FPS, pored otvorenog gaming računala s vodenim hlađenjem" width="1536" height="1024" loading="lazy"></figure>
 </div></section>
 
 <section id="provjera" class="prov-sec"><div class="wrap">
