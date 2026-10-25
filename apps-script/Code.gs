@@ -27,6 +27,9 @@ const WEB = 'https://sbatinac.github.io/horizont-servisi/';
 const ADMIN_URL = WEB + 'admin.html';
 // Lozinka za admin stranicu. Upiši svoju ovdje u Apps Scriptu, NE u GitHub repo.
 const ADMIN_KEY = 'UPISI_LOZINKU';
+// WhatsApp obavijest za svaki novi nalog/upit (besplatno preko CallMeBot, vidi README). Prazno = isključeno.
+const WA_TEL = '';     // npr. '+385913584122'
+const WA_APIKEY = '';  // ključ koji ti pošalje CallMeBot
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
@@ -46,6 +49,7 @@ function doPost(e) {
     if (nr) data['Broj naloga [broj_naloga]'] = nr;
     const row = appendRow_(sheet, data);
     notify_(data, row, upit);
+    try { waNovo_(data, nr, upit); } catch (e) { console.warn(e); }
     try { potvrdaKlijentu_(data, nr, upit); } catch (e) { console.warn(e); }
     return json_({ ok: true, nr: nr });
   } catch (err) {
@@ -94,6 +98,7 @@ function admin_(d) {
   if (d.akcija === 'jutro_test') { jutarnjiSazetak(); return { ok: true }; }
   if (String(d.akcija).indexOf('dio_') === 0) return dijelovi_(d);
   if (d.akcija === 'kapacitet') return kapSpremi_(d.pravila || {});
+  if (d.akcija === 'wa_test') { if (!WA_TEL || !WA_APIKEY) return { ok: false, error: 'U Code.gs upiši WA_TEL i WA_APIKEY pa objavi novu verziju.' }; const r = wa_('✅ Horizont: WhatsApp obavijesti rade! Imaš nalog… raditi početi trebaš. 😄'); return r === true ? { ok: true } : { ok: false, error: 'CallMeBot: ' + r }; }
   if (d.akcija === 'alarm_pjesma') {
     const props = PropertiesService.getScriptProperties();
     let old = null; try { old = JSON.parse(props.getProperty('alarm_pjesma') || 'null'); } catch (e) {}
@@ -573,6 +578,7 @@ function odobriDozvole() {
   CalendarApp.getDefaultCalendar().getName();
   ScriptApp.getProjectTriggers();
   MailApp.getRemainingDailyQuota();
+  UrlFetchApp.getRequest('https://api.callmebot.com/');
   PropertiesService.getScriptProperties().getKeys();
   Logger.log('Sve dozvole su odobrene.');
 }
@@ -620,4 +626,21 @@ function brojacInfo_() {
   const zadnji = brojacZadnji_(sh, god), used = brojeviGodine_(sh, god);
   let n = zadnji + 1; while (used[n]) n++;
   return { god: god, zadnji: zadnji, sljedeci: n, preskace: n !== zadnji + 1 };
+}
+
+// ===== WHATSAPP OBAVIJEST (CallMeBot) =====
+function wa_(txt) {
+  if (!WA_TEL || !WA_APIKEY) return 'nije postavljeno';
+  const url = 'https://api.callmebot.com/whatsapp.php?phone=' + encodeURIComponent(WA_TEL.replace(/[^\d+]/g, '')) + '&text=' + encodeURIComponent(String(txt).slice(0, 900)) + '&apikey=' + encodeURIComponent(WA_APIKEY);
+  const r = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+  return r.getResponseCode() < 300 ? true : r.getResponseCode() + ' ' + r.getContentText().replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').slice(0, 160);
+}
+function waNovo_(data, nr, upit) {
+  if (!WA_TEL || !WA_APIKEY) return;
+  const g = k => { const key = Object.keys(data).find(x => x.indexOf('[' + k + ']') !== -1); return key ? String(data[key] || '') : ''; };
+  const tel = g('mobitel') || g('telefon') || g('tel');
+  const L = upit
+    ? [g('dio_id') ? '🛒 Zainteresiran za ' + g('dio') : '💬 Novi upit s web stranice', g('ime') + (tel ? ' · ' + tel : ''), g('email'), g('poruka').slice(0, 300)]
+    : ['🔔 Imaš nalog! Raditi početi trebaš!', nr, g('ime') + (tel ? ' · ' + tel : ''), [g('uredaj'), g('tip_racunala')].filter(String).join(' · '), g('datum') ? 'Željeni datum: ' + g('datum') : '', (g('opis_kvara') || '').slice(0, 250), ADMIN_URL];
+  wa_(L.filter(String).join('\n'));
 }

@@ -1442,7 +1442,9 @@ window.HZ = { get key() { return key; }, get D() { return D; }, load: () => load
     <div class="frow"><button type="button" class="btn ghost" id="alDef">↺ Vrati zadanu melodiju</button></div>
     <div class="frow"><button type="button" class="btn" id="alTest">▶ Probaj alarm</button><button type="button" class="btn ghost" id="alStop">■ Stani</button><button type="button" class="btn ghost" id="alClose">Zatvori</button></div>
     <p class="pmsg" id="alMsg" role="status"></p>
-    <p class="foot" style="margin:0">Alarm radi dok je admin otvoren (može i u drugoj kartici). Mail za svaki novi nalog stiže uvijek.</p>
+    <span class="lbl">WhatsApp obavijest (radi i kad je admin zatvoren)</span>
+    <div class="frow"><button type="button" class="btn ghost" id="alWa">📱 Pošalji probnu WhatsApp poruku</button></div>
+    <p class="foot" style="margin:0">Alarm radi dok je admin otvoren (može i u drugoj kartici). Mail i WhatsApp za svaki novi nalog stižu uvijek.</p>
   </div>
 </div>
 <script>
@@ -1543,6 +1545,12 @@ window.HZ = { get key() { return key; }, get D() { return D; }, load: () => load
       if (HZ.D) HZ.D.alarm = null; if (pjesmaUrl.startsWith('blob:')) URL.revokeObjectURL(pjesmaUrl);
       pjesmaUrl = ZADANA; pjesmaIme = 'Zadana melodija (Three-Note Alert)'; pjesmaId = ''; slika(); msg('Vraćena je zadana melodija.', 'ok');
     } catch (err) { msg(err.message || 'Nije uspjelo.', 'bad'); }
+  };
+  $a('alWa').onclick = async () => {
+    msg('Šaljem probnu poruku…');
+    try { const r = await fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ _vrsta: 'admin', k: HZ.key, akcija: 'wa_test' }) });
+      const j = await r.json(); if (!j.ok) throw new Error(j.error || 'Nije uspjelo.'); msg('Poslano! Provjeri WhatsApp.', 'ok');
+    } catch (err) { msg(err.message, 'bad'); }
   };
   $a('alarmMute').onclick = () => { stani(); box.hidden = true; };
   $a('alarmShow').onclick = () => { stani(); box.hidden = true; const t = document.querySelector(`.tab[data-t="${box.dataset.tab}"]`); if (t) t.click(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
