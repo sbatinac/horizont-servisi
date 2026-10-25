@@ -279,6 +279,23 @@ main{padding-block:24px 60px;display:grid;gap:28px}
 .nopdv .col-pdv{display:none!important}
 .bmod-in textarea{background:var(--bg);border:1.5px solid #3A3A35;color:var(--ink);padding:10px 12px;border-radius:7px;font:inherit;resize:vertical}
 .bmod-in{max-height:calc(100vh - 32px);overflow:auto}
+.bulk{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.bulk .b-all{display:flex;align-items:center;gap:8px;font-weight:600;cursor:pointer}.bulk .b-n{color:var(--muted);font-size:.9rem}.bulk .b-sp{flex:1}
+.bulk input[type=checkbox],.c-chk{width:19px;height:19px;accent-color:var(--y);cursor:pointer;flex:none}
+.bulk .btn{padding:.5em .9em;font-size:.88rem}.bulk .btn:disabled{opacity:.4;cursor:not-allowed}
+.b-pw{flex-basis:100%;display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:rgba(214,40,40,.1);border:1px solid rgba(214,40,40,.5);border-radius:8px;padding:10px}
+.b-pw input{background:var(--bg);border:1.5px solid #3A3A35;color:var(--ink);padding:8px 10px;border-radius:7px;font:inherit}
+.bulk .pmsg{flex-basis:100%;margin:0;font-weight:600}.bulk .pmsg:empty{display:none}.bulk .pmsg.bad{color:var(--bad)}.bulk .pmsg.ok{color:#9BE37B}
+.c-sum{display:grid;grid-template-columns:auto 118px minmax(150px,1fr) minmax(0,1.6fr) auto auto;gap:14px;align-items:center;padding:12px 16px;cursor:pointer}
+.c-sum:hover{background:rgba(255,255,255,.025)}
+.card.exp .c-sum{border-bottom:1px solid var(--line)}
+.card.sel{outline:2px solid var(--y);outline-offset:-2px}
+.s-nr{font:500 .82rem var(--mono);color:var(--y)}
+.s-who{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-width:0}.s-who b{font:700 1rem var(--display)}
+.s-what{color:var(--muted);font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.s-date{font:500 .82rem var(--mono);color:var(--muted);text-align:right;display:grid;white-space:nowrap}.s-date small{color:#7FB2FF;font-size:.75rem}
+.s-chev{color:var(--muted);font-size:1rem;width:18px;text-align:center}
+@media (max-width:820px){.c-sum{grid-template-columns:auto 1fr auto;gap:6px 10px}.s-nr{grid-column:2}.s-who{grid-column:2}.s-what{grid-column:2;white-space:normal}.s-date{grid-column:3;grid-row:1}.s-chev{grid-column:3;grid-row:2}.c-chk{grid-row:1/span 2}}
 </style>
 </head>
 <body>
@@ -331,6 +348,16 @@ main{padding-block:24px 60px;display:grid;gap:28px}
       <button type="button" class="chip" data-f="odbijeni">Odbijeni</button>
       <button type="button" class="chip" data-f="arhiva">Arhiva</button>
       <button type="button" class="chip" data-f="svi">Svi</button>
+    </div>
+    <div class="bulk" id="bulk" hidden>
+      <label class="b-all"><input type="checkbox" id="selAll"> Označi sve</label>
+      <span class="b-n" id="selN">Ništa nije označeno</span>
+      <span class="b-sp"></span>
+      <button type="button" class="btn ghost" id="expAll">Rasklopi sve</button>
+      <button type="button" class="btn ghost" id="bArch" disabled>🗑 Označene u arhivu</button>
+      <button type="button" class="btn btn-red" id="bDel" disabled>⛔ Trajno obriši označene</button>
+      <div class="b-pw" id="bPw" hidden><span>Trajno brisanje <b id="bPwN"></b>. Ne može se vratiti.</span><input type="password" id="bPwI" placeholder="admin lozinka" autocomplete="current-password"><button type="button" class="btn btn-red" id="bPwOk">Potvrdi brisanje</button><button type="button" class="btn ghost" id="bPwNo">Odustani</button></div>
+      <p class="pmsg" id="bMsg" role="status"></p>
     </div>
     <div class="list" id="list"></div>
     <div id="garView" hidden>
@@ -395,6 +422,7 @@ const STATUS_URL = new URL('status.html', location.href).href;
 (() => {
 const $ = s => document.querySelector(s);
 const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let OTV = {}, SEL = new Set();
 let D = null, tab = 'prijave', flt = 'otvoreni', key = '', open = {}, calM = new Date(); calM.setDate(1);
 try { key = sessionStorage.getItem('hz_admin') || ''; } catch (e) {}
 const DAY = 864e5;
@@ -1098,7 +1126,19 @@ function card(o, kind) {
       + (closed ? `<button type="button" class="btn ghost" data-do="reopen">Vrati u otvorene</button>` : `<button type="button" class="btn ghost" data-do="quickDone">✓ Riješeno</button>`) + tail
     : (closed ? `<button type="button" class="btn ghost" data-do="reopen">${st === 'Odbijen' ? 'Vrati u otvorene' : 'Vrati u rad'}</button>`
       : `<button type="button" class="btn ghost" data-do="termin">${o._term ? 'Promijeni termin' : '📅 Zakaži termin'}</button><button type="button" class="btn btn-red-o" data-do="zavrsi">🧾 Obračun / Riješeno</button>${o._term ? '<button type="button" class="btn ghost" data-do="otkazi">Otkaži termin</button>' : ''}`) + tail;
-  return `<article class="card${isNew ? ' new' : ''}${closed ? ' done' : ''}" id="c-${id}" data-id="${id}" data-kind="${kind}" data-row="${o._i}">
+  const exp = !!(OTV[id] || p || (kind === 'prijave' && running(o)));
+  const sto = kind === 'upiti' ? (dioId ? '🛒 ' + (get(o, 'Tech Outlet dio') || dioId) : (get(o, 'Poruka') || '')) : [[get(o, 'Vrsta uređaja'), get(o, 'Točan model uređaja') || get(o, 'Proizvođač / serija laptopa', 'Proizvođač / serija desktop računala')].filter(Boolean).join(' · '), get(o, 'Opišite problem ili kvar svojim riječima') || get(o, 'Koju uslugu trebate?')].filter(Boolean).join(' — ');
+  const dat = o._t ? new Date(o._t).toLocaleDateString('hr-HR', { day: 'numeric', month: 'numeric', year: 'numeric' }) : (o['vrijeme'] || '').split(' ').slice(0, 3).join(' ');
+  return `<article class="card${isNew ? ' new' : ''}${closed ? ' done' : ''}${exp ? ' exp' : ''}${SEL.has(id) ? ' sel' : ''}" id="c-${id}" data-id="${id}" data-kind="${kind}" data-row="${o._i}">
+    <div class="c-sum" data-tgl="1">
+      <input type="checkbox" class="c-chk" data-sel="${id}"${SEL.has(id) ? ' checked' : ''} aria-label="Označi ${esc(ime)}">
+      <span class="s-nr">${kind === 'prijave' ? esc(nalogNr(o)) : 'Upit'}</span>
+      <span class="s-who"><b>${esc(ime)}</b>${isNew && st !== 'Novo' ? '<span class="pill">Novo</span>' : ''}${st === 'Novo' && isNew ? '<span class="pill">Novo</span>' : stChip(st)}</span>
+      <span class="s-what">${esc(sto.length > 110 ? sto.slice(0, 107) + '…' : sto)}</span>
+      <span class="s-date">${esc(dat)}${o._term ? `<small>📅 ${o._term.toLocaleDateString('hr-HR', { day: 'numeric', month: 'numeric' })} ${pad(o._term.getHours())}:${pad(o._term.getMinutes())}</small>` : ''}</span>
+      <span class="s-chev" aria-hidden="true">${exp ? '▴' : '▾'}</span>
+    </div>
+    <div class="c-body"${exp ? '' : ' hidden'}>
     <div class="c-top">
       <div class="c-name"><h3>${esc(ime)}${isNew ? '<span class="pill">Novo</span>' : ''}${dioId ? '<span class="pill" style="background:#2A3B1F;color:#9BE37B">🛒 Tech Outlet</span>' : ''}${stChip(st)}${uw.length ? '<span class="st jam">Jamstvo</span>' : ''}</h3><span class="c-meta">${esc(nalogNr(o))} · ${esc(o['vrijeme'] || '')}</span>
         ${o._term ? `<span class="c-term">📅${esc(termTxt)}</span>` : ''}</div>
@@ -1119,6 +1159,7 @@ function card(o, kind) {
     ${kind === 'prijave' ? photosHTML(o, id) : ''}
     ${p ? panelHTML(o, kind, p) : ''}
     <details class="c-all"><summary class="lbl" style="cursor:pointer">Svi podaci iz tablice</summary>${sessions(o).length ? `<div class="sess"><span class="lbl">Evidencija rada</span>${sessions(o).map(x => `<span>${new Date(x.s).toLocaleString('hr-HR', { dateStyle: 'short', timeStyle: 'short' })} – ${x.e ? new Date(x.e).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }) : 'u tijeku'} · ${hms(workedMs([x]))}</span>`).join('')}</div>` : ''}<dl style="margin-top:12px">${all}</dl></details>
+    </div>
   </article>`;
 }
 
@@ -1140,13 +1181,14 @@ function render() {
   if (!D) return;
   kpis(); bigTimer();
   const cal = tab === 'kalendar', gar = tab === 'garaza';
-  $('#list').hidden = cal || gar; $('#calView').hidden = !cal; $('#garView').hidden = !gar; $('#filters').hidden = cal || gar; $('#q').hidden = cal || gar;
+  $('#list').hidden = cal || gar; $('#bulk').hidden = cal || gar; $('#calView').hidden = !cal; $('#garView').hidden = !gar; $('#filters').hidden = cal || gar; $('#q').hidden = cal || gar;
   if (cal) return renderCal();
   if (gar) return renderGar();
   let rows = filtered(D[tab]);
   if (flt === 'zakazano') rows = rows.sort((a, b) => a._term - b._term);
   const q = $('#q').value.trim();
   setTimeout(() => { document.querySelectorAll('.c-panel[data-p="zavrsi"]').forEach(recalc); loadVisibleFotos(); });
+  BULK.rows = rows.map(o => tab + '-' + o._i); setTimeout(bulkPaint);
   $('#list').innerHTML = rows.length ? rows.map(o => card(o, tab)).join('') :
     `<p class="empty">${q ? 'Nema rezultata za „' + esc(q) + '”.' : flt === 'rijeseno' ? 'Još ništa nije riješeno.' : flt === 'zakazano' ? 'Nema zakazanih termina.' : tab === 'prijave' ? 'Nema otvorenih naloga.' : 'Nema otvorenih upita.'}</p>`;
 }
@@ -1404,6 +1446,52 @@ $('#calToday').onclick = () => { calM = new Date(); calM.setDate(1); renderCal()
 
 if (key) load().then(showApp).catch(() => showLogin()); else showLogin();
 setInterval(() => { if (D && !document.hidden && !Object.values(open).some(Boolean) && !Object.keys(confirmAsk).length) load().catch(() => {}); }, 120000);
+/* ===== SKUPNI ODABIR: označi, u arhivu, trajno obriši ===== */
+const BULK = { rows: [] };
+function bulkPaint() {
+  const vis = BULK.rows; [...SEL].forEach(k => { if (!vis.includes(k)) SEL.delete(k); });
+  const n = SEL.size; $('#selN').textContent = n ? 'Označeno: ' + n : 'Ništa nije označeno';
+  $('#selAll').checked = n > 0 && n === vis.length; $('#selAll').indeterminate = n > 0 && n < vis.length;
+  $('#bArch').disabled = !n || flt === 'arhiva'; $('#bDel').disabled = !n;
+  const allOpen = vis.length && vis.every(k => OTV[k]); $('#expAll').textContent = allOpen ? 'Sklopi sve' : 'Rasklopi sve';
+  if (!n) $('#bPw').hidden = true;
+}
+document.addEventListener('change', e => {
+  const c = e.target.closest('input[data-sel]'); if (!c) return;
+  c.checked ? SEL.add(c.dataset.sel) : SEL.delete(c.dataset.sel); c.closest('.card').classList.toggle('sel', c.checked); bulkPaint();
+});
+document.addEventListener('click', e => {
+  const sum = e.target.closest('.c-sum'); if (!sum || e.target.closest('input,a,button,label')) return;
+  const id = sum.closest('.card').dataset.id; OTV[id] = !OTV[id]; render();
+});
+$('#selAll').onchange = e => { BULK.rows.forEach(k => e.target.checked ? SEL.add(k) : SEL.delete(k)); render(); };
+$('#expAll').onclick = () => { const all = BULK.rows.every(k => OTV[k]); BULK.rows.forEach(k => OTV[k] = !all); render(); };
+const selObjs = () => [...SEL].map(k => { const [kind, r] = k.split('-'); return { kind, o: (D[kind] || []).find(x => x._i === +r) }; }).filter(x => x.o);
+$('#bArch').onclick = async () => {
+  const L = selObjs(), b = $('#bArch'), m = $('#bMsg'); if (!L.length) return;
+  b.disabled = true; m.className = 'pmsg'; let ok = 0;
+  for (const { kind, o } of L) {
+    m.textContent = `Arhiviram ${ok + 1} / ${L.length}…`;
+    const base = { list: kind, red: o._i, ime: get(o, 'Ime i prezime') };
+    try { if (kind === 'prijave') await stopIfRunning(o, base); await post(Object.assign({}, base, { akcija: 'update', fields: { 'Status prije arhive': status(o), 'Status': 'Arhivirano', 'Arhivirano': new Date().toLocaleString('hr-HR', { dateStyle: 'short', timeStyle: 'short' }) } })); ok++; }
+    catch (err) { m.className = 'pmsg bad'; m.textContent = err.message; break; }
+  }
+  SEL.clear(); await load().catch(() => {}); if (ok) { m.className = 'pmsg ok'; m.textContent = 'U arhivu: ' + ok + '.'; }
+};
+$('#bDel').onclick = () => { $('#bPwN').textContent = SEL.size + (SEL.size === 1 ? ' stavke' : ' stavki'); $('#bPw').hidden = false; $('#bPwI').value = ''; $('#bPwI').focus(); };
+$('#bPwNo').onclick = () => { $('#bPw').hidden = true; };
+$('#bPwOk').onclick = async () => {
+  const pw = $('#bPwI').value, m = $('#bMsg'), b = $('#bPwOk'); if (!pw) { m.className = 'pmsg bad'; m.textContent = 'Upiši lozinku.'; return; }
+  const L = selObjs(); b.disabled = true; b.textContent = 'Brišem…'; m.className = 'pmsg'; m.textContent = '';
+  try {
+    for (const { kind, o } of L) if (kind === 'prijave') await stopIfRunning(o, { list: kind, red: o._i, ime: get(o, 'Ime i prezime') });
+    const by = {}; L.forEach(({ kind, o }) => (by[kind] = by[kind] || []).push({ red: o._i, ime: get(o, 'Ime i prezime') }));
+    let n = 0; for (const kind of Object.keys(by)) { const j = await post({ akcija: 'brisi_vise', list: kind, stavke: by[kind], lozinka: pw }); n += j.obrisano || 0; }
+    SEL.clear(); $('#bPw').hidden = true; await load(); m.className = 'pmsg ok'; m.textContent = 'Trajno obrisano: ' + n + '.';
+  } catch (err) { m.className = 'pmsg bad'; m.textContent = err.message; }
+  b.disabled = false; b.textContent = 'Potvrdi brisanje';
+};
+
 window.HZ = { get key() { return key; }, get D() { return D; }, load: () => load(), get brojac() { return D && D.brojac; }, setBrojac: b => { if (D) D.brojac = b; }, get postavke() { return POSTAVKE; }, setPostavke: p => { POSTAVKE = p; PDV = p.pdv ? PDV_STOPA : 0; render(); } };
 })();
 </script>

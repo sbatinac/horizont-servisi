@@ -102,6 +102,20 @@ function admin_(d) {
   if (d.akcija === 'jutro_test') { jutarnjiSazetak(); return { ok: true }; }
   if (String(d.akcija).indexOf('dio_') === 0) return dijelovi_(d);
   if (d.akcija === 'kapacitet') return kapSpremi_(d.pravila || {});
+  if (d.akcija === 'brisi_vise') {
+    if (d.lozinka !== ADMIN_KEY) { Utilities.sleep(800); return { ok: false, error: 'Pogrešna lozinka za potvrdu.' }; }
+    const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(d.list === 'upiti' ? SHEET_UPITI : SHEET_NAME);
+    if (!sh) return { ok: false, error: 'List ne postoji.' };
+    if (d.list !== 'upiti') popuniBrojeve_(sh);
+    const H = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0], ci = H.indexOf('Ime i prezime'), ki = H.indexOf('Kalendar ID');
+    const L = (d.stavke || []).map(x => ({ red: Number(x.red), ime: String(x.ime || '') })).filter(x => x.red >= 2 && x.red <= sh.getLastRow()).sort((a, b) => b.red - a.red);
+    for (const x of L) if (ci > -1 && String(sh.getRange(x.red, ci + 1).getDisplayValue()) !== x.ime) return { ok: false, error: 'Tablica se promijenila u međuvremenu. Osvježi stranicu i pokušaj ponovno. Ništa nije obrisano.' };
+    L.forEach(x => {
+      if (ki > -1) { const id = sh.getRange(x.red, ki + 1).getDisplayValue(); if (id) { try { const ev = CalendarApp.getDefaultCalendar().getEventById(id); if (ev) ev.deleteEvent(); } catch (e) {} } }
+      sh.deleteRow(x.red);
+    });
+    return { ok: true, obrisano: L.length };
+  }
   if (d.akcija === 'tg') return tgAdmin_(d);
   if (d.akcija === 'postavke') {
     const P = d.postavke || {}, out = { pdv: !!P.pdv, pdf: P.pdf === true, napomena: String(P.napomena || '').slice(0, 400) };
