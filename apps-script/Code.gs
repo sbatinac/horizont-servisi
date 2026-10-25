@@ -30,6 +30,8 @@ const ADMIN_KEY = 'UPISI_LOZINKU';
 // WhatsApp obavijest za svaki novi nalog/upit (besplatno preko CallMeBot, vidi README). Prazno = isključeno.
 const WA_TEL = '';     // npr. '+385913584122'
 const WA_APIKEY = '';  // ključ koji ti pošalje CallMeBot
+// Push obavijest na mobitel preko besplatne aplikacije ntfy (bez registracije). U aplikaciji se pretplatiš na ovu temu.
+const NTFY_TEMA = '';  // prazno = isključeno
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
@@ -50,6 +52,7 @@ function doPost(e) {
     const row = appendRow_(sheet, data);
     notify_(data, row, upit);
     try { waNovo_(data, nr, upit); } catch (e) { console.warn(e); }
+    try { ntfyNovo_(data, nr, upit); } catch (e) { console.warn(e); }
     try { potvrdaKlijentu_(data, nr, upit); } catch (e) { console.warn(e); }
     return json_({ ok: true, nr: nr });
   } catch (err) {
@@ -103,6 +106,7 @@ function admin_(d) {
     PropertiesService.getScriptProperties().setProperty('postavke', JSON.stringify(out));
     return { ok: true, postavke: out };
   }
+  if (d.akcija === 'ntfy_test') { if (!NTFY_TEMA) return { ok: false, error: 'U Code.gs upiši NTFY_TEMA.' }; const r = ntfy_('🔔 Imaš nalog! (proba)', 'Obavijesti s Horizont admina rade. Raditi početi trebaš. 😄', ADMIN_URL); return r === true ? { ok: true } : { ok: false, error: 'ntfy: ' + r }; }
   if (d.akcija === 'wa_test') { if (!WA_TEL || !WA_APIKEY) return { ok: false, error: 'U Code.gs upiši WA_TEL i WA_APIKEY pa objavi novu verziju.' }; const r = wa_('✅ Horizont: WhatsApp obavijesti rade! Imaš nalog… raditi početi trebaš. 😄'); return r === true ? { ok: true } : { ok: false, error: 'CallMeBot: ' + r }; }
   if (d.akcija === 'alarm_pjesma') {
     const props = PropertiesService.getScriptProperties();
@@ -648,4 +652,19 @@ function waNovo_(data, nr, upit) {
     ? [g('dio_id') ? '🛒 Zainteresiran za ' + g('dio') : '💬 Novi upit s web stranice', g('ime') + (tel ? ' · ' + tel : ''), g('email'), g('poruka').slice(0, 300)]
     : ['🔔 Imaš nalog! Raditi početi trebaš!', nr, g('ime') + (tel ? ' · ' + tel : ''), [g('uredaj'), g('tip_racunala')].filter(String).join(' · '), g('datum') ? 'Željeni datum: ' + g('datum') : '', (g('opis_kvara') || '').slice(0, 250), ADMIN_URL];
   wa_(L.filter(String).join('\n'));
+}
+
+// ===== PUSH OBAVIJEST NA MOBITEL (ntfy.sh) =====
+function ntfy_(naslov, tekst, link) {
+  if (!NTFY_TEMA) return 'nije postavljeno';
+  const r = UrlFetchApp.fetch('https://ntfy.sh/', { method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+    payload: JSON.stringify({ topic: NTFY_TEMA, title: naslov, message: String(tekst).slice(0, 1500), priority: 5, tags: ['bell'], click: link || ADMIN_URL }) });
+  return r.getResponseCode() < 300 ? true : r.getResponseCode() + ' ' + r.getContentText().slice(0, 160);
+}
+function ntfyNovo_(data, nr, upit) {
+  if (!NTFY_TEMA) return;
+  const g = k => { const key = Object.keys(data).find(x => x.indexOf('[' + k + ']') !== -1); return key ? String(data[key] || '') : ''; };
+  // Bez telefona i opisa kvara: obavijest prolazi kroz vanjski servis, detalji su u adminu.
+  if (upit) ntfy_(g('dio_id') ? '🛒 Zainteresiran za ' + g('dio') : '💬 Novi upit', (g('ime').split(' ')[0] || 'Klijent') + ' · otvori admin za detalje', ADMIN_URL);
+  else ntfy_('🔔 Imaš nalog! ' + nr, [(g('ime').split(' ')[0] || 'Klijent'), [g('uredaj'), g('tip_racunala')].filter(String).join(' · '), g('datum') ? 'Željeni datum: ' + g('datum') : ''].filter(String).join(' · ') + '\nRaditi početi trebaš!', ADMIN_URL);
 }
