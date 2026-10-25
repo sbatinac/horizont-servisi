@@ -406,6 +406,12 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 @media (max-width:900px){.perf{grid-template-columns:1fr}.perf-sec{background:linear-gradient(rgba(14,14,13,.85),rgba(14,14,13,.72)),var(--perf) 60% center/cover no-repeat,var(--bg)}}
 .music.float{position:fixed;left:16px;bottom:16px;z-index:60;box-shadow:0 8px 30px rgba(0,0,0,.55);border-color:rgba(254,229,3,.35);animation:mIn .3s ease}
 @keyframes mIn{from{opacity:0;transform:translateY(12px)}}
+#garaza.gz-sec{padding-top:0}
+.gz-band{background:linear-gradient(90deg,rgba(14,14,13,.95) 0%,rgba(14,14,13,.78) 50%,rgba(14,14,13,.45) 100%),var(--gz) center 40%/cover no-repeat,var(--bg);padding-block:clamp(90px,11vw,150px);margin-bottom:36px;position:relative}
+.gz-band::after{content:"";position:absolute;left:0;right:0;bottom:0;height:70px;background:linear-gradient(transparent,var(--surface));pointer-events:none}
+.gz-band .sec-head{margin-bottom:0;max-width:560px;position:relative;z-index:1}
+.gz-band .sec-head p{color:#D0D0C8}
+@media (max-width:900px){.gz-band{background:linear-gradient(rgba(14,14,13,.82),rgba(14,14,13,.7)),var(--gz) center/cover no-repeat,var(--bg)}}
 </style>
 
 <!-- Microsoft Clarity -->
@@ -590,9 +596,11 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
   </div>
 </div></section>
 
-<section id="garaza" class="alt"><div class="wrap">
+<section id="garaza" class="alt gz-sec">
+<div class="gz-band" style="--gz:url('garaza.webp?v=3')"><div class="wrap">
   <div class="sec-head"><span class="lbl">Silicon Graveyard / Tech Outlet</span><h2 class="gz-h">Trgovina rabljenih računalnih dijelova</h2><p>Rabljeni dijelovi i oprema iz naše radionice, testirani prije prodaje. Za popravak, nadogradnju ili rezervu, po poštenoj cijeni.</p></div>
-  <figure class="gz-ban"><img src="garaza.webp?v=3" alt="Police pune starih računala, monitora, konzola i dijelova" width="1024" height="564" loading="lazy"></figure>
+</div></div>
+<div class="wrap">
   <div class="gz-tools"><div class="tabs" id="gzCats"></div><input type="search" id="gzQ" placeholder="Traži, npr. DDR4, SSD, PS4…" aria-label="Pretraga dijelova"></div>
   <div class="gz-grid" id="gzGrid"><p class="msg">Učitavam dijelove…</p></div>
 </div></section>
