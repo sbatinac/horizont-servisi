@@ -78,7 +78,7 @@ function doGet(e) {
       return json_({ ok: false, error: 'Pogrešna lozinka.' });
     }
     try {
-      return json_({ ok: true, prijave: table_(SHEET_NAME), upiti: table_(SHEET_UPITI), posjete: table_(SHEET_POSJETE), dijelovi: table_(SHEET_DIJELOVI), predlosci: JSON.parse(PropertiesService.getScriptProperties().getProperty('predlosci') || '[]'), tablica: SpreadsheetApp.getActiveSpreadsheet().getUrl(), jutro: jutroAktivno_(), brojac: brojacInfo_(), kapacitet: kapPravila_(), dani: kapDani_(kapPravila_(), kapZauzeto_(), 400) });
+      return json_({ ok: true, prijave: table_(SHEET_NAME), upiti: table_(SHEET_UPITI), posjete: table_(SHEET_POSJETE), dijelovi: table_(SHEET_DIJELOVI), predlosci: JSON.parse(PropertiesService.getScriptProperties().getProperty('predlosci') || '[]'), tablica: SpreadsheetApp.getActiveSpreadsheet().getUrl(), jutro: jutroAktivno_(), brojac: brojacInfo_(), alarm: JSON.parse(PropertiesService.getScriptProperties().getProperty('alarm_pjesma') || 'null'), kapacitet: kapPravila_(), dani: kapDani_(kapPravila_(), kapZauzeto_(), 400) });
     } catch (err) { return json_({ ok: false, error: 'Greška u skripti: ' + err.message + ' – u Apps Scriptu pokreni funkciju odobriDozvole i odobri pristup.' }); }
   }
   return json_({ ok: true, servis: 'Horizont LHB – prijave' });
@@ -94,6 +94,17 @@ function admin_(d) {
   if (d.akcija === 'jutro_test') { jutarnjiSazetak(); return { ok: true }; }
   if (String(d.akcija).indexOf('dio_') === 0) return dijelovi_(d);
   if (d.akcija === 'kapacitet') return kapSpremi_(d.pravila || {});
+  if (d.akcija === 'alarm_pjesma') {
+    const props = PropertiesService.getScriptProperties();
+    let old = null; try { old = JSON.parse(props.getProperty('alarm_pjesma') || 'null'); } catch (e) {}
+    if (d.brisi) { if (old) trash_(old.id); props.deleteProperty('alarm_pjesma'); return { ok: true, alarm: null }; }
+    if (!d.data) return { ok: false, error: 'Nema datoteke.' };
+    const it = arhiva_().getFoldersByName('Alarm'), fol = it.hasNext() ? it.next() : arhiva_().createFolder('Alarm');
+    const f = fol.createFile(Utilities.newBlob(Utilities.base64Decode(d.data), d.mime || 'audio/mpeg', String(d.ime || 'alarm.mp3').slice(0, 120)));
+    if (old) trash_(old.id);
+    const a = { id: f.getId(), ime: f.getName() }; props.setProperty('alarm_pjesma', JSON.stringify(a));
+    return { ok: true, alarm: a };
+  }
   if (d.akcija === 'brojac') {
     if (d.lozinka !== ADMIN_KEY) { Utilities.sleep(800); return { ok: false, error: 'Pogrešna lozinka za potvrdu.' }; }
     const n = Math.floor(Number(d.sljedeci));
