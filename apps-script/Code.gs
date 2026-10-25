@@ -369,34 +369,93 @@ function potvrdaKlijentu_(data, nr, upit) {
   const g = k => { const key = Object.keys(data).find(x => x.indexOf('[' + k + ']') !== -1); return key ? String(data[key] || '') : ''; };
   const to = g('email');
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(to)) return;
-  const ime = [g('titula'), g('ime')].filter(String).join(' ');
-  const box = 'font-family:Arial,sans-serif;font-size:15px;line-height:1.55;color:#111;max-width:560px';
-  let subject, html;
-  if (upit && g('dio_id')) {
-    subject = 'Zaprimili smo Vaš interes: ' + g('dio') + ' – Tech Outlet';
-    html = '<div style="' + box + '"><p>Poštovani/a ' + esc_(ime) + ',</p><p>hvala na interesu za dio iz naše trgovine <b>Silicon Graveyard / Tech Outlet</b>:</p>' +
-      '<p style="background:#FEE503;padding:10px 14px;font-weight:bold;display:inline-block">' + esc_(g('dio')) + '</p>' +
-      '<p>Provjerit ćemo dostupnost i javiti Vam se u najkraćem roku da dogovorimo preuzimanje. Dio Vam rezerviramo kad potvrdimo dogovor.</p>' +
-      (g('poruka') ? '<p style="background:#f4f4f0;padding:10px 14px;border-left:4px solid #FEE503">' + esc_(g('poruka')).replace(/\n/g, '<br>') + '</p>' : '') +
-      '<p>Brže ide preko: <b>' + SERVIS_TEL + '</b> (Viber / WhatsApp)</p><p>Lijep pozdrav,<br>Saša Batinac<br>' + SERVIS_NAZIV + '</p></div>';
-  } else if (upit) {
-    subject = 'Zaprimili smo Vaš upit – ' + SERVIS_NAZIV;
-    html = '<div style="' + box + '"><p>Poštovani/a ' + esc_(ime) + ',</p><p>hvala na upitu. Zaprimili smo ga i javit ćemo se u najkraćem roku.</p>' +
-      '<p style="background:#f4f4f0;padding:10px 14px;border-left:4px solid #FEE503">' + esc_(g('poruka')).replace(/\n/g, '<br>') + '</p>' +
-      '<p>Za hitne slučajeve: <b>' + SERVIS_TEL + '</b> (Viber / WhatsApp)</p><p>Lijep pozdrav,<br>Saša Batinac<br>' + SERVIS_NAZIV + '</p></div>';
+  const m = mailPotvrda_(g, nr, upit);
+  MailApp.sendEmail({ to: to, subject: m.subject, htmlBody: m.html, name: SERVIS_NAZIV, replyTo: NOTIFY_EMAIL });
+}
+
+// ===== IZGLED MAILA KLIJENTU (tamni stil web stranice, radi u Gmailu, Outlooku i na mobitelu) =====
+function mailPotvrda_(g, nr, upit) {
+  const ime = [g('titula'), g('ime')].filter(String).join(' ').trim();
+  const imeK = (g('ime').split(' ')[0] || '').trim();
+  const hrD = v => String(v || '').replace(/^(\d{4})-(\d{2})-(\d{2}).*$/, (x, y, mo, d) => +d + '. ' + +mo + '. ' + y + '.');
+  const Y = '#FEE503', BG = '#0E0E0D', CARD = '#171716', LINE = '#2C2C29', INK = '#F5F5F0', MUT = '#A6A69D';
+  const F = "font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;";
+  const red = (l, v) => v ? '<tr><td style="' + F + 'padding:9px 0;border-bottom:1px solid ' + LINE + ';color:' + MUT + ';font-size:13px;width:38%;vertical-align:top">' + l + '</td><td style="' + F + 'padding:9px 0;border-bottom:1px solid ' + LINE + ';color:' + INK + ';font-size:14px;vertical-align:top">' + esc_(v).replace(/\n/g, '<br>') + '</td></tr>' : '';
+  const gumb = (txt, href, glavni) => '<table role="presentation" cellpadding="0" cellspacing="0" style="display:inline-table;margin:4px 6px 4px 0"><tr><td style="background:' + (glavni ? Y : 'transparent') + ';border:2px solid ' + Y + ';border-radius:8px"><a href="' + href + '" style="' + F + 'display:inline-block;padding:12px 20px;font-size:15px;font-weight:bold;color:' + (glavni ? '#111100' : Y) + ';text-decoration:none">' + txt + '</a></td></tr></table>';
+  const tel = SERVIS_TEL.replace(/\D/g, ''), telI = '385' + tel.replace(/^0/, '');
+  let subject, naslov, uvod, sredina;
+  if (!upit) {
+    subject = '✅ Zaprimljen servisni nalog ' + nr + ' – Horizont';
+    naslov = 'Nalog je zaprimljen!';
+    uvod = 'Poštovani/a ' + esc_(ime || 'korisniče') + ',<br>hvala na povjerenju. Vaš uređaj je u dobrim rukama. Javit ćemo se uskoro s potvrdom termina.';
+    const ured = [g('uredaj'), g('tip_racunala'), g('laptop_model') || g('desktop_model') || g('model')].filter(String).join(' · ');
+    const koraci = [['Zaprimljeno', true], ['Termin', false], ['Na servisu', false], ['Gotovo', false]].map((k, i) =>
+      '<td width="25%" style="padding:0 3px;vertical-align:top"><div style="height:6px;border-radius:6px;background:' + (k[1] ? Y : LINE) + '"></div><div style="' + F + 'font-size:12px;padding-top:7px;color:' + (k[1] ? Y : MUT) + ';font-weight:' + (k[1] ? 'bold' : 'normal') + '">' + (i + 1) + '. ' + k[0] + '</div></td>').join('');
+    sredina =
+      '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0 6px"><tr><td style="background:' + Y + ';border-radius:12px;padding:20px 22px">' +
+        '<div style="' + F + 'font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#4A4400;font-weight:bold">Broj Vašeg naloga</div>' +
+        '<div style="font-family:\'Courier New\',monospace;font-size:30px;font-weight:bold;color:#111100;letter-spacing:1px;padding-top:4px">' + nr + '</div>' +
+        '<div style="' + F + 'font-size:12px;color:#4A4400;padding-top:4px">Sačuvajte ga, trebat će Vam za praćenje statusa.</div></td></tr></table>' +
+      '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0 4px"><tr>' + koraci + '</tr></table>' +
+      '<div style="' + F + 'font-size:11px;letter-spacing:2px;text-transform:uppercase;color:' + MUT + ';padding:24px 0 4px">Sažetak prijave</div>' +
+      '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + red('Uređaj', ured) + red('Željeni datum', hrD(g('datum'))) + red('Predaja', g('predaja')) + red('Opis kvara', g('opis_kvara').slice(0, 600)) + '</table>' +
+      '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0 8px"><tr><td style="border:2px solid ' + Y + ';border-radius:12px;padding:16px 18px;background:#1E1D10">' +
+        '<div style="' + F + 'font-size:15px;font-weight:bold;color:' + Y + '">⚠ Prije predaje: napravite backup</div>' +
+        '<div style="' + F + 'font-size:13px;line-height:1.55;color:' + INK + ';padding-top:6px">Spremite dokumente, fotografije, lozinke i licence programa na drugi disk ili u oblak. Ne znate kako? Javite nam se i pomoći ćemo.</div></td></tr></table>' +
+      '<div style="padding:18px 0 4px">' + gumb('Prati status naloga →', WEB + 'status.html?nr=' + encodeURIComponent(nr), true) + '</div>';
+  } else if (g('dio_id')) {
+    subject = '🛒 Zaprimili smo Vaš interes: ' + g('dio') + ' – Tech Outlet';
+    naslov = 'Dio je zabilježen za Vas!';
+    uvod = 'Poštovani/a ' + esc_(ime || 'korisniče') + ',<br>hvala na interesu za dio iz naše trgovine <b style="color:' + Y + '">Silicon Graveyard / Tech Outlet</b>.';
+    sredina =
+      '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0 6px"><tr><td style="background:' + Y + ';border-radius:12px;padding:18px 22px">' +
+        '<div style="' + F + 'font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#4A4400;font-weight:bold">Dio koji Vas zanima</div>' +
+        '<div style="' + F + 'font-size:20px;font-weight:bold;color:#111100;padding-top:6px">' + esc_(g('dio')) + '</div></td></tr></table>' +
+      '<p style="' + F + 'font-size:14px;line-height:1.6;color:' + INK + ';margin:18px 0">Provjerit ćemo dostupnost i javiti Vam se u najkraćem roku da dogovorimo preuzimanje. Dio Vam rezerviramo čim potvrdimo dogovor.</p>' +
+      (g('poruka') ? '<div style="' + F + 'font-size:13px;color:' + MUT + ';border-left:3px solid ' + Y + ';padding:6px 0 6px 14px;margin:0 0 10px">' + esc_(g('poruka')).replace(/\n/g, '<br>') + '</div>' : '') +
+      '<div style="padding:14px 0 4px">' + gumb('Pogledaj ostale dijelove →', WEB + '#garaza', true) + '</div>';
   } else {
-    subject = 'Zaprimljen servisni nalog ' + nr + ' – ' + SERVIS_NAZIV;
-    const ured = [g('uredaj'), g('tip_racunala'), g('laptop_model') || g('desktop_model')].filter(String).join(' · ');
-    html = '<div style="' + box + '"><p>Poštovani/a ' + esc_(ime) + ',</p>' +
-      '<p>zaprimili smo Vaš servisni nalog. Javit ćemo se s potvrdom termina.</p>' +
-      '<p style="font-size:22px;font-weight:bold;margin:16px 0;background:#FEE503;display:inline-block;padding:6px 14px">' + nr + '</p>' +
-      '<table style="border-collapse:collapse;font-size:14px">' +
-      [['Uređaj', ured], ['Željeni datum', g('datum')], ['Predaja', g('predaja')], ['Opis kvara', g('opis_kvara')]].filter(r => r[1]).map(r => '<tr><td style="color:#666;padding:3px 14px 3px 0;vertical-align:top">' + r[0] + '</td><td style="padding:3px 0">' + esc_(r[1]) + '</td></tr>').join('') + '</table>' +
-      '<p style="margin-top:18px"><b>Važno – backup podataka:</b> prije predaje uređaja napravite sigurnosnu kopiju svih važnih podataka (dokumenti, fotografije, lozinke, licence programa).</p>' +
-      '<p>Status naloga možete provjeriti na <a href="' + WEB + 'status.html?nr=' + encodeURIComponent(nr) + '">' + WEB + 'status.html</a> uz broj naloga i broj mobitela.</p>' +
-      '<p>Za hitne slučajeve: <b>' + SERVIS_TEL + '</b> (Viber / WhatsApp)</p><p>Lijep pozdrav,<br>Saša Batinac<br>' + SERVIS_NAZIV + '</p></div>';
+    subject = '✅ Zaprimili smo Vaš upit – Horizont';
+    naslov = 'Upit je stigao!';
+    uvod = 'Poštovani/a ' + esc_(ime || 'korisniče') + ',<br>hvala što ste nam se javili. Odgovorit ćemo u najkraćem roku.';
+    sredina = (g('poruka') ? '<div style="' + F + 'font-size:11px;letter-spacing:2px;text-transform:uppercase;color:' + MUT + ';padding:22px 0 8px">Vaša poruka</div><div style="' + F + 'font-size:14px;line-height:1.6;color:' + INK + ';background:#1E1E1C;border-left:3px solid ' + Y + ';border-radius:0 10px 10px 0;padding:14px 16px">' + esc_(g('poruka')).replace(/\n/g, '<br>') + '</div>' : '') +
+      '<div style="padding:22px 0 4px">' + gumb('Prijavi uređaj za servis →', WEB + '#obrazac', true) + '</div>';
   }
-  MailApp.sendEmail({ to: to, subject: subject, htmlBody: html, name: SERVIS_NAZIV, replyTo: NOTIFY_EMAIL });
+  const html = '<!doctype html><html lang="hr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark light"><title>' + esc_(subject) + '</title></head>' +
+  '<body style="margin:0;padding:0;background:' + BG + '">' +
+  '<div style="display:none;max-height:0;overflow:hidden;opacity:0">' + (upit ? 'Hvala, javit ćemo se uskoro.' : 'Broj naloga ' + nr + '. Javit ćemo se s potvrdom termina.') + '</div>' +
+  '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:' + BG + '"><tr><td align="center" style="padding:24px 12px">' +
+  '<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;background:' + CARD + ';border:1px solid ' + LINE + ';border-radius:16px;overflow:hidden">' +
+    '<tr><td style="line-height:0"><a href="' + WEB + '"><img src="' + WEB + 'mail-banner.jpg" width="600" alt="Horizont – od puža do rakete" style="display:block;width:100%;height:auto;border:0"></a></td></tr>' +
+    '<tr><td style="height:5px;background:' + Y + ';line-height:5px;font-size:0">&nbsp;</td></tr>' +
+    '<tr><td style="padding:26px 30px 6px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>' +
+      '<td style="vertical-align:middle"><div style="' + F + 'font-size:11px;letter-spacing:2px;text-transform:uppercase;color:' + MUT + '">Horizont LHB d.o.o. · servis</div>' +
+      '<div style="' + F + 'font-size:28px;line-height:1.15;font-weight:800;color:' + Y + ';padding-top:6px">' + naslov + '</div></td>' +
+      '<td width="96" align="right" style="vertical-align:middle"><img src="' + WEB + 'mail-logo.png" width="84" alt="Horizont" style="display:block;background:#fff;border-radius:10px;padding:6px"></td></tr></table></td></tr>' +
+    '<tr><td style="padding:10px 30px 8px"><p style="' + F + 'font-size:15px;line-height:1.6;color:' + INK + ';margin:0">' + uvod + '</p>' + sredina + '</td></tr>' +
+    '<tr><td style="padding:22px 30px 26px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td style="border-top:1px solid ' + LINE + ';padding-top:20px">' +
+      '<div style="' + F + 'font-size:11px;letter-spacing:2px;text-transform:uppercase;color:' + MUT + '">Hitno? Javite se izravno</div>' +
+      '<div style="' + F + 'font-size:24px;font-weight:800;color:' + Y + ';padding:6px 0 8px">' + SERVIS_TEL + ' <span style="font-size:14px;color:' + MUT + ';font-weight:normal">· Saša</span></div>' +
+      gumb('Nazovi', 'tel:+' + telI, false) + gumb('WhatsApp', 'https://wa.me/' + telI, false) + gumb('Viber', 'viber://chat?number=%2B' + telI, false) +
+    '</td></tr></table></td></tr>' +
+    '<tr><td style="background:#0A0A09;padding:18px 30px;border-top:1px solid ' + LINE + '">' +
+      '<div style="' + F + 'font-size:18px;font-weight:800;color:' + INK + '">Od puža <span style="color:' + Y + '">do rakete.</span></div>' +
+      '<div style="' + F + 'font-size:12px;line-height:1.6;color:' + MUT + ';padding-top:6px">Sporo, vruće, bučno? Vraćamo ga u život.<br><a href="' + WEB + '" style="color:' + Y + ';text-decoration:none">sbatinac.github.io/horizont-servisi</a> · horizont.servisi@gmail.com</div>' +
+      '<div style="' + F + 'font-size:11px;color:#6E6E66;padding-top:10px">Ovu poruku ste dobili jer ste poslali prijavu ili upit na našoj stranici. Osobne podatke koristimo isključivo za kontakt i izvršenje usluge.</div></td></tr>' +
+  '</table></td></tr></table></body></html>';
+  return { subject: subject, html: html };
+}
+
+// Pokreni ručno: pošalje ti na NOTIFY_EMAIL primjer maila koji dobiva klijent (nalog, upit i Tech Outlet).
+function testMailKlijentu() {
+  const prim = { 'Ime i prezime [ime]': 'Ivo Ivić', 'Vrsta uređaja [uredaj]': 'Računalo - LAPTOP/DESKTOP', 'Moje računalo je [tip_racunala]': 'Laptop', 'Željeni datum [datum]': '2026-10-28',
+    'Kako želite predati uređaj? [predaja]': 'Osobno donošenje uređaja na adresu servisa', 'Opis [opis_kvara]': 'Laptop se pregrijava i gasi kad igram igrice. Ventilator je jako glasan.', 'Poruka [poruka]': 'Zanima me cijena čišćenja laptopa.' };
+  const g = k => { const key = Object.keys(prim).find(x => x.indexOf('[' + k + ']') !== -1); return key ? prim[key] : ''; };
+  [[false, null], [true, null], [true, 'dio']].forEach(([u, d]) => {
+    const gg = d ? (k => k === 'dio_id' ? 'D-0001' : k === 'dio' ? 'D-0001 – GTX 1060 6 GB – 120 €' : g(k)) : g;
+    const m = mailPotvrda_(gg, 'RN-2026-0012', u);
+    MailApp.sendEmail({ to: NOTIFY_EMAIL, subject: '[PRIMJER] ' + m.subject, htmlBody: m.html, name: SERVIS_NAZIV });
+  });
 }
 
 // ===== JAVNA PROVJERA STATUSA (samo status, bez osobnih podataka) =====
