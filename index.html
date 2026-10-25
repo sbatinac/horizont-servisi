@@ -407,6 +407,8 @@ footer.snail .foot-row{padding-block:18px;background:transparent;border-top:1px 
 .perf-im:hover img{transform:scale(1.03)}
 @media (max-width:900px){.perf{grid-template-columns:1fr;gap:26px}.perf-im{order:-1}}
 @media (prefers-reduced-motion:reduce){.perf-im img{transition:none}}
+.music.float{position:fixed;left:16px;bottom:16px;z-index:60;box-shadow:0 8px 30px rgba(0,0,0,.55);border-color:rgba(254,229,3,.35);animation:mIn .3s ease}
+@keyframes mIn{from{opacity:0;transform:translateY(12px)}}
 </style>
 
 <!-- Microsoft Clarity -->
@@ -1219,6 +1221,14 @@ render(false);
     mark();
   }));
   audio.addEventListener('pause', mark); audio.addEventListener('play', mark);
+  // Kad se zaglavlje odmakne, gumbi glazbe ostaju dolje lijevo
+  const ph = document.createElement('span'); ph.style.display = 'none'; box.after(ph);
+  const hdr = document.querySelector('header');
+  if ('IntersectionObserver' in window && hdr) new IntersectionObserver(([e]) => {
+    const f = !e.isIntersecting && getComputedStyle(hdr).position !== 'sticky';
+    if (f === box.classList.contains('float')) return;
+    box.classList.toggle('float', f); if (f) document.body.appendChild(box); else ph.before(box);
+  }).observe(hdr);
 })();
 </script>
 <script>
